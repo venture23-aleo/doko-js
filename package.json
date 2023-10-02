@@ -1,0 +1,36 @@
+{
+  "name": "aleojs-cli",
+  "version": "1.0.0",
+  "description": "AleoJS Cli tool",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venture23-zkp/aleojs.git"
+  },
+  "keywords": [
+    "aleo",
+    "aleojs",
+    "aleo-cli"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/venture23-zkp/aleojs/issues"
+  },
+  "homepage": "https://github.com/venture23-zkp/aleojs#readme",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "figlet": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.2"
+  },
+  "bin": {
+    "aleojs-dev": "./dist/index.js"
+  }
+}
