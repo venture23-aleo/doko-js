@@ -7,10 +7,10 @@ import {
   DataType,
   KEYWORDS,
   TokenType,
-  MappingDefinition,
-} from "../utils/aleo-utils";
+  MappingDefinition
+} from '../utils/aleo-utils';
 
-import { Tokenizer } from "./tokenizer";
+import { Tokenizer } from './tokenizer';
 
 class AleoReflection {
   customTypes = new Array<StructDefinition>();
@@ -43,7 +43,7 @@ class Parser {
     this.tokenizer.readToken();
 
     // Parse until we reach right parenthesis
-    while (this.tokenizer.tryReadToken().value !== "}") {
+    while (this.tokenizer.tryReadToken().value !== '}') {
       // Parse declaration
       fields.push(this.parseExpression());
     }
@@ -80,18 +80,19 @@ class Parser {
     return {
       name: mappingName,
       left: leftDeclaration.val,
-      right: rightDeclaration.val,
+      right: rightDeclaration.val
     };
   }
 
   private parseFunctionPrototype(token: TokenInfo): FunctionDefinition {
     const fnName = this.tokenizer.readToken().value;
     const inputs = new Array<KeyVal<Identifier, DataType>>();
-    const output = "void";
+    const output = 'void';
 
     // Eat the left parenthesis
     this.tokenizer.readToken();
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const token = this.tokenizer.tryReadToken();
 
@@ -110,7 +111,7 @@ class Parser {
   private parseFunction(token: TokenInfo): FunctionDefinition {
     const functionDef = this.parseFunctionPrototype(token);
 
-    while (this.tokenizer.tryReadToken().value !== "}") {
+    while (this.tokenizer.tryReadToken().value !== '}') {
       // Eat the whole function body
       const tk = this.tokenizer.readToken();
       if (tk.value === KEYWORDS.OUTPUT) {
@@ -142,7 +143,7 @@ class Parser {
             aleoReflection.functions.push(this.parseFunction(token));
           else if (token.value === KEYWORDS.MAPPING)
             aleoReflection.mappings.push(this.parseMapping(token));
-          else console.warn("[Warning] Unparsed keyword: ", token.value);
+          else console.warn('[Warning] Unparsed keyword: ', token.value);
           break;
       }
     }

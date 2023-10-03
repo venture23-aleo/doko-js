@@ -1,27 +1,27 @@
 enum TokenType {
   UNKNOWN = 0,
   KEYWORD = 3,
-  IDENTIFIER = 4,
+  IDENTIFIER = 4
 }
 
 const DECLARATION_KEYWORDS = {
-  STRUCT: "struct",
-  FUNCTION: "function",
-  FINALIZE: "finalize",
-  RECORD: "record",
-  CLOSURE: "closure",
-  MAPPING: "mapping",
+  STRUCT: 'struct',
+  FUNCTION: 'function',
+  FINALIZE: 'finalize',
+  RECORD: 'record',
+  CLOSURE: 'closure',
+  MAPPING: 'mapping'
 };
 
 const KEYWORDS: Record<string, string> = {
-  INPUT: "input",
-  OUTPUT: "output",
-  ADD: "add",
-  KEY: "key",
-  VALUE: "value",
-  LEFT: "left",
-  RIGHT: "right",
-  ...DECLARATION_KEYWORDS,
+  INPUT: 'input',
+  OUTPUT: 'output',
+  ADD: 'add',
+  KEY: 'key',
+  VALUE: 'value',
+  LEFT: 'left',
+  RIGHT: 'right',
+  ...DECLARATION_KEYWORDS
 };
 
 const KeyWordSet = new Set<string>(Object.values(KEYWORDS));
@@ -68,5 +68,5 @@ export {
   FunctionDefinition,
   MappingDefinition,
   KeyWordSet,
-  KEYWORDS,
+  KEYWORDS
 };

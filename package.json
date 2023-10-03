@@ -5,7 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "npx tsc",
-    "test": "npm run test"
+    "test": "npm run test",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix --ext .ts ."
   },
   "repository": {
     "type": "git",

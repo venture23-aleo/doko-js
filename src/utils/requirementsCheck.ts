@@ -1,105 +1,144 @@
-import {exec} from "child_process";
+import { spawn } from 'child_process';
 import readline from 'readline';
-import os from "os";
+import os from 'os';
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const userShell = process.env.SHELL || '/bin/sh';
+
+console.log('Using shell:', userShell);
 
 const isWindows = () => {
-    return os.platform() === "win32";
-}
+  return os.platform() === 'win32';
+};
 
 const isMacOS = () => {
-    return os.platform() === "darwin";
-}
+  return os.platform() === 'darwin';
+};
 
 const isLinux = () => {
-    return os.platform() === "linux";
-}
+  return os.platform() === 'linux';
+};
 
 const checkProgramInstallation = (command: string) => {
+  return new Promise((resolve, reject) => {
     let isInstalled = false;
-    exec(command, (error, stdout, stderr) => {
-        isInstalled = !error;
+    const shellProcess = spawn(userShell, ['-c', command]);
+    shellProcess.stdout.on('data', (data) => {
+      isInstalled = true;
     });
 
-    return isInstalled;
-}
+    shellProcess.stderr.on('data', (data) => {
+      isInstalled = false;
+    });
 
-const installRust = () => {
- exec("../scripts/install_rust.sh", (error, stdout, stderr) => {
-    if (!error) {
-      console.log('Rust installed successfully.');
-    } else {
-      console.error('Error installing Rust:', error);
-      process.exit(1);
-    }
+    shellProcess.on('close', (code) => {
+      const program = command.split(' ')[0];
+      console.log(
+        'Code',
+        code,
+        ':',
+        isInstalled
+          ? `${program} is already setup`
+          : `${program} needs to be setup`
+      );
+      resolve(isInstalled);
+    });
   });
 };
 
-const installAleo = () => {
-    console.log("Installing aleo..");
-    exec('ls', (error, stdout, stderr) => {
-       if (!error) {
-         console.log('Aleo installed successfully.');
-       } else {
-         console.error('Error installing Aleo:', error);
-         process.exit(1);
-       }
-     });
-};
+const installProgram = (command: string, shouldEnd: boolean = true) => {
+  return new Promise((res, rej) => {
+    const shellProcess = spawn(userShell, ['-c', command]);
+    rl.on('line', (input) => {
+      shellProcess.stdin.write(input + '\n');
+    });
 
-const installSnarkOS = () => {
-    console.log("Installing SnarkOS..");
-    exec('ls', (error, stdout, stderr) => {
-    if (!error) {
-      console.log('SnarkOS installed successfully.');
-    } else {
-      console.error('Error installing SnarkOS:', error);
-      process.exit(1);
-    }
+    shellProcess.stdout.on('data', (data) => {
+      process.stdout.write(data);
+    });
+
+    shellProcess.stderr.on('data', (data) => {
+      process.stderr.write(data);
+    });
+
+    shellProcess.on('close', (code) => {
+      console.log(`Process exited with code for command ${command}`, code);
+      if (shouldEnd) rl.close();
+      res(0);
+    });
   });
 };
 
-export const checkAndInstallRequirements = () => {
-    const isRustInstalled = checkProgramInstallation('rustc --version');;
-    const isAleoInstalled = checkProgramInstallation('aleo --version');
-    const isSnarkOsInstalled = checkProgramInstallation('snarkos --version');
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-      });
+export const checkAndInstallRequirements = async () => {
+  const isRustInstalled = await checkProgramInstallation('rustc --version');
+  const isAleoInstalled = await checkProgramInstallation('aleo-develop --help');
+  const isSnarkOsInstalled = await checkProgramInstallation('snarkos --help');
+  const isLeoInstalled = await checkProgramInstallation('leo --help');
 
-    const needSetup = [];
-    if(!isRustInstalled) needSetup.push("Rust");
-    if(!isSnarkOsInstalled) needSetup.push("SnarkOs");
-    if(!isAleoInstalled) needSetup.push("Aleo");
+  const needSetup: string[] = [];
 
-    if(needSetup.length>0) {
-        const qq = needSetup.map((v, index) => index+1 + "." + v + "\n").join("");
-        const questionString = "Need following programs to init. Do you want to continue with installation? \n\n" + qq + "\n (yes/no/y/n): ";
+  if (!isRustInstalled) needSetup.push('rustc');
+  if (!isSnarkOsInstalled) needSetup.push('aleo-development-server');
+  if (!isAleoInstalled) needSetup.push('snarkos');
+  if (!isLeoInstalled) needSetup.push('leo-lang');
 
-        if(isWindows()) {
-         console.log("Please install following for initialization \n" + qq);
-         process.exit(0);
-        }
-    
-    rl.question(questionString, (_answer) => {
-        const answer = _answer.toLowerCase();
+  let flag = 0;
 
-        if (answer === 'yes' || answer === "y") {
-            if(!isRustInstalled) {
-                installRust();
-            }
-        
-            if(!isSnarkOsInstalled) {
-                installSnarkOS();
-            }
-        
-            if(!isAleoInstalled) {
-                installAleo();
-            }
-        } else {
-          console.log('Installation skipped.');
-        }
-        rl.close();
-      });
+  if (needSetup.length > 0) {
+    const qq = needSetup.map((v, index) => index + 1 + '.' + v + '\n').join('');
+    const questionString =
+      'Need following programs to init. Do you want to continue with installation? \n\n' +
+      qq +
+      '\n (yes[Y]/no[N]): ';
+
+    if (isWindows()) {
+      console.log('Please install following for initialization \n' + qq);
+      process.exit(0);
     }
-}
+
+    const shouldCloseRl = () => {
+      return flag === needSetup.length;
+    };
+
+    rl.question(questionString, async (_answer) => {
+      const answer = _answer.toLowerCase();
+
+      if (answer === 'yes' || answer === 'y') {
+        if (!isRustInstalled) {
+          ++flag;
+          await installProgram(
+            "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y",
+            shouldCloseRl()
+          );
+        }
+
+        if (!isSnarkOsInstalled) {
+          ++flag;
+          await installProgram('cargo install snarkos', shouldCloseRl());
+        }
+
+        if (!isAleoInstalled) {
+          ++flag;
+          await installProgram(
+            'cargo install aleo-development-server',
+            shouldCloseRl()
+          );
+        }
+
+        if (!isLeoInstalled) {
+          ++flag;
+          await installProgram('cargo install leo-lang', shouldCloseRl());
+        }
+      } else {
+        console.log('Installation skipped.');
+      }
+      rl.close();
+    });
+  }
+
+  process.exit(0);
+};

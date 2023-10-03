@@ -1,0 +1,11 @@
+{
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint", // rvest.vs-code-prettier-eslint
+  "editor.formatOnType": false, // required
+  "vs-code-prettier-eslint.prettierLast": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+}
