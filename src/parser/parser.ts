@@ -8,7 +8,7 @@ import {
   KEYWORDS,
   TokenType,
   MappingDefinition,
-} from "./utils";
+} from "../utils/aleo-utils";
 
 import { Tokenizer } from "./tokenizer";
 
@@ -109,7 +109,7 @@ class Parser {
 
   private parseFunction(token: TokenInfo): FunctionDefinition {
     const functionDef = this.parseFunctionPrototype(token);
-    // @TODO parse rest of the file
+
     while (this.tokenizer.tryReadToken().value !== "}") {
       // Eat the whole function body
       const tk = this.tokenizer.readToken();

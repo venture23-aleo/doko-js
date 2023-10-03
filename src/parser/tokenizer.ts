@@ -1,4 +1,4 @@
-import { TokenInfo, TokenType, KeyWordSet } from "./utils";
+import { TokenInfo, TokenType, KeyWordSet } from "../utils/aleo-utils";
 
 class Tokenizer {
   private data: string[];
