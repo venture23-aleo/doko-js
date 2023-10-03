@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
-const { Command } = require("commander");
+import { Command } from "commander";
+import { checkAndInstallRequirements } from "./utils/requirementsCheck";
 const figlet = require("figlet");
 
 const program = new Command();
@@ -16,7 +17,8 @@ program
   .description('Initialize your AleoJS project')
   .action(() => {
     console.log('Initializing AleoJS project...');
-    // Add your initialization logic here
+    console.log("\n");
+    checkAndInstallRequirements();
   });
 
 program

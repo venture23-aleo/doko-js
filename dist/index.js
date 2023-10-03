@@ -1,8 +1,10 @@
 #! /usr/bin/env node
 "use strict";
-const { Command } = require("commander");
+Object.defineProperty(exports, "__esModule", { value: true });
+const commander_1 = require("commander");
+const requirementsCheck_1 = require("./utils/requirementsCheck");
 const figlet = require("figlet");
-const program = new Command();
+const program = new commander_1.Command();
 console.log(figlet.textSync("AleoJS"));
 program
     .version('1.0.0')
@@ -12,7 +14,8 @@ program
     .description('Initialize your AleoJS project')
     .action(() => {
     console.log('Initializing AleoJS project...');
-    // Add your initialization logic here
+    console.log("\n");
+    (0, requirementsCheck_1.checkAndInstallRequirements)();
 });
 program
     .command('add')
