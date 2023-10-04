@@ -18,11 +18,11 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-function generateProgram(programName: string, projectName: string) {
+function generateProgram(programName: string, projectName?: string) {
   const parsedProgramName = toSnakeCase(programName);
   const command = projectName
     ? `cd ${projectName}/programs && leo new ${parsedProgramName}`
-    : `leo new ${parsedProgramName}`;
+    : `cd programs && leo new ${parsedProgramName}`;
   const shellProcess = spawn(userShell, ['-c', command]);
   shellProcess.stdout.on('data', (data) => {
     console.log(data.toString());

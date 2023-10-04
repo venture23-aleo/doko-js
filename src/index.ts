@@ -36,20 +36,10 @@ program
   });
 
 program
-  .command('add')
+  .command('add <program-name>')
   .description('Add a new component or resource')
-  .option('-c, --component <name>', 'Add a new component')
-  .option('-r, --resource <name>', 'Add a new resource')
-  .action((cmd: any) => {
-    if (cmd.component) {
-      console.log(`Adding component: ${cmd.component}`);
-      // Add logic for adding a component here
-    } else if (cmd.resource) {
-      console.log(`Adding resource: ${cmd.resource}`);
-      // Add logic for adding a resource here
-    } else {
-      console.log('No action specified. Use either -c or -r.');
-    }
+  .action((programName: string) => {
+    generateProgram(programName);
   });
 
 program
