@@ -139,6 +139,4 @@ export const checkAndInstallRequirements = async () => {
       rl.close();
     });
   }
-
-  process.exit(0);
 };

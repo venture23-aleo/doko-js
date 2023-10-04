@@ -3,6 +3,10 @@
 import { Command } from 'commander';
 import { checkAndInstallRequirements } from './utils/requirementsCheck';
 import { parseAleo } from './parser';
+import {
+  createProjectStructure,
+  generateProgram
+} from './generator/program-generator';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const figlet = require('figlet');
@@ -14,12 +18,21 @@ console.log(figlet.textSync('AleoJS'));
 program.version('1.0.0').description('AleoJS CLI');
 
 program
-  .command('init')
+  .command('init <project-name>')
   .description('Initialize your AleoJS project')
-  .action(() => {
+  .option('-p --program <name>', 'Initialize and add new program')
+  .action(async (projectName, options: any) => {
     console.log('Initializing AleoJS project...');
     console.log('\n');
-    checkAndInstallRequirements();
+    const programName = options.program || 'sample_program';
+    if (!options.program) {
+      console.error('Program name is required');
+      process.exit(1);
+    }
+
+    await checkAndInstallRequirements();
+    createProjectStructure(projectName, programName);
+    generateProgram(programName, projectName);
   });
 
 program
