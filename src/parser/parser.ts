@@ -92,6 +92,7 @@ class Parser {
     // Eat the left parenthesis
     this.tokenizer.readToken();
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const token = this.tokenizer.tryReadToken();
 

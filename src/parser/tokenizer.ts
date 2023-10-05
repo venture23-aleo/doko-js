@@ -19,7 +19,7 @@ class Tokenizer {
     // Split by newline and remove empty character
     const lines = data.split('\n').filter((s) => s != '');
 
-    let formattedCode: string[] = [];
+    const formattedCode: string[] = [];
     let block = false;
     lines.forEach((line: string) => {
       // Declaration of function, struct, record etc always ends with ':' in the end

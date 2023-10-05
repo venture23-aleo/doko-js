@@ -24,10 +24,12 @@ function inferDataType(type: string, aleoReflection: AleoReflection): string {
 // Read file
 function parseAleo() {
   try {
+    console.log('Parsing aleo file contracts/build/main.aleo');
     const data = fs.readFileSync('contracts/build/main.aleo', 'utf-8');
     const tokenizer = new Tokenizer(data);
     const aleoReflection = new Parser(tokenizer).parse();
 
+    console.log('Generating TS interface file generated/aleo-interface.ts');
     const tsFileStream = fs.createWriteStream(
       'generated/aleo-interface.ts',
       'utf-8'
@@ -43,8 +45,10 @@ function parseAleo() {
       });
       tsFileStream.write(generator.generate(customType.name) + '\n\n');
     });
-    tsFileStream.close();
 
+    tsFileStream.close();
+    console.log('Interface File Generated');
+    /*
     fs.writeFileSync(
       './output.json',
       JSON.stringify({
@@ -52,7 +56,7 @@ function parseAleo() {
         customTypes: aleoReflection.customTypes,
         functions: aleoReflection.functions
       })
-    );
+    );*/
     return aleoReflection;
   } catch (error) {
     console.log(error);

@@ -1,31 +1,32 @@
 #! /usr/bin/env node
 
-import { Command } from "commander";
-import { checkAndInstallRequirements } from "./utils/requirementsCheck";
-import { parseAleo } from "./parser";
+import { Command } from 'commander';
+import { checkAndInstallRequirements } from './utils/requirementsCheck';
+import { parseAleo } from './parser';
 
-const figlet = require("figlet");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const figlet = require('figlet');
 
 const program = new Command();
 
-console.log(figlet.textSync("AleoJS"));
+console.log(figlet.textSync('AleoJS'));
 
-program.version("1.0.0").description("AleoJS CLI");
+program.version('1.0.0').description('AleoJS CLI');
 
 program
-  .command("init")
-  .description("Initialize your AleoJS project")
+  .command('init')
+  .description('Initialize your AleoJS project')
   .action(() => {
     console.log('Initializing AleoJS project...');
-    console.log("\n");
+    console.log('\n');
     checkAndInstallRequirements();
   });
 
 program
-  .command("add")
-  .description("Add a new component or resource")
-  .option("-c, --component <name>", "Add a new component")
-  .option("-r, --resource <name>", "Add a new resource")
+  .command('add')
+  .description('Add a new component or resource')
+  .option('-c, --component <name>', 'Add a new component')
+  .option('-r, --resource <name>', 'Add a new resource')
   .action((cmd: any) => {
     if (cmd.component) {
       console.log(`Adding component: ${cmd.component}`);
@@ -34,24 +35,24 @@ program
       console.log(`Adding resource: ${cmd.resource}`);
       // Add logic for adding a resource here
     } else {
-      console.log("No action specified. Use either -c or -r.");
+      console.log('No action specified. Use either -c or -r.');
     }
   });
 
 program
-  .command("compile")
-  .description("Compile your AleoJS project")
+  .command('compile')
+  .description('Compile your AleoJS project')
   .action(() => {
-    console.log("Compiling AleoJS project...");
+    console.log('Compiling AleoJS project...');
     // Add your compilation logic here
     parseAleo();
   });
 
 program
-  .command("run")
-  .description("Run your AleoJS project")
+  .command('run')
+  .description('Run your AleoJS project')
   .action(() => {
-    console.log("Running AleoJS project...");
+    console.log('Running AleoJS project...');
     // Add your run logic here
   });
 
