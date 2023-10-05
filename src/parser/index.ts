@@ -22,7 +22,7 @@ function inferDataType(type: string, aleoReflection: AleoReflection): string {
 }
 
 // Read file
-function parseAleo() {
+async function parseAleo() {
   try {
     console.log('Parsing aleo file contracts/build/main.aleo');
     const data = fs.readFileSync('contracts/build/main.aleo', 'utf-8');
@@ -45,9 +45,14 @@ function parseAleo() {
       });
       tsFileStream.write(generator.generate(customType.name) + '\n\n');
     });
-
     tsFileStream.close();
-    console.log('Interface File Generated');
+
+    await new Promise((resolve, reject) => {
+      console.log('Interface File Generated');
+      tsFileStream.on('close', resolve);
+      tsFileStream.on('error', reject);
+    });
+
     /*
     fs.writeFileSync(
       './output.json',
