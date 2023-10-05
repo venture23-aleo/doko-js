@@ -1,12 +1,12 @@
-import { StructDefinition } from "../utils/aleo-utils";
-
 class TSInterfaceGenerator {
-  static generate(definition: StructDefinition) {
-    let code = "";
-    definition.members.forEach((member) => {
-      code = code.concat(`  ${member.key}: ${member.val}; \n`);
-    });
-    return `interface ${definition.name} {\n` + code + "}";
+  code = '';
+  addField(member: string, type: string) {
+    this.code = this.code.concat(`  ${member}: ${type}; \n`);
+    return this;
+  }
+
+  generate(name: string) {
+    return `interface ${name} {\n` + this.code + '}';
   }
 }
 

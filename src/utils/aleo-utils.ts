@@ -1,27 +1,27 @@
 enum TokenType {
   UNKNOWN = 0,
   KEYWORD = 3,
-  IDENTIFIER = 4,
+  IDENTIFIER = 4
 }
 
 const DECLARATION_KEYWORDS = {
-  STRUCT: "struct",
-  FUNCTION: "function",
-  FINALIZE: "finalize",
-  RECORD: "record",
-  CLOSURE: "closure",
-  MAPPING: "mapping",
+  STRUCT: 'struct',
+  FUNCTION: 'function',
+  FINALIZE: 'finalize',
+  RECORD: 'record',
+  CLOSURE: 'closure',
+  MAPPING: 'mapping'
 };
 
 const KEYWORDS: Record<string, string> = {
-  INPUT: "input",
-  OUTPUT: "output",
-  ADD: "add",
-  KEY: "key",
-  VALUE: "value",
-  LEFT: "left",
-  RIGHT: "right",
-  ...DECLARATION_KEYWORDS,
+  INPUT: 'input',
+  OUTPUT: 'output',
+  ADD: 'add',
+  KEY: 'key',
+  VALUE: 'value',
+  LEFT: 'left',
+  RIGHT: 'right',
+  ...DECLARATION_KEYWORDS
 };
 
 const KeyWordSet = new Set<string>(Object.values(KEYWORDS));
@@ -57,6 +57,28 @@ interface MappingDefinition {
   right: DataType;
 }
 
+const ALEO_TO_JS_TYPE_MAPPING = new Map([
+  ['address', 'string'],
+  ['boolean', 'boolean'],
+  ['field', 'BigInt'],
+  ['group', 'BigInt'],
+  ['i8', 'number'],
+  ['i16', 'number'],
+  ['i32', 'number'],
+  ['i64', 'BigInt'],
+  ['i128', 'BigInt'],
+  ['u8', 'number'],
+  ['u16', 'number'],
+  ['u32', 'number'],
+  ['u64', 'BigInt'],
+  ['u128', 'BigInt'],
+  ['scalar', 'BigInt']
+]);
+
+const ConvertToJSType = (type: string) => {
+  return ALEO_TO_JS_TYPE_MAPPING.get(type);
+};
+
 export {
   TokenInfo,
   TokenType,
@@ -68,5 +90,6 @@ export {
   FunctionDefinition,
   MappingDefinition,
   KeyWordSet,
-  KEYWORDS,
+  ConvertToJSType,
+  KEYWORDS
 };
