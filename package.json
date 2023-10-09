@@ -26,7 +26,8 @@
   "homepage": "https://github.com/venture23-zkp/aleojs#readme",
   "dependencies": {
     "commander": "^11.0.0",
-    "figlet": "^1.6.0"
+    "figlet": "^1.6.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.8.0",

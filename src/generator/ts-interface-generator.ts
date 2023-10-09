@@ -6,7 +6,7 @@ class TSInterfaceGenerator {
   }
 
   generate(name: string) {
-    return `interface ${name} {\n` + this.code + '}';
+    return `export interface ${name} {\n` + this.code + '}';
   }
 }
 
