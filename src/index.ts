@@ -31,7 +31,7 @@ program
     }
 
     await checkAndInstallRequirements();
-    createProjectStructure(projectName, programName);
+    await createProjectStructure(projectName, programName);
     generateProgram(programName, projectName);
   });
 

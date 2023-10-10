@@ -1,7 +1,7 @@
-import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
+import fse from 'fs-extra';
 
 const userShell = process.env.SHELL || '/bin/sh';
 
@@ -37,46 +37,40 @@ function generateProgram(programName: string, projectName?: string) {
   });
 }
 
-function createProjectStructure(projectName: string, programName: string) {
+async function createProjectStructure(
+  projectName: string,
+  programName: string
+) {
   const projectRoot = projectName; // Use the provided project name
   const leoProjectName = toSnakeCase(programName);
 
-  // Define the folder and file structure
-  const structure = [
-    'README.md',
-    'scripts/deploy.ts',
-    `test/${leoProjectName}.test.ts`,
-    '.env.example',
-    'programs/',
-    'package-lock.json',
-    'tsconfig.json'
-  ];
+  const CURR_DIR = process.cwd();
+  const templatesDir = path.join(__dirname, '../template');
+  const source = path.join(templatesDir, '');
+  console.log('SOURCE', source);
 
-  // Create the folder and file structure
-  structure.forEach((item) => {
-    const itemPath = path.join(projectRoot, item);
+  const destination = path.join(CURR_DIR, projectRoot);
+  console.log('Desrination', destination);
 
-    const isDirectory = item.endsWith('/');
+  try {
+    await fse.copy(source, destination);
+    console.log('Template copied');
+    const shellProcess = spawn(userShell, [
+      '-c',
+      `mkdir ${destination}/programs && mv ${destination}/test/sample_program.test.ts ${destination}/test/${leoProjectName}.test.ts `
+    ]);
+    shellProcess.stdout.on('data', (data) => {
+      console.log(data.toString());
+    });
 
-    if (isDirectory) {
-      // Create a directory if it doesn't exist
-      if (!fs.existsSync(itemPath)) {
-        fs.mkdirSync(itemPath, { recursive: true });
-      }
-    } else {
-      // Create an empty file if it doesn't exist
-      if (!fs.existsSync(itemPath)) {
-        // Ensure that the parent directory exists
-        const parentDir = path.dirname(itemPath);
-        if (!fs.existsSync(parentDir)) {
-          fs.mkdirSync(parentDir, { recursive: true });
-        }
-        fs.writeFileSync(itemPath, '');
-      }
-    }
-  });
+    shellProcess.stderr.on('data', (data) => {
+      console.log(data.toString());
+    });
 
-  console.log(`Project structure for ${projectName} created.`);
+    console.log(`Project structure for ${projectName} created.`);
+  } catch (err: any) {
+    console.error(err);
+  }
 }
 
 export { createProjectStructure, generateProgram };
