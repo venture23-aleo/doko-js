@@ -7,6 +7,7 @@ import {
   createProjectStructure,
   generateProgram
 } from './generator/program-generator';
+import { runAleoNode } from './scripts/runAleoNode';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const figlet = require('figlet');
@@ -52,10 +53,20 @@ program
   });
 
 program
-  .command('run')
+  .command('run node')
   .description('Run your AleoJS project')
-  .action(() => {
+  .option('-n --network <network-name>', 'Network name')
+  .action((_, options) => {
     console.log('Running AleoJS project...');
+    console.log(options);
+    const networkName = options.network;
+
+    if (networkName) {
+      console.log('Run aleo node');
+      runAleoNode(networkName);
+    }
+
+    console.log('No network');
     // Add your run logic here
   });
 
