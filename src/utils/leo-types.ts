@@ -118,7 +118,11 @@ export const u128 = (value: BigInt): LeoU128 => {
     return leoU128Schema.parse(parsed);
 };
 
-export const bool = (value: boolean): LeoU128 => {
+export const boolean = (value: boolean): LeoU128 => {
     const val = value ? "true" : "false";
     return leoBooleanSchema.parse(val);
 };
+
+export const address = (value: string): LeoAddress => {
+    return value;
+}
