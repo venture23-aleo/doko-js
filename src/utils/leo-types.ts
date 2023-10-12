@@ -109,8 +109,7 @@ export const u32 = (value: number): LeoU32 => {
     return leoU32Schema.parse(parsed);
 };
 
-export const u64 = (value: number): LeoU64 => {
-    if (isNaN(value)) throw new Error("u64 parsing failed");
+export const u64 = (value: BigInt): LeoU64 => {
     const parsed = value + "u64";
     return leoU64Schema.parse(parsed);
 };
@@ -139,8 +138,7 @@ export const i32 = (value: number): LeoU32 => {
     return leoU32Schema.parse(parsed);
 };
 
-export const i64 = (value: number): LeoU64 => {
-    if (isNaN(value)) throw new Error("u64 parsing failed");
+export const i64 = (value: BigInt): LeoU64 => {
     const parsed = value + "i64";
     return leoU64Schema.parse(parsed);
 };

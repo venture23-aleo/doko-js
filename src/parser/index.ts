@@ -20,6 +20,9 @@ async function parseAleo() {
 
     console.log('Copying leo-types.ts file ...');
     fs.copyFileSync('./src/utils/leo-types.ts', GENERATE_FILE_OUT_DIR + 'leo-types.ts');
+    console.log('Copying js-types.ts file ...');
+    fs.copyFileSync('./src/utils/js-types.ts', GENERATE_FILE_OUT_DIR + 'js-types.ts');
+
 
     const generator = new Generator(aleoReflection);
     generator.setJSToLeoFilename('types.ts').
