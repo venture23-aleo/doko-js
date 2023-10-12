@@ -24,7 +24,7 @@ async function parseAleo() {
     const generator = new Generator(aleoReflection);
     generator.setJSToLeoFilename('types.ts').
       setJSToLeoFilename('js2leo.ts');
-    generator.generate(GENERATE_FILE_OUT_DIR);
+    return generator.generate(GENERATE_FILE_OUT_DIR);
   } catch (error) {
     console.log(error);
   }

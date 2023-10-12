@@ -132,6 +132,7 @@ class Generator {
             js2LeoFileStream.write(fnGenerator.generate(fnName, arg0, jsTypeName, leoTypeName));
         });
 
+        js2LeoFileStream.close();
         return new Promise((resolve, reject) => {
             console.log('Generated conversion file:', rootDir + this.jsToLeoFilename);
             js2LeoFileStream.on('error', reject);
