@@ -84,7 +84,7 @@ export const i128 = (value: string): BigInt => {
 };
 
 
-export const bool = (value: string): boolean => {
+export const boolean = (value: string): boolean => {
     const parsed = replaceValue(value, "");
     if (parsed === "true") {
         return true;

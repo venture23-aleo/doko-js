@@ -21,12 +21,13 @@ async function parseAleo() {
     console.log('Copying leo-types.ts file ...');
     fs.copyFileSync('./src/utils/leo-types.ts', GENERATE_FILE_OUT_DIR + 'leo-types.ts');
     console.log('Copying js-types.ts file ...');
-    fs.copyFileSync('./src/utils/js-types.ts', GENERATE_FILE_OUT_DIR + 'js-types.ts');
+    fs.copyFileSync('./src/utils/ts-types.ts', GENERATE_FILE_OUT_DIR + 'ts-types.ts');
 
 
     const generator = new Generator(aleoReflection);
-    generator.setJSToLeoFilename('types.ts').
-      setJSToLeoFilename('js2leo.ts');
+    generator.setTSToLeoFilename('types.ts').
+      setTSToLeoFilename('ts2leo.ts').
+      setLeoToTSFilename('leo2ts.ts');
     return generator.generate(GENERATE_FILE_OUT_DIR);
   } catch (error) {
     console.log(error);

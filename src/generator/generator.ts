@@ -8,7 +8,7 @@
 import { AleoReflection } from "../parser/parser";
 
 import * as fs from 'fs';
-import { ConvertToJSType, StructDefinition } from "../utils/aleo-utils";
+import { ConvertToTSType, StructDefinition } from "../utils/aleo-utils";
 import { TSInterfaceGenerator } from "./ts-interface-generator";
 import { ZodObjectGenerator } from "./zod-object-generator";
 import { TSFunctionGenerator } from "./ts-function-generator";
@@ -25,12 +25,16 @@ import {
   leoGroupSchema,
   leoRecordSchema,
 } from "./leo-types";`
-const CONVERTER_FN_IMPORT = 'import { u8, u16, u32, u128, u64, field, scalar, group, boolean, address } from "./leo-types"'
+
+// Converter function for leo and ts
+const LEO_FN_IMPORT = 'import { u8, u16, u32, u128, u64, i8, i16, i32, i64, i128, field, scalar, group, boolean, address } from "./leo-types"'
+const TS_FN_IMPORT = 'import { u8, u16, u32, u128, u64, i8, i16, i32, i64, i128, field, scalar, group, boolean, address } from "./ts-types"'
 
 class Generator {
     private refl: AleoReflection;
     private typeFilename = 'types.ts';
-    private jsToLeoFilename = 'js2leo.ts';
+    private tsToLeoFilename = 'js2leo.ts';
+    private leoToTSFileName = 'ts2leo.ts';
 
     constructor(aleoReflection: AleoReflection) {
         this.refl = aleoReflection;
@@ -41,8 +45,13 @@ class Generator {
         return this;
     }
 
-    setJSToLeoFilename(filename: string) {
-        this.jsToLeoFilename = filename;
+    setTSToLeoFilename(filename: string) {
+        this.tsToLeoFilename = filename;
+        return this;
+    }
+
+    setLeoToTSFilename(filename: string) {
+        this.leoToTSFileName = filename;
         return this;
     }
 
@@ -52,19 +61,19 @@ class Generator {
             return type;
 
         // Check if it is a primitive type
-        const jsType = ConvertToJSType(type);
-        if (jsType) return jsType;
+        const tsType = ConvertToTSType(type);
+        if (tsType) return tsType;
         else throw new Error(`Undeclared type encountered: ${type}`);
     }
 
     private async generateTypes(rootDir: string) {
         const outputFile = rootDir + this.typeFilename;
 
-        const tsFileStream = fs.createWriteStream(
+        const fileStream = fs.createWriteStream(
             outputFile,
             'utf-8'
         );
-        tsFileStream.write(SCHEMA_IMPORT + '\n\n');
+        fileStream.write(SCHEMA_IMPORT + '\n\n');
 
         this.refl.customTypes.forEach((customType: StructDefinition) => {
             // Create Typescript/ Zod interface for custom types
@@ -83,32 +92,33 @@ class Generator {
             });
 
             // Write type definition
-            tsFileStream.write(tsInterfaceGenerator.generate(customType.name) + '\n\n');
-            tsFileStream.write(zodInterfaceGenerator.generate(`leo${customType.name}Schema`) + '\n');
+            fileStream.write(tsInterfaceGenerator.generate(customType.name) + '\n\n');
+            fileStream.write(zodInterfaceGenerator.generate(`leo${customType.name}Schema`) + '\n');
 
             // Generate type alias
-            tsFileStream.write(`export type ${customType.name}Leo = z.infer<typeof leo${customType.name}Schema>` + '\n\n');
+            fileStream.write(`export type ${customType.name}Leo = z.infer<typeof leo${customType.name}Schema>` + '\n\n');
         });
 
-        tsFileStream.close();
+        fileStream.close();
         return new Promise((resolve, reject) => {
             console.log(`Generated types file: ${outputFile}`);
-            tsFileStream.on('error', reject);
-            tsFileStream.on('close', resolve);
+            fileStream.on('error', reject);
+            fileStream.on('close', resolve);
         });
     }
 
-    private async generateJSToLeo(rootDir: string) {
-        const js2LeoFileStream = fs.createWriteStream(
-            rootDir + this.jsToLeoFilename, 'utf-8'
+    // Generate TS to Leo converter functions
+    private async generateTSToLeo(rootDir: string) {
+        const fileStream = fs.createWriteStream(
+            rootDir + this.tsToLeoFilename, 'utf-8'
         );
 
         // Create import statement for custom types
         let importStatement = 'import {\n';
         importStatement += this.refl.customTypes.map((member) => `\t${member.name}, ${member.name}Leo,`).join('\n');
         importStatement = importStatement.concat('\n} from "./types"\n',
-            CONVERTER_FN_IMPORT, '\n\n');
-        js2LeoFileStream.write(importStatement);
+            LEO_FN_IMPORT, '\n\n');
+        fileStream.write(importStatement);
 
         this.refl.customTypes.forEach((customType: StructDefinition) => {
             const fnGenerator = new TSFunctionGenerator();
@@ -129,21 +139,68 @@ class Generator {
 
             const jsTypeName = customType.name;
             const fnName = 'get' + leoTypeName;
-            js2LeoFileStream.write(fnGenerator.generate(fnName, arg0, jsTypeName, leoTypeName));
+            fileStream.write(fnGenerator.generate(fnName, arg0, jsTypeName, leoTypeName));
         });
 
-        js2LeoFileStream.close();
+        fileStream.close();
         return new Promise((resolve, reject) => {
-            console.log('Generated conversion file:', rootDir + this.jsToLeoFilename);
-            js2LeoFileStream.on('error', reject);
-            js2LeoFileStream.on('close', resolve);
+            console.log('Generated conversion file:', rootDir + this.tsToLeoFilename);
+            fileStream.on('error', reject);
+            fileStream.on('close', resolve);
+        });
+    }
+
+    // Generate Leo to TS converter functions
+    private async generateLeoToTS(rootDir: string) {
+        const fileStream = fs.createWriteStream(
+            rootDir + this.leoToTSFileName, 'utf-8'
+        );
+
+        // Create import statement for custom types
+        let importStatement = 'import {\n';
+        importStatement += this.refl.customTypes.map((member) => `\t${member.name}, ${member.name}Leo,`).join('\n');
+        importStatement = importStatement.concat('\n} from "./types"\n',
+            TS_FN_IMPORT, '\n\n');
+        fileStream.write(importStatement);
+
+        this.refl.customTypes.forEach((customType: StructDefinition) => {
+            const fnGenerator = new TSFunctionGenerator();
+            const tsTypeName = customType.name;
+            const CamelCase = (str: string) => str.charAt(0).toLowerCase() + str.slice(1);
+            const arg0 = CamelCase(customType.name);
+
+            fnGenerator.addStatement(`\tconst result: ${tsTypeName} = {\n`)
+
+            customType.members.forEach((member) => {
+                const type = member.val.split('.');
+                let conversionFnName = this.refl.isCustomType(type[0]) ? `get${type[0]}` : type[0];
+                const conversionArg = arg0.concat('.', member.key);
+                fnGenerator.addStatement(`\t\t${member.key}: ${conversionFnName}(${conversionArg}),\n`);
+            });
+
+            fnGenerator.addStatement('\t}\n\treturn result;\n');
+
+            const fnName = 'get' + tsTypeName;
+            const leoTypeName = tsTypeName + 'Leo';
+            fileStream.write(fnGenerator.generate(fnName, arg0, leoTypeName, tsTypeName));
+        });
+
+        fileStream.close();
+        return new Promise((resolve, reject) => {
+            console.log('Generated conversion file:', rootDir + this.leoToTSFileName);
+            fileStream.on('error', reject);
+            fileStream.on('close', resolve);
         });
     }
 
     async generate(rootDir: string) {
+        if (this.refl.customTypes.length === 0) return;
+
         return Promise.all([
             this.generateTypes(rootDir),
-            this.generateJSToLeo(rootDir)]);
+            this.generateTSToLeo(rootDir),
+            this.generateLeoToTS(rootDir)
+        ]);
     }
 };
 
