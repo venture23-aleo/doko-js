@@ -44,10 +44,11 @@ program
 program
   .command('compile')
   .description('Compile your AleoJS project')
-  .action(() => {
+  .action(async () => {
     console.log('Compiling AleoJS project...');
     // Add your compilation logic here
-    parseAleo();
+    await parseAleo();
+    process.exit(0);
   });
 
 program

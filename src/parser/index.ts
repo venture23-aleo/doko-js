@@ -1,37 +1,34 @@
 import { Tokenizer } from './tokenizer';
 import { Parser } from './parser';
-import { TSInterfaceGenerator } from '../generator/ts-interface-generator';
 
 import fs from 'fs';
-import { StructDefinition } from '../utils/aleo-utils';
+import { Generator } from '../generator/generator';
+
+
+const GENERATE_FILE_OUT_DIR = 'generated/'
 
 // Read file
-function parseAleo() {
+async function parseAleo() {
   try {
+    console.log('Parsing aleo file contracts/build/main.aleo');
     const data = fs.readFileSync('contracts/build/main.aleo', 'utf-8');
     const tokenizer = new Tokenizer(data);
     const aleoReflection = new Parser(tokenizer).parse();
 
-    const tsFileStream = fs.createWriteStream(
-      'generated/aleo-interface.ts',
-      'utf-8'
-    );
+    if (!fs.existsSync(GENERATE_FILE_OUT_DIR))
+      fs.mkdirSync(GENERATE_FILE_OUT_DIR);
 
-    aleoReflection.customTypes.forEach((customType: StructDefinition) => {
-      const tsCode = TSInterfaceGenerator.generate(customType);
-      tsFileStream.write(tsCode + '\n\n');
-    });
-    tsFileStream.close();
+    console.log('Copying leo-types.ts file ...');
+    fs.copyFileSync('./src/utils/leo-types.ts', GENERATE_FILE_OUT_DIR + 'leo-types.ts');
+    console.log('Copying js-types.ts file ...');
+    fs.copyFileSync('./src/utils/ts-types.ts', GENERATE_FILE_OUT_DIR + 'ts-types.ts');
 
-    fs.writeFileSync(
-      './output.json',
-      JSON.stringify({
-        mappings: aleoReflection.mappings,
-        customTypes: aleoReflection.customTypes,
-        functions: aleoReflection.functions
-      })
-    );
-    return aleoReflection;
+
+    const generator = new Generator(aleoReflection);
+    generator.setTSToLeoFilename('types.ts').
+      setTSToLeoFilename('ts2leo.ts').
+      setLeoToTSFilename('leo2ts.ts');
+    return generator.generate(GENERATE_FILE_OUT_DIR);
   } catch (error) {
     console.log(error);
   }

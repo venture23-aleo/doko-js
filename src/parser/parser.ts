@@ -16,6 +16,10 @@ class AleoReflection {
   customTypes = new Array<StructDefinition>();
   functions = new Array<FunctionDefinition>();
   mappings = new Array<MappingDefinition>();
+
+  isCustomType(type: string) {
+    return this.customTypes.find((customType) => customType.name === type) != undefined;
+  }
 }
 
 class Parser {
@@ -152,4 +156,4 @@ class Parser {
   }
 }
 
-export { Parser };
+export { Parser, AleoReflection };

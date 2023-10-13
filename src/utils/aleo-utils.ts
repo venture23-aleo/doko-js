@@ -57,6 +57,28 @@ interface MappingDefinition {
   right: DataType;
 }
 
+const ALEO_TO_TS_TYPE_MAPPING = new Map([
+  ['address', 'string'],
+  ['boolean', 'boolean'],
+  ['field', 'BigInt'],
+  ['group', 'BigInt'],
+  ['i8', 'number'],
+  ['i16', 'number'],
+  ['i32', 'number'],
+  ['i64', 'BigInt'],
+  ['i128', 'BigInt'],
+  ['u8', 'number'],
+  ['u16', 'number'],
+  ['u32', 'number'],
+  ['u64', 'BigInt'],
+  ['u128', 'BigInt'],
+  ['scalar', 'BigInt']
+]);
+
+const ConvertToTSType = (type: string) => {
+  return ALEO_TO_TS_TYPE_MAPPING.get(type);
+};
+
 export {
   TokenInfo,
   TokenType,
@@ -68,5 +90,6 @@ export {
   FunctionDefinition,
   MappingDefinition,
   KeyWordSet,
+  ConvertToTSType,
   KEYWORDS
 };
