@@ -26,14 +26,12 @@ program
     console.log('Initializing AleoJS project...');
     console.log('\n');
     const programName = options.program || 'sample_program';
-    if (!options.program) {
-      console.error('Program name is required');
-      process.exit(1);
-    }
 
     await checkAndInstallRequirements();
     await createProjectStructure(projectName, programName);
-    generateProgram(programName, projectName);
+    await generateProgram(programName, projectName);
+    console.log(`Checkout to ${programName} & run the code`);
+    process.exit(0);
   });
 
 program

@@ -23,17 +23,24 @@ function generateProgram(programName: string, projectName?: string) {
   const command = projectName
     ? `cd ${projectName}/programs && leo new ${parsedProgramName}`
     : `cd programs && leo new ${parsedProgramName}`;
-  const shellProcess = spawn(userShell, ['-c', command]);
-  shellProcess.stdout.on('data', (data) => {
-    console.log(data.toString());
-  });
+  return new Promise((res, rej) => {
+    const shellProcess = spawn(userShell, ['-c', command]);
+    rl.on('line', (input) => {
+      shellProcess.stdin.write(input + '\n');
+    });
 
-  shellProcess.stderr.on('data', (data) => {
-    console.log(data.toString());
-  });
+    shellProcess.stdout.on('data', (data) => {
+      console.log(data.toString());
+    });
 
-  shellProcess.on('close', (code) => {
-    rl.close();
+    shellProcess.stderr.on('data', (data) => {
+      console.log(data.toString());
+    });
+
+    shellProcess.on('close', (code) => {
+      res(code);
+      rl.close();
+    });
   });
 }
 
@@ -47,27 +54,34 @@ async function createProjectStructure(
   const CURR_DIR = process.cwd();
   const templatesDir = path.join(__dirname, '../template');
   const source = path.join(templatesDir, '');
-  console.log('SOURCE', source);
-
   const destination = path.join(CURR_DIR, projectRoot);
-  console.log('Desrination', destination);
 
   try {
     await fse.copy(source, destination);
     console.log('Template copied');
-    const shellProcess = spawn(userShell, [
-      '-c',
-      `mkdir ${destination}/programs && mv ${destination}/test/sample_program.test.ts ${destination}/test/${leoProjectName}.test.ts `
-    ]);
-    shellProcess.stdout.on('data', (data) => {
-      console.log(data.toString());
-    });
+    return new Promise((res, rej) => {
+      const shellProcess = spawn(userShell, [
+        '-c',
+        `mkdir ${destination}/programs && mv ${destination}/test/sample_program.test.ts ${destination}/test/${leoProjectName}.test.ts `
+      ]);
+      rl.on('line', (input) => {
+        shellProcess.stdin.write(input + '\n');
+      });
 
-    shellProcess.stderr.on('data', (data) => {
-      console.log(data.toString());
-    });
+      shellProcess.stdout.on('data', (data) => {
+        console.log(data.toString());
+      });
 
-    console.log(`Project structure for ${projectName} created.`);
+      shellProcess.stderr.on('data', (data) => {
+        console.log(data.toString());
+      });
+
+      shellProcess.on('close', (code) => {
+        console.log(`Project structure for ${projectName} created.`);
+        rl.close();
+        res('success');
+      });
+    });
   } catch (err: any) {
     console.error(err);
   }
