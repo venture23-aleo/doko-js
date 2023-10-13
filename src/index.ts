@@ -3,6 +3,11 @@
 import { Command } from 'commander';
 import { checkAndInstallRequirements } from './utils/requirementsCheck';
 import { parseAleo } from './parser';
+import {
+  createProjectStructure,
+  generateProgram
+} from './generator/program-generator';
+import { runAleoNode } from './scripts/runAleoNode';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const figlet = require('figlet');
@@ -14,29 +19,26 @@ console.log(figlet.textSync('AleoJS'));
 program.version('1.0.0').description('AleoJS CLI');
 
 program
-  .command('init')
+  .command('init <project-name>')
   .description('Initialize your AleoJS project')
-  .action(() => {
+  .option('-p --program <name>', 'Initialize and add new program')
+  .action(async (projectName, options: any) => {
     console.log('Initializing AleoJS project...');
     console.log('\n');
-    checkAndInstallRequirements();
+    const programName = options.program || 'sample_program';
+
+    await checkAndInstallRequirements();
+    await createProjectStructure(projectName, programName);
+    await generateProgram(programName, projectName);
+    console.log(`Checkout to ${programName} & run the code`);
+    process.exit(0);
   });
 
 program
-  .command('add')
+  .command('add <program-name>')
   .description('Add a new component or resource')
-  .option('-c, --component <name>', 'Add a new component')
-  .option('-r, --resource <name>', 'Add a new resource')
-  .action((cmd: any) => {
-    if (cmd.component) {
-      console.log(`Adding component: ${cmd.component}`);
-      // Add logic for adding a component here
-    } else if (cmd.resource) {
-      console.log(`Adding resource: ${cmd.resource}`);
-      // Add logic for adding a resource here
-    } else {
-      console.log('No action specified. Use either -c or -r.');
-    }
+  .action((programName: string) => {
+    generateProgram(programName);
   });
 
 program
@@ -50,10 +52,20 @@ program
   });
 
 program
-  .command('run')
+  .command('run node')
   .description('Run your AleoJS project')
-  .action(() => {
+  .option('-n --network <network-name>', 'Network name')
+  .action((_, options) => {
     console.log('Running AleoJS project...');
+    console.log(options);
+    const networkName = options.network;
+
+    if (networkName) {
+      console.log('Run aleo node');
+      runAleoNode(networkName);
+    }
+
+    console.log('No network');
     // Add your run logic here
   });
 
