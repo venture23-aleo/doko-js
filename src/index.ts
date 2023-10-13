@@ -2,7 +2,7 @@
 
 import { Command } from 'commander';
 import { checkAndInstallRequirements } from './utils/requirementsCheck';
-import { parseAleo } from './parser';
+import { compilePrograms } from './parser';
 import {
   createProjectStructure,
   generateProgram
@@ -47,7 +47,7 @@ program
   .action(async () => {
     console.log('Compiling AleoJS project...');
     // Add your compilation logic here
-    await parseAleo();
+    await compilePrograms();
     process.exit(0);
   });
 
