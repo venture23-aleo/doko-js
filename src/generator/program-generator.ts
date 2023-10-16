@@ -54,10 +54,12 @@ async function createProjectStructure(
   const CURR_DIR = process.cwd();
   const templatesDir = path.join(__dirname, '../template');
   const source = path.join(templatesDir, '');
-  const destination = path.join(CURR_DIR, projectRoot);
+  let destination = path.join(CURR_DIR, projectRoot);
 
   try {
     await fse.copy(source, destination);
+    destination = destination.replace(/\\/g, '/');
+    console.log(destination);
     console.log('Template copied');
     return new Promise((res, rej) => {
       const shellProcess = spawn(userShell, [

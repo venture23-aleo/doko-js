@@ -4,7 +4,7 @@ import { Parser } from './parser';
 import fs from 'fs';
 import { Generator } from '../generator/generator';
 
-const GENERATE_FILE_OUT_DIR = 'generated/';
+const GENERATE_FILE_OUT_DIR = 'artifacts/';
 const PROGRAM_DIRECTORY = './programs/';
 
 // Read file
@@ -19,7 +19,10 @@ async function parseAleo(programFolder: string, programName: string) {
     const tokenizer = new Tokenizer(data);
     const aleoReflection = new Parser(tokenizer).parse();
 
-    if (aleoReflection.customTypes.length === 0) return;
+    if (aleoReflection.customTypes.length === 0) {
+      console.warn(`No types generated for program: ${programName}. No custom types[struct/record] declaration found`);
+      return;
+    }
 
     // Create Output Directory
     const outputFolder = GENERATE_FILE_OUT_DIR + programName + '/';
@@ -52,17 +55,6 @@ async function compilePrograms() {
       folders.map((folder) =>
         parseAleo(PROGRAM_DIRECTORY + folder + '/', folder)
       )
-    );
-
-    console.log('Copying leo-types.ts file ...');
-    fs.copyFileSync(
-      './src/utils/leo-types.ts',
-      GENERATE_FILE_OUT_DIR + 'leo-types.ts'
-    );
-    console.log('Copying js-types.ts file ...');
-    fs.copyFileSync(
-      './src/utils/ts-types.ts',
-      GENERATE_FILE_OUT_DIR + 'ts-types.ts'
     );
   } catch (error) {
     console.log(error);
