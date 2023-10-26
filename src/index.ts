@@ -4,10 +4,11 @@ import { Command } from 'commander';
 import { checkAndInstallRequirements } from './utils/requirementsCheck';
 import { compilePrograms } from './parser';
 import {
-  createProjectStructure,
-  generateProgram
+  addProgram,
+  createProjectStructure
 } from './generator/program-generator';
 import { runAleoNode } from './scripts/runAleoNode';
+import { compileAndBuildPrograms } from './compile';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const figlet = require('figlet');
@@ -28,17 +29,22 @@ program
     const programName = options.program || 'sample_program';
 
     await checkAndInstallRequirements();
-    await createProjectStructure(projectName, programName);
-    await generateProgram(programName, projectName);
-    console.log(`Checkout to ${programName} & run the code`);
+    const response = await createProjectStructure(projectName, programName);
+    await addProgram(programName, response?.destination);
+    console.log(
+      `Checkout to ${projectName} directory for accessing the program`
+    );
+
     process.exit(0);
   });
 
 program
   .command('add <program-name>')
   .description('Add a new component or resource')
-  .action((programName: string) => {
-    generateProgram(programName);
+  .action(async (programName: string) => {
+    await addProgram(programName);
+
+    process.exit(0);
   });
 
 program
@@ -47,7 +53,10 @@ program
   .action(async () => {
     console.log('Compiling AleoJS project...');
     // Add your compilation logic here
+    await compileAndBuildPrograms();
+    // For ts files
     await compilePrograms();
+
     process.exit(0);
   });
 

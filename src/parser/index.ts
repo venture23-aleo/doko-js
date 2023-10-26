@@ -4,8 +4,8 @@ import { Parser } from './parser';
 import fs from 'fs';
 import { Generator } from '../generator/generator';
 
-const GENERATE_FILE_OUT_DIR = 'artifacts/';
-const PROGRAM_DIRECTORY = './programs/';
+const GENERATE_FILE_OUT_DIR = 'artifacts/js/';
+const PROGRAM_DIRECTORY = 'artifacts/leo/';
 
 // Read file
 async function parseAleo(programFolder: string, programName: string) {
@@ -20,7 +20,9 @@ async function parseAleo(programFolder: string, programName: string) {
     const aleoReflection = new Parser(tokenizer).parse();
 
     if (aleoReflection.customTypes.length === 0) {
-      console.warn(`No types generated for program: ${programName}. No custom types[struct/record] declaration found`);
+      console.warn(
+        `No types generated for program: ${programName}. No custom types[struct/record] declaration found`
+      );
       return;
     }
 

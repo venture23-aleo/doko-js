@@ -7,7 +7,11 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-const userShell = process.env.SHELL || '/bin/sh';
+const getUserShell = () => {
+  return process.env.SHELL || '/bin/sh';
+};
+
+const userShell = getUserShell();
 
 console.log('Using shell:', userShell);
 
@@ -73,7 +77,7 @@ const installProgram = (command: string, shouldEnd: boolean = true) => {
   });
 };
 
-export const checkAndInstallRequirements = async () => {
+const checkAndInstallRequirements = async () => {
   const isRustInstalled = await checkProgramInstallation('rustc --version');
   const isAleoInstalled = await checkProgramInstallation('aleo-develop --help');
   const isSnarkOsInstalled = await checkProgramInstallation('snarkos --help');
@@ -140,3 +144,5 @@ export const checkAndInstallRequirements = async () => {
     });
   }
 };
+
+export { checkAndInstallRequirements, getUserShell };
