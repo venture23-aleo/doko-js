@@ -5,3 +5,5 @@ output.json
 dist
 generated
 programs
+artifacts
+.vscode

@@ -22,7 +22,8 @@ const rl = readline.createInterface({
 async function buildProgram(programName: string) {
   const parsedProgramName = toSnakeCase(programName);
   const projectRoot = getProjectRoot();
-  const command = `mkdir -p ${projectRoot}/${LEO_ARTIFACTS} && cd ${projectRoot}/${LEO_ARTIFACTS} && leo new ${parsedProgramName} && rm ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo && cp ${projectRoot}/programs/${parsedProgramName}.leo ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo && cd ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName} && leo run`;
+  let command = `mkdir -p ${projectRoot}/${LEO_ARTIFACTS} && cd ${projectRoot}/${LEO_ARTIFACTS} && leo new ${parsedProgramName} && rm ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo && cp ${projectRoot}/programs/${parsedProgramName}.leo ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo && cd ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName} && leo run`;
+  command = command.replace(/\\/g, '/');
 
   return new Promise((res, rej) => {
     const shellProcess = spawn(userShell, ['-c', command]);
