@@ -17,7 +17,8 @@ class Generator {
   private refl: AleoReflection;
 
   generatedTypes: string[] = [];
-  generatedTypeConverterFn: string[] = [];
+  generatedLeo2JSFn: string[] = [];
+  generatedJS2LeoFn: string[] = [];
 
   constructor(aleoReflection: AleoReflection) {
     this.refl = aleoReflection;
@@ -33,13 +34,38 @@ class Generator {
     else throw new Error(`Undeclared type encountered: ${type}`);
   }
 
-  // Create LeoSchemaName for customType
   private createLeoSchemaName(customTypeName: string) {
-    return `leo${customTypeName}Schema`;
+    return `leo${capitalize(customTypeName)}Schema`;
   }
 
+  private createLeoSchemaAlias(leoSchemaAlias: string, customType: string) {
+    return (
+      `export type ${leoSchemaAlias} = z.infer<typeof leo${customType}Schema>` +
+      '\n\n'
+    );
+  }
+
+  private createImportStatement() {
+    // Create import statement for custom types
+    let importStatement = 'import {\n';
+    importStatement += this.refl.customTypes
+      .map((member) => `\t${member.name}, ${member.name}Leo,`)
+      .join('\n');
+
+    // Concat Import statement for converter function
+    importStatement = importStatement.concat(
+      '\n} from "../types"\n',
+      LEO_FN_IMPORT,
+      '\n\n'
+    );
+    return importStatement;
+  }
+
+  // Generate code for types file
   public generateTypes() {
+    // Import primitive schema type for Leo (leo-types.ts)
     let code = SCHEMA_IMPORT + '\n\n';
+
     this.refl.customTypes.forEach((customType: StructDefinition) => {
       // Create Typescript/ Zod interface for custom types
       const tsInterfaceGenerator = new TSInterfaceGenerator();
@@ -47,118 +73,102 @@ class Generator {
 
       customType.members.forEach((member) => {
         // Strip any scope qualifier (private, public)
-        const type = member.val.split('.')[0];
-        tsInterfaceGenerator.addField(member.key, this.inferDataType(type));
+        const dataType = member.val.split('.')[0];
+        tsInterfaceGenerator.addField(member.key, this.inferDataType(dataType));
         zodInterfaceGenerator.addField(
           member.key,
-          `leo${capitalize(type)}Schema`
+          this.createLeoSchemaName(dataType)
         );
       });
 
-      // Write type definition
+      // Write type definition for JS
       code = code.concat(
-        tsInterfaceGenerator.generate(customType.name) + '\n\n'
+        tsInterfaceGenerator.generate(customType.name),
+        '\n\n'
       );
 
+      // Write type definition for Leo/ ZodObject
       const leoSchemaName = this.createLeoSchemaName(customType.name);
-      code = code.concat(zodInterfaceGenerator.generate(leoSchemaName) + '\n');
+      code = code.concat(zodInterfaceGenerator.generate(leoSchemaName), '\n');
 
       // Generate type alias
       const leoSchemaAlias = `${customType.name}Leo`;
       code = code.concat(
-        `export type ${leoSchemaAlias}  = z.infer<typeof leo${customType.name}Schema>` +
-          '\n\n'
+        this.createLeoSchemaAlias(leoSchemaAlias, customType.name)
       );
 
+      // Cache the customType for later to use it in types/index.ts file
       this.generatedTypes.push(customType.name, leoSchemaName, leoSchemaAlias);
     });
 
     return code;
   }
 
+  private generateConverterFunction(
+    customType: StructDefinition,
+    conversionTo: 'js' | 'leo'
+  ) {
+    const jsType = customType.name;
+    const leoType = jsType + 'Leo';
+
+    const argName = toCamelCase(customType.name);
+
+    // if we are converting to js then the argType must be LEO and return type must be JS
+    const argType = conversionTo == 'js' ? leoType : jsType;
+    const returnType = conversionTo == 'js' ? jsType : leoType;
+
+    const fnGenerator = new TSFunctionGenerator();
+
+    // Add declaration statement
+    fnGenerator.addStatement(`\tconst result: ${returnType} = {\n`);
+
+    // Convert each of the member of the customType
+    customType.members.forEach((member) => {
+      // Split qualifier private/public
+      const type = member.val.split('.');
+
+      // Determine member conversion function
+      let conversionFnName = '';
+      if (this.refl.isCustomType(type[0]))
+        conversionFnName =
+          conversionTo == 'js' ? `get${type[0]}` : `get${type[0]}Leo`;
+      else conversionFnName = type[0];
+
+      // Add conversion statement
+      fnGenerator.addStatement(
+        `\t\t${member.key}: ${conversionFnName}(${argName}.${member.key}),\n`
+      );
+    });
+
+    // Add return statement
+    fnGenerator.addStatement('\t}\n\treturn result;\n');
+
+    const fnName = 'get' + returnType;
+    let code = fnGenerator.generate(fnName, argName, argType, returnType);
+
+    // Cache function name for import/export in js2leo or leo2js index.ts file
+    if (conversionTo == 'js') this.generatedLeo2JSFn.push(fnName);
+    else this.generatedJS2LeoFn.push(fnName);
+
+    return code;
+  }
+
   // Generate TS to Leo converter functions
-  public generateTSToLeo() {
-    // Create import statement for custom types
-    let importStatement = 'import {\n';
-    importStatement += this.refl.customTypes
-      .map((member) => `\t${member.name}, ${member.name}Leo,`)
-      .join('\n');
-    importStatement = importStatement.concat(
-      '\n} from "../types"\n',
-      LEO_FN_IMPORT,
-      '\n\n'
-    );
-    let code = importStatement;
+  public generateJSToLeo() {
+    let code = this.createImportStatement();
 
     this.refl.customTypes.forEach((customType: StructDefinition) => {
-      const fnGenerator = new TSFunctionGenerator();
-      const leoTypeName = customType.name + 'Leo';
-      const arg0 = toCamelCase(customType.name);
-
-      fnGenerator.addStatement(`\tconst result: ${leoTypeName} = {\n`);
-
-      customType.members.forEach((member) => {
-        const type = member.val.split('.');
-        let conversionFnName = this.refl.isCustomType(type[0])
-          ? `get${type[0]}Leo`
-          : type[0];
-        const conversionArg = arg0.concat('.', member.key);
-        fnGenerator.addStatement(
-          `\t\t${member.key}: ${conversionFnName}(${conversionArg}),\n`
-        );
-      });
-
-      fnGenerator.addStatement('\t}\n\treturn result;\n');
-
-      const jsTypeName = customType.name;
-      const fnName = 'get' + leoTypeName;
-      code = code.concat(
-        fnGenerator.generate(fnName, arg0, jsTypeName, leoTypeName)
-      );
+      code = code.concat(this.generateConverterFunction(customType, 'leo'));
     });
     return code;
   }
 
   // Generate Leo to TS converter functions
-  public generateLeoToTS() {
+  public generateLeoToJS() {
     // Create import statement for custom types
-    let importStatement = 'import {\n';
-    importStatement += this.refl.customTypes
-      .map((member) => `\t${member.name}, ${member.name}Leo,`)
-      .join('\n');
-    importStatement = importStatement.concat(
-      '\n} from "../types"\n',
-      TS_FN_IMPORT,
-      '\n\n'
-    );
-
-    let code = importStatement;
+    let code = this.createImportStatement();
     this.refl.customTypes.forEach((customType: StructDefinition) => {
-      const fnGenerator = new TSFunctionGenerator();
-      const tsTypeName = customType.name;
-      const arg0 = toCamelCase(customType.name);
-
-      fnGenerator.addStatement(`\tconst result: ${tsTypeName} = {\n`);
-
-      customType.members.forEach((member) => {
-        const type = member.val.split('.');
-        let conversionFnName = this.refl.isCustomType(type[0])
-          ? `get${type[0]}`
-          : type[0];
-        const conversionArg = arg0.concat('.', member.key);
-        fnGenerator.addStatement(
-          `\t\t${member.key}: ${conversionFnName}(${conversionArg}),\n`
-        );
-      });
-
-      fnGenerator.addStatement('\t}\n\treturn result;\n');
-
-      const fnName = 'get' + tsTypeName;
-      const leoTypeName = tsTypeName + 'Leo';
-      code = code.concat(
-        fnGenerator.generate(fnName, arg0, leoTypeName, tsTypeName)
-      );
-      this.generatedTypeConverterFn.push(fnName);
+      code = code.concat(this.generateConverterFunction(customType, 'js'));
     });
     return code;
   }

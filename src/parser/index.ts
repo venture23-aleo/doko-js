@@ -76,17 +76,18 @@ async function parseAleo(programFolder: string, programName: string) {
       ),
       writeToFile(
         `${outputFolder}leo2js/${outputFile}`,
-        generator.generateLeoToTS()
+        generator.generateLeoToJS()
       ),
       writeToFile(
         `${outputFolder}js2leo/${outputFile}`,
-        generator.generateTSToLeo()
+        generator.generateJSToLeo()
       )
     ]);
 
     return {
       types: generator.generatedTypes,
-      converterFn: generator.generatedTypeConverterFn,
+      js2LeoFn: generator.generatedJS2LeoFn,
+      leo2jsFn: generator.generatedLeo2JSFn,
       programName
     };
   } catch (error) {
@@ -122,20 +123,20 @@ async function compilePrograms() {
     );
 
     // Create import for leo2ts/index.ts file
-    let leo2tsIndexFileData = generateIndexFileCode(
+    let leo2jsIndexFileData = generateIndexFileCode(
       result.map((elm) => {
         return {
-          items: elm?.converterFn.join(', '),
+          items: elm?.leo2jsFn.join(', '),
           filename: elm?.programName
         };
       })
     );
 
-    // Create import for leo2ts/index.ts file
-    let ts2leoIndexFileData = generateIndexFileCode(
+    // Create import for js2leo/index.ts file
+    let js2leoIndexFileData = generateIndexFileCode(
       result.map((elm) => {
         return {
-          items: elm?.converterFn.join('Leo, ').concat('Leo'),
+          items: elm?.js2LeoFn.join(', '),
           filename: elm?.programName
         };
       })
@@ -145,11 +146,11 @@ async function compilePrograms() {
       writeToFile(GENERATE_FILE_OUT_DIR + 'types/index.ts', typesIndexFileData),
       writeToFile(
         GENERATE_FILE_OUT_DIR + 'leo2js/index.ts',
-        leo2tsIndexFileData
+        leo2jsIndexFileData
       ),
       writeToFile(
         GENERATE_FILE_OUT_DIR + 'js2leo/index.ts',
-        ts2leoIndexFileData
+        js2leoIndexFileData
       )
     ]);
   } catch (error) {

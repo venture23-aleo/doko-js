@@ -9,6 +9,7 @@ import {
   leoBooleanSchema,
   leoGroupSchema,
   leoRecordSchema,
+  leoScalarSchema
 } from "./leo-types";`;
 
 // Converter function for leo and ts
