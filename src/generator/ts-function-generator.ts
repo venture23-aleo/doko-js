@@ -6,7 +6,7 @@ class TSFunctionGenerator {
     }
 
     generate(fnName: string, arg: string, argType: string, returnType: string) {
-        return `function ${fnName}(${arg}: ${argType}): ${returnType} {\n` +
+        return `export function ${fnName}(${arg}: ${argType}): ${returnType} {\n` +
             this.code +
             '}\n\n';
     }

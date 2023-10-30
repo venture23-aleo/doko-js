@@ -17,7 +17,7 @@ class Generator {
   private refl: AleoReflection;
 
   generatedTypes: string[] = [];
-  generatedFunctions: string[] = [];
+  generatedTypeConverterFn: string[] = [];
 
   constructor(aleoReflection: AleoReflection) {
     this.refl = aleoReflection;
@@ -31,6 +31,11 @@ class Generator {
     const tsType = ConvertToTSType(type);
     if (tsType) return tsType;
     else throw new Error(`Undeclared type encountered: ${type}`);
+  }
+
+  // Create LeoSchemaName for customType
+  private createLeoSchemaName(customTypeName: string) {
+    return `leo${customTypeName}Schema`;
   }
 
   public generateTypes() {
@@ -55,7 +60,7 @@ class Generator {
         tsInterfaceGenerator.generate(customType.name) + '\n\n'
       );
 
-      const leoSchemaName = `leo${customType.name}Schema`;
+      const leoSchemaName = this.createLeoSchemaName(customType.name);
       code = code.concat(zodInterfaceGenerator.generate(leoSchemaName) + '\n');
 
       // Generate type alias
@@ -153,6 +158,7 @@ class Generator {
       code = code.concat(
         fnGenerator.generate(fnName, arg0, leoTypeName, tsTypeName)
       );
+      this.generatedTypeConverterFn.push(fnName);
     });
     return code;
   }
