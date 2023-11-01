@@ -21,6 +21,8 @@ const KEYWORDS: Record<string, string> = {
   VALUE: 'value',
   LEFT: 'left',
   RIGHT: 'right',
+  IMPORT: 'import',
+  PROGRAM: 'program',
   ...DECLARATION_KEYWORDS
 };
 
@@ -57,7 +59,7 @@ interface MappingDefinition {
   right: DataType;
 }
 
-const ALEO_TO_TS_TYPE_MAPPING = new Map([
+const ALEO_TO_JS_TYPE_MAPPING = new Map([
   ['address', 'string'],
   ['boolean', 'boolean'],
   ['field', 'BigInt'],
@@ -75,8 +77,8 @@ const ALEO_TO_TS_TYPE_MAPPING = new Map([
   ['scalar', 'BigInt']
 ]);
 
-const ConvertToTSType = (type: string) => {
-  return ALEO_TO_TS_TYPE_MAPPING.get(type);
+const ConvertToJSType = (type: string) => {
+  return ALEO_TO_JS_TYPE_MAPPING.get(type);
 };
 
 export {
@@ -90,6 +92,6 @@ export {
   FunctionDefinition,
   MappingDefinition,
   KeyWordSet,
-  ConvertToTSType,
+  ConvertToJSType,
   KEYWORDS
 };

@@ -20,7 +20,7 @@ const isLinux = () => {
 };
 
 const getUserShell = () => {
-  return process.env.SHELL || isWindows() ? 'powershell' : '/bin/sh';
+  return process.env.SHELL || '/bin/sh';
 };
 
 const userShell = getUserShell();

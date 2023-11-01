@@ -13,6 +13,7 @@ import {
 import { Tokenizer } from './tokenizer';
 
 class AleoReflection {
+  programName = '';
   customTypes = new Array<StructDefinition>();
   functions = new Array<FunctionDefinition>();
   mappings = new Array<MappingDefinition>();
@@ -69,7 +70,6 @@ class Parser {
   // Parse mapping declaration
   private parseMapping(token: TokenInfo): MappingDefinition {
     const mappingName = this.tokenizer.readToken().value;
-    const fields = new Array<KeyVal<Identifier, DataType>>();
 
     // Eat the left parenthesis
     this.tokenizer.readToken();
@@ -152,7 +152,10 @@ class Parser {
             aleoReflection.functions.push(this.parseFunction(token));
           else if (token.value === KEYWORDS.MAPPING)
             aleoReflection.mappings.push(this.parseMapping(token));
-          else console.warn('[Warning] Unparsed keyword: ', token.value);
+          else if (token.value === KEYWORDS.PROGRAM) {
+            const programNameWithExt = this.tokenizer.readToken().value;
+            aleoReflection.programName = programNameWithExt.split('.aleo')[0];
+          } else console.warn('[Warning] Unparsed keyword: ', token.value);
           break;
       }
     }

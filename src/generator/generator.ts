@@ -6,15 +6,20 @@
  */
 
 import { AleoReflection } from '../parser/parser';
-import { ConvertToTSType, StructDefinition } from '../utils/aleo-utils';
+import {
+  ConvertToJSType,
+  FunctionDefinition,
+  StructDefinition
+} from '../utils/aleo-utils';
 import { TSInterfaceGenerator } from './ts-interface-generator';
 import { ZodObjectGenerator } from './zod-object-generator';
-import { TSFunctionGenerator } from './ts-function-generator';
+import { FunctionArgs, TSFunctionGenerator } from './ts-function-generator';
 import {
   SCHEMA_IMPORT,
   LEO_FN_IMPORT,
   STRING_JS,
-  STRING_LEO
+  STRING_LEO,
+  PROGRAM_DIRECTORY
 } from './string-constants';
 import { toCamelCase, capitalize } from '../utils/formatters';
 
@@ -29,12 +34,12 @@ class Generator {
     this.refl = aleoReflection;
   }
 
-  private inferDataType(type: string): string {
+  private inferJSDataType(type: string): string {
     // Check if it is a custom type
     if (this.refl.isCustomType(type)) return type;
 
     // Check if it is a primitive type
-    const tsType = ConvertToTSType(type);
+    const tsType = ConvertToJSType(type);
     if (tsType) return tsType;
     else throw new Error(`Undeclared type encountered: ${type}`);
   }
@@ -53,16 +58,15 @@ class Generator {
   private createImportStatement() {
     // Create import statement for custom types
     let importStatement = 'import {\n';
-    importStatement += this.refl.customTypes
-      .map((member) => `\t${member.name}, ${member.name}Leo,`)
-      .join('\n');
-
-    // Concat Import statement for converter function
     importStatement = importStatement.concat(
+      this.refl.customTypes
+        .map((member) => `\t${member.name}, ${member.name}Leo,`)
+        .join('\n'),
       '\n} from "../types"\n',
       LEO_FN_IMPORT,
       '\n\n'
     );
+
     return importStatement;
   }
 
@@ -79,7 +83,10 @@ class Generator {
       customType.members.forEach((member) => {
         // Strip any scope qualifier (private, public)
         const dataType = member.val.split('.')[0];
-        tsInterfaceGenerator.addField(member.key, this.inferDataType(dataType));
+        tsInterfaceGenerator.addField(
+          member.key,
+          this.inferJSDataType(dataType)
+        );
         zodInterfaceGenerator.addField(
           member.key,
           this.createLeoSchemaName(dataType)
@@ -109,6 +116,14 @@ class Generator {
     return code;
   }
 
+  // Create a converter function name string from dataType
+  // includes custom types too
+  private generateConverterFunctionName(type: string, conversionTo: string) {
+    if (this.refl.isCustomType(type))
+      return conversionTo == 'js' ? `get${type}` : `get${type}Leo`;
+    else return type;
+  }
+
   private generateConverterFunction(
     customType: StructDefinition,
     conversionTo: string
@@ -133,11 +148,10 @@ class Generator {
       const type = member.val.split('.')[0];
 
       // Determine member conversion function
-      let conversionFnName = '';
-      if (this.refl.isCustomType(type))
-        conversionFnName =
-          conversionTo == 'js' ? `get${type}` : `get${type}Leo`;
-      else conversionFnName = type;
+      let conversionFnName = this.generateConverterFunctionName(
+        type,
+        conversionTo
+      );
 
       // Add conversion statement
       fnGenerator.addStatement(
@@ -149,7 +163,11 @@ class Generator {
     fnGenerator.addStatement('\t}\n\treturn result;\n');
 
     const fnName = 'get' + returnType;
-    let code = fnGenerator.generate(fnName, argName, argType, returnType);
+    let code = fnGenerator.generate(
+      fnName,
+      [{ name: argName, type: argType }],
+      returnType
+    );
 
     // Cache function name for import/export in js2leo or leo2js index.ts file
     if (conversionTo == STRING_JS) this.generatedLeo2JSFn.push(fnName);
@@ -177,6 +195,87 @@ class Generator {
     this.refl.customTypes.forEach((customType: StructDefinition) => {
       code = code.concat(this.generateConverterFunction(customType, STRING_JS));
     });
+    return code;
+  }
+
+  private generateTransitionFunction(func: FunctionDefinition) {
+    const fnGenerator = new TSFunctionGenerator().makeAsync();
+
+    const args: FunctionArgs[] = [];
+    const localVariables: string[] = [];
+
+    func.inputs.forEach((input) => {
+      // Generate argument array
+      const leoType = input.val.split('.')[0];
+      const jsType = this.inferJSDataType(leoType);
+      const argName = input.key;
+      args.push({ name: argName, type: jsType });
+
+      // Generate JS to leo conversion code for each type
+      const converterFuncName = this.generateConverterFunctionName(
+        leoType,
+        STRING_LEO
+      );
+
+      const variableName = `${argName}Leo`;
+      localVariables.push(variableName);
+      const conversionCode = `\tconst ${variableName} = ${converterFuncName}(${argName});\n`;
+      fnGenerator.addStatement(conversionCode);
+    });
+
+    // Param declaration
+    const params = localVariables.join(', ');
+    fnGenerator.addStatement(`\n\tconst params = [${params}]\n`);
+
+    // Add zkRun statement
+    fnGenerator.addStatement(`\tawait zkRun({
+      privateKey: PRIVATE_KEY,
+      viewKey: VIEW_KEY,
+      appName: APP_NAME,
+      contractPath: CONTRACT_PATH,
+      transition: '${func.name}',
+      params,
+      fee: FEE
+    });\n`);
+
+    const returnType = null;
+    return fnGenerator.generate(func.name, args, returnType);
+  }
+
+  // Generate transition function body
+  public generatedTransitionFunctions() {
+    // Create import statement for custom types
+    let importStatement = 'import {\n';
+    importStatement = importStatement.concat(
+      this.refl.customTypes.map((member) => `\t${member.name},`).join('\n'),
+      '\n} from "./types";\n',
+      LEO_FN_IMPORT.replace('./common', './js2leo/common'),
+      '\n',
+      'import {\n',
+      this.refl.customTypes
+        .map(
+          (member) =>
+            `\t${this.generateConverterFunctionName(member.name, STRING_LEO)},`
+        )
+        .join('\n') + `\n} from './js2leo';\n\n`
+    );
+
+    let code = importStatement;
+    const programName = this.refl.programName;
+    code = code.concat(
+      `const PRIVATE_KEY = 'diiwqiqiqi';\n`,
+      `const VIEW_KEY = 'diiwqiqiqi';\n`,
+      `const APP_NAME = '${programName}';\n`,
+      `const CONTRACT_PATH = '${PROGRAM_DIRECTORY}${programName}';\n`,
+      `const FEE = '0.01';\n\n`
+    );
+
+    this.refl.functions.forEach((func) => {
+      if (func.type === 'function') {
+        code = code.concat(this.generateTransitionFunction(func));
+      }
+    });
+
     return code;
   }
 }

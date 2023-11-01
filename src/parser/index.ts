@@ -4,9 +4,10 @@ import { Parser } from './parser';
 import fs from 'fs';
 import { Generator } from '../generator/generator';
 import { writeToFile } from '../utils/fs-utils';
-
-const GENERATE_FILE_OUT_DIR = 'artifacts/js/';
-const PROGRAM_DIRECTORY = 'artifacts/leo/';
+import {
+  PROGRAM_DIRECTORY,
+  GENERATE_FILE_OUT_DIR
+} from '../generator/string-constants';
 
 // Generate Import/Export code for index file from definitions and filename
 // definition has an item which can be function or types
@@ -29,20 +30,21 @@ function generateIndexFileCode(
 }
 
 // Read file
-async function parseAleo(programFolder: string, programName: string) {
+async function parseAleo(programFolder: string) {
   try {
     // Check if build directory exists
     if (!fs.existsSync(programFolder + 'build')) return;
 
     const inputFile = programFolder + 'build/main.aleo';
 
-    console.log(`Parsing program[${programName}, ${inputFile}]`);
+    console.log(`Parsing program[${inputFile}]`);
 
     const data = fs.readFileSync(inputFile, 'utf-8');
     const tokenizer = new Tokenizer(data);
     const aleoReflection = new Parser(tokenizer).parse();
 
     // @TODO need to change it for functions too
+    const programName = aleoReflection.programName;
     if (aleoReflection.customTypes.length === 0) {
       console.warn(
         `No types generated for program: ${programName}. No custom types[struct/record] declaration found`
@@ -70,9 +72,12 @@ async function parseAleo(programFolder: string, programName: string) {
       writeToFile(
         `${outputFolder}js2leo/${outputFile}`,
         generator.generateJSToLeo()
+      ),
+      writeToFile(
+        `${outputFolder}${outputFile}`,
+        generator.generatedTransitionFunctions()
       )
     ]);
-
     return {
       types: generator.generatedTypes,
       js2LeoFn: generator.generatedJS2LeoFn,
@@ -96,9 +101,7 @@ async function compilePrograms() {
       fs.mkdirSync(GENERATE_FILE_OUT_DIR);
 
     const result = await Promise.all(
-      folders.map((program) =>
-        parseAleo(PROGRAM_DIRECTORY + program + '/', program)
-      )
+      folders.map((program) => parseAleo(PROGRAM_DIRECTORY + program + '/'))
     );
 
     let typesIndexFileData = generateIndexFileCode(
