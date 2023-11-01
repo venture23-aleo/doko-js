@@ -7,14 +7,6 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-const getUserShell = () => {
-  return process.env.SHELL || '/bin/sh';
-};
-
-const userShell = getUserShell();
-
-console.log('Using shell:', userShell);
-
 const isWindows = () => {
   return os.platform() === 'win32';
 };
@@ -26,6 +18,14 @@ const isMacOS = () => {
 const isLinux = () => {
   return os.platform() === 'linux';
 };
+
+const getUserShell = () => {
+  return process.env.SHELL || isWindows() ? 'powershell' : '/bin/sh';
+};
+
+const userShell = getUserShell();
+
+console.log('Using shell:', userShell);
 
 const checkProgramInstallation = (command: string) => {
   return new Promise((resolve, reject) => {
