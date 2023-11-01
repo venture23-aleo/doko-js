@@ -10,7 +10,12 @@ import { ConvertToTSType, StructDefinition } from '../utils/aleo-utils';
 import { TSInterfaceGenerator } from './ts-interface-generator';
 import { ZodObjectGenerator } from './zod-object-generator';
 import { TSFunctionGenerator } from './ts-function-generator';
-import { SCHEMA_IMPORT, LEO_FN_IMPORT, TS_FN_IMPORT } from './string-constants';
+import {
+  SCHEMA_IMPORT,
+  LEO_FN_IMPORT,
+  STRING_JS,
+  STRING_LEO
+} from './string-constants';
 import { toCamelCase, capitalize } from '../utils/formatters';
 
 class Generator {
@@ -106,7 +111,7 @@ class Generator {
 
   private generateConverterFunction(
     customType: StructDefinition,
-    conversionTo: 'js' | 'leo'
+    conversionTo: string
   ) {
     const jsType = customType.name;
     const leoType = jsType + 'Leo';
@@ -114,8 +119,8 @@ class Generator {
     const argName = toCamelCase(customType.name);
 
     // if we are converting to js then the argType must be LEO and return type must be JS
-    const argType = conversionTo == 'js' ? leoType : jsType;
-    const returnType = conversionTo == 'js' ? jsType : leoType;
+    const argType = conversionTo == STRING_JS ? leoType : jsType;
+    const returnType = conversionTo == STRING_JS ? jsType : leoType;
 
     const fnGenerator = new TSFunctionGenerator();
 
@@ -125,14 +130,14 @@ class Generator {
     // Convert each of the member of the customType
     customType.members.forEach((member) => {
       // Split qualifier private/public
-      const type = member.val.split('.');
+      const type = member.val.split('.')[0];
 
       // Determine member conversion function
       let conversionFnName = '';
-      if (this.refl.isCustomType(type[0]))
+      if (this.refl.isCustomType(type))
         conversionFnName =
-          conversionTo == 'js' ? `get${type[0]}` : `get${type[0]}Leo`;
-      else conversionFnName = type[0];
+          conversionTo == 'js' ? `get${type}` : `get${type}Leo`;
+      else conversionFnName = type;
 
       // Add conversion statement
       fnGenerator.addStatement(
@@ -147,7 +152,7 @@ class Generator {
     let code = fnGenerator.generate(fnName, argName, argType, returnType);
 
     // Cache function name for import/export in js2leo or leo2js index.ts file
-    if (conversionTo == 'js') this.generatedLeo2JSFn.push(fnName);
+    if (conversionTo == STRING_JS) this.generatedLeo2JSFn.push(fnName);
     else this.generatedJS2LeoFn.push(fnName);
 
     return code;
@@ -158,7 +163,9 @@ class Generator {
     let code = this.createImportStatement();
 
     this.refl.customTypes.forEach((customType: StructDefinition) => {
-      code = code.concat(this.generateConverterFunction(customType, 'leo'));
+      code = code.concat(
+        this.generateConverterFunction(customType, STRING_LEO)
+      );
     });
     return code;
   }
@@ -168,7 +175,7 @@ class Generator {
     // Create import statement for custom types
     let code = this.createImportStatement();
     this.refl.customTypes.forEach((customType: StructDefinition) => {
-      code = code.concat(this.generateConverterFunction(customType, 'js'));
+      code = code.concat(this.generateConverterFunction(customType, STRING_JS));
     });
     return code;
   }

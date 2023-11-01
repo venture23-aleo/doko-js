@@ -36,4 +36,19 @@ function getProjectRoot() {
   }
 }
 
-export { getProjectRoot };
+async function writeToFile(filename: string, data: string) {
+  try {
+    const fileStream = fs.createWriteStream(filename, 'utf-8');
+    fileStream.write(data);
+    fileStream.close();
+    return new Promise((resolve, reject) => {
+      console.log('Generated file:', filename);
+      fileStream.on('error', reject);
+      fileStream.on('close', resolve);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export { getProjectRoot, writeToFile };

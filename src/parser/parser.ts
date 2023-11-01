@@ -18,7 +18,10 @@ class AleoReflection {
   mappings = new Array<MappingDefinition>();
 
   isCustomType(type: string) {
-    return this.customTypes.find((customType) => customType.name === type) != undefined;
+    return (
+      this.customTypes.find((customType) => customType.name === type) !=
+      undefined
+    );
   }
 }
 
@@ -31,8 +34,10 @@ class Parser {
 
   private parseExpression(): KeyVal<Identifier, DataType> {
     const identifier = this.tokenizer.readToken().value;
+
     // Eat 'as' string
     this.tokenizer.readToken();
+
     const type = this.tokenizer.readToken().value;
     return { key: identifier, val: type };
   }
@@ -103,7 +108,7 @@ class Parser {
       // @TODO find proper delimeter
       if (token.value != KEYWORDS.INPUT) break;
 
-      // Read 'input' token
+      // Eat 'input' token
       this.tokenizer.readToken();
 
       // Parse declaration

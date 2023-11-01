@@ -3,40 +3,28 @@ import { Parser } from './parser';
 
 import fs from 'fs';
 import { Generator } from '../generator/generator';
+import { writeToFile } from '../utils/fs-utils';
 
 const GENERATE_FILE_OUT_DIR = 'artifacts/js/';
 const PROGRAM_DIRECTORY = 'artifacts/leo/';
 
-async function writeToFile(filename: string, data: string) {
-  try {
-    const fileStream = fs.createWriteStream(filename, 'utf-8');
-    fileStream.write(data);
-    fileStream.close();
-    return new Promise((resolve, reject) => {
-      console.log('Generated file:', filename);
-      fileStream.on('error', reject);
-      fileStream.on('close', resolve);
-    });
-  } catch (error) {
-    console.log(error);
-  }
-}
-
 // Generate Import/Export code for index file from definitions and filename
 // definition has an item which can be function or types
 function generateIndexFileCode(
-  declaredItems: { items?: string; filename?: string }[]
+  declaredImports: { importName?: string; filename?: string }[]
 ): string {
   // Create individual import statement according to type/function definition and filename
-  let code = declaredItems
+  let code = declaredImports
     .map(
-      (declaredItem) =>
-        `import { ${declaredItem.items} } from "./${declaredItem.filename}";\n`
+      (imports) =>
+        `import { ${imports.importName} } from "./${imports.filename}";\n`
     )
     .join('');
 
   // Create a single line export statement from all the declared type/functions
-  const exportItems = declaredItems.map((item) => item?.items).join(', ');
+  const exportItems = declaredImports
+    .map((item) => item?.importName)
+    .join(', ');
   return code.concat(`\nexport { ${exportItems} }`);
 }
 
@@ -54,6 +42,7 @@ async function parseAleo(programFolder: string, programName: string) {
     const tokenizer = new Tokenizer(data);
     const aleoReflection = new Parser(tokenizer).parse();
 
+    // @TODO need to change it for functions too
     if (aleoReflection.customTypes.length === 0) {
       console.warn(
         `No types generated for program: ${programName}. No custom types[struct/record] declaration found`
@@ -112,11 +101,10 @@ async function compilePrograms() {
       )
     );
 
-    // Create import for types/index.ts file
     let typesIndexFileData = generateIndexFileCode(
       result.map((elm) => {
         return {
-          items: elm?.types.join(', '),
+          importName: elm?.types.join(', '),
           filename: elm?.programName
         };
       })
@@ -126,7 +114,7 @@ async function compilePrograms() {
     let leo2jsIndexFileData = generateIndexFileCode(
       result.map((elm) => {
         return {
-          items: elm?.leo2jsFn.join(', '),
+          importName: elm?.leo2jsFn.join(', '),
           filename: elm?.programName
         };
       })
@@ -136,7 +124,7 @@ async function compilePrograms() {
     let js2leoIndexFileData = generateIndexFileCode(
       result.map((elm) => {
         return {
-          items: elm?.js2LeoFn.join(', '),
+          importName: elm?.js2LeoFn.join(', '),
           filename: elm?.programName
         };
       })
