@@ -34,17 +34,18 @@ async function addProgram(
   const source = path.join(templatesDir, '');
 
   const baseCommand = rootDestination ? fse.rename : fse.copyFile;
-  const pathToCopy = rootDestination
-    ? `${source}/programs/temp_sample_program.leo`
-    : path.join(source, 'programs/temp_sample_program.leo');
+
   const destPath = path.join(
     projectRoot,
     'programs',
     `${parsedProgramName}.leo`
   );
 
+  const pathToCopy = rootDestination
+    ? path.join(projectRoot, 'programs/temp_sample_program.leo')
+    : path.join(source, 'programs/temp_sample_program.leo');
   const testPathToCopy = rootDestination
-    ? `${source}/test/sample_program.test.ts`
+    ? path.join(projectRoot, 'test/sample_program.test.ts')
     : path.join(source, 'test/sample_program.test.ts');
   const testDestPath = path.join(
     projectRoot,
