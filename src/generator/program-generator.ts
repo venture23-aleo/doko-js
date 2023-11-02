@@ -3,6 +3,7 @@ import fse from 'fs-extra';
 
 import { getProjectRoot } from '../utils/fs-utils';
 import { toSnakeCase } from '../utils/formatters';
+import Shell from '../utils/shell';
 
 async function replaceProgramName(filePath: string, newProgramName: string) {
   try {
@@ -94,4 +95,15 @@ async function createProjectStructure(
   }
 }
 
-export { createProjectStructure, addProgram };
+async function installNpmPackages(path: string | undefined) {
+  const devDeps = ['@types/jest', 'jest'];
+  const dependencies = ['zod'];
+  const command = `cd ${path} && npm install --save-dev ${devDeps.join(
+    ' '
+  )} && npm install ${dependencies.join(' ')}`;
+
+  const shell = new Shell(command);
+  return shell.asyncExec();
+}
+
+export { createProjectStructure, addProgram, installNpmPackages };

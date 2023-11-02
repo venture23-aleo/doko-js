@@ -1,49 +1,21 @@
 import fs from 'fs-extra';
 import path from 'path';
-import readline from 'readline';
-import { spawn } from 'child_process';
 
 import { getProjectRoot } from '../utils/fs-utils';
-import { getUserShell } from '../utils/requirementsCheck';
 import { toSnakeCase } from '../utils/formatters';
+import Shell from '../utils/shell';
 
 const GENERATE_FILE_OUT_DIR = 'artifacts/';
 const LEO_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/leo`;
 const JS_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/js`;
 const PROGRAM_DIRECTORY = './programs/';
 
-const userShell = getUserShell();
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
 async function buildProgram(programName: string) {
   const parsedProgramName = toSnakeCase(programName);
   const projectRoot = getProjectRoot();
-  let command = `mkdir -p ${projectRoot}/${LEO_ARTIFACTS} && cd ${projectRoot}/${LEO_ARTIFACTS} && leo new ${parsedProgramName} && rm ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo && cp ${projectRoot}/programs/${parsedProgramName}.leo ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo && cd ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName} && leo run`;
-  command = command.replace(/\\/g, '/');
-
-  return new Promise((res, rej) => {
-    const shellProcess = spawn(userShell, ['-c', command]);
-    rl.on('line', (input) => {
-      shellProcess.stdin.write(input + '\n');
-    });
-
-    shellProcess.stdout.on('data', (data) => {
-      console.log(data.toString());
-    });
-
-    shellProcess.stderr.on('data', (data) => {
-      console.log(data.toString());
-    });
-
-    shellProcess.on('close', (code) => {
-      res(code);
-      rl.close();
-    });
-  });
+  const command = `mkdir -p ${projectRoot}/${LEO_ARTIFACTS} && cd ${projectRoot}/${LEO_ARTIFACTS} && leo new ${parsedProgramName} && rm ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo && cp ${projectRoot}/programs/${parsedProgramName}.leo ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo && cd ${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName} && leo run`;
+  const shellCommand = new Shell(command);
+  return shellCommand.asyncExec();
 }
 
 function getFilenamesInDirectory(directoryPath: string) {

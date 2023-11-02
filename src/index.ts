@@ -5,10 +5,12 @@ import { checkAndInstallRequirements } from './utils/requirementsCheck';
 import { compilePrograms } from './parser';
 import {
   addProgram,
-  createProjectStructure
+  createProjectStructure,
+  installNpmPackages
 } from './generator/program-generator';
 import { runAleoNode } from './scripts/runAleoNode';
 import { compileAndBuildPrograms } from './compile';
+import { runTest } from './runner/test-runner';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const figlet = require('figlet');
@@ -31,6 +33,7 @@ program
     await checkAndInstallRequirements();
     const response = await createProjectStructure(projectName, programName);
     await addProgram(programName, response?.destination);
+    await installNpmPackages(response?.destination);
     console.log(
       `Checkout to ${projectName} directory for accessing the program`
     );
@@ -61,7 +64,7 @@ program
   });
 
 program
-  .command('run node')
+  .command('start node')
   .description('Run your AleoJS project')
   .option('-n --network <network-name>', 'Network name')
   .action((_, options) => {
@@ -76,6 +79,17 @@ program
 
     console.log('No network');
     // Add your run logic here
+  });
+
+program
+  .command('run <file>')
+  .description('Run file')
+  // .requiredOption('-n --network <network-name>', 'Network name')
+  .option('-n --network <network-name>', 'Network name')
+  .action(async (file, options) => {
+    console.log('No network');
+    await runTest(file);
+    process.exit(0);
   });
 
 program.parse(process.argv);
