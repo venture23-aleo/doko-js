@@ -96,7 +96,14 @@ async function createProjectStructure(
 }
 
 async function installNpmPackages(path: string | undefined) {
-  const devDeps = ['@types/jest', 'jest'];
+  console.log('Installing repo dependencies ...');
+  const devDeps = [
+    '@types/jest',
+    'jest',
+    'ts-jest',
+    'babel-jest',
+    '@babel/preset-env'
+  ];
   const dependencies = ['zod'];
   const command = `cd ${path} && npm install --save-dev ${devDeps.join(
     ' '
