@@ -19,7 +19,10 @@ class Shell {
 
   public async asyncExec() {
     return new Promise((res) => {
-      const shellProcess = spawn(this.shell, ['-c', this.command]);
+      const shellProcess = spawn(this.shell, [
+        '-c',
+        `FORCE_COLOR=true ${this.command}`
+      ]);
       this.rl.on('line', (input: any) => {
         shellProcess.stdin.write(input + '\n');
       });
