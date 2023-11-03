@@ -49,8 +49,9 @@ class Generator {
   }
 
   private createLeoSchemaAlias(leoSchemaAlias: string, customType: string) {
+    const leoSchemaName = this.createLeoSchemaName(customType);
     return (
-      `export type ${leoSchemaAlias} = z.infer<typeof leo${customType}Schema>` +
+      `export type ${leoSchemaAlias} = z.infer<typeof ${leoSchemaName}>;` +
       '\n\n'
     );
   }
@@ -229,13 +230,13 @@ class Generator {
 
     // Add zkRun statement
     fnGenerator.addStatement(`\tawait zkRun({
-      privateKey: PRIVATE_KEY,
+      /*privateKey: PRIVATE_KEY,
       viewKey: VIEW_KEY,
-      appName: APP_NAME,
+      appName: APP_NAME,*/
       contractPath: CONTRACT_PATH,
       transition: '${func.name}',
       params,
-      fee: FEE
+      /*fee: FEE*/
     });\n`);
 
     const returnType = null;
@@ -257,14 +258,22 @@ class Generator {
           (member) =>
             `\t${this.generateConverterFunctionName(member.name, STRING_LEO)},`
         )
-        .join('\n') + `\n} from './js2leo';\n\n`
+        .join('\n') + `\n} from './js2leo';\n\n`,
+      `import { zkRun } from './utils'; \n`
     );
 
     let code = importStatement;
     const programName = this.refl.programName;
+
+    const privateKey = this.refl.env?.get('PRIVATE_KEY');
+    if (!privateKey || privateKey.length == 0)
+      throw new Error(
+        'Invalid private key for program: ' + this.refl.programName
+      );
+
     code = code.concat(
-      `const PRIVATE_KEY = 'diiwqiqiqi';\n`,
-      `const VIEW_KEY = 'diiwqiqiqi';\n`,
+      `const PRIVATE_KEY = '${privateKey}';\n`,
+      `const VIEW_KEY = '${privateKey}';\n`,
       `const APP_NAME = '${programName}';\n`,
       `const CONTRACT_PATH = '${PROGRAM_DIRECTORY}${programName}';\n`,
       `const FEE = '0.01';\n\n`

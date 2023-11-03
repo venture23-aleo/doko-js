@@ -1,15 +1,20 @@
 export const SCHEMA_IMPORT = `import { z } from "zod";
 import { 
+  leoAddressSchema,
+  leoPrivateKeySchema,
+  leoViewKeySchema,
+  leoTxIdSchema,
+  leoScalarSchema,
+  leoFieldSchema,
+  leoBooleanSchema,
   leoU8Schema,
   leoU16Schema,
   leoU32Schema,
+  leoU64Schema,
   leoU128Schema,
-  leoFieldSchema,
-  leoAddressSchema,
-  leoBooleanSchema,
   leoGroupSchema,
   leoRecordSchema,
-  leoScalarSchema
+  leoTxSchema,
 } from "./leo-types";`;
 
 // Converter function for leo and ts

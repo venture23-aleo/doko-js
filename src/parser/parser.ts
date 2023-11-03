@@ -17,6 +17,7 @@ class AleoReflection {
   customTypes = new Array<StructDefinition>();
   functions = new Array<FunctionDefinition>();
   mappings = new Array<MappingDefinition>();
+  env?: Map<string, string>;
 
   isCustomType(type: string) {
     return (
@@ -105,7 +106,6 @@ class Parser {
     while (true) {
       const token = this.tokenizer.tryReadToken();
 
-      // @TODO find proper delimeter
       if (token.value != KEYWORDS.INPUT) break;
 
       // Eat 'input' token

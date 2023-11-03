@@ -15,6 +15,10 @@ function generateIndexFileCode(
   declaredImports: { importName?: string; filename?: string }[]
 ): string {
   // Create individual import statement according to type/function definition and filename
+  declaredImports = declaredImports.filter((item) => {
+    return item.importName && item.importName?.trim() !== '';
+  });
+
   let code = declaredImports
     .map(
       (imports) =>
@@ -27,6 +31,19 @@ function generateIndexFileCode(
     .map((item) => item?.importName)
     .join(', ');
   return code.concat(`\nexport { ${exportItems} }`);
+}
+
+function convertEnvToKeyVal(envData: string): Map<string, string> {
+  envData = envData.trim();
+  const envVariables = envData.split('\n');
+  return new Map<string, string>(
+    envVariables.map((variable) => {
+      const keyVal = variable.split('=');
+      if (keyVal.length !== 2)
+        throw new Error('Invalid Environment declaration: ' + keyVal);
+      return [keyVal[0], keyVal[1]];
+    })
+  );
 }
 
 // Read file
@@ -43,41 +60,46 @@ async function parseAleo(programFolder: string) {
     const tokenizer = new Tokenizer(data);
     const aleoReflection = new Parser(tokenizer).parse();
 
-    // @TODO need to change it for functions too
-    const programName = aleoReflection.programName;
-    if (aleoReflection.customTypes.length === 0) {
-      console.warn(
-        `No types generated for program: ${programName}. No custom types[struct/record] declaration found`
-      );
-      return;
-    }
+    // Parse .env for private key
+    const envFile = programFolder + '/.env';
+    const envData = fs.readFileSync(envFile, 'utf-8');
+    aleoReflection.env = convertEnvToKeyVal(envData);
+    console.log('Available Environment Variables: ', aleoReflection.env);
 
     // Create Output Directory
     const outputFolder = GENERATE_FILE_OUT_DIR;
     if (!fs.existsSync(outputFolder)) fs.mkdirSync(outputFolder);
 
-    const generator = new Generator(aleoReflection);
-
+    const programName = aleoReflection.programName;
     const outputFile = `${programName}.ts`;
 
-    await Promise.all([
-      writeToFile(
-        `${outputFolder}types/${outputFile}`,
-        generator.generateTypes()
-      ),
-      writeToFile(
-        `${outputFolder}leo2js/${outputFile}`,
-        generator.generateLeoToJS()
-      ),
-      writeToFile(
-        `${outputFolder}js2leo/${outputFile}`,
-        generator.generateJSToLeo()
-      ),
-      writeToFile(
-        `${outputFolder}${outputFile}`,
-        generator.generatedTransitionFunctions()
-      )
-    ]);
+    const generator = new Generator(aleoReflection);
+    if (aleoReflection.customTypes.length === 0) {
+      console.warn(
+        `No types generated for program: ${programName}. No custom types[struct/record] declaration found`
+      );
+    } else {
+      await Promise.all([
+        writeToFile(
+          `${outputFolder}types/${outputFile}`,
+          generator.generateTypes()
+        ),
+        writeToFile(
+          `${outputFolder}leo2js/${outputFile}`,
+          generator.generateLeoToJS()
+        ),
+        writeToFile(
+          `${outputFolder}js2leo/${outputFile}`,
+          generator.generateJSToLeo()
+        )
+      ]);
+    }
+
+    await writeToFile(
+      `${outputFolder}${outputFile}`,
+      generator.generatedTransitionFunctions()
+    );
+
     return {
       types: generator.generatedTypes,
       js2LeoFn: generator.generatedJS2LeoFn,
