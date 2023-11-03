@@ -220,7 +220,11 @@ class Generator {
 
       const variableName = `${argName}Leo`;
       localVariables.push(variableName);
-      const conversionCode = `\tconst ${variableName} = ${converterFuncName}(${argName});\n`;
+
+      let fnName = `${converterFuncName}(${argName})`;
+      if (this.refl.isCustomType(leoType)) fnName = `JSON.stringify(${fnName})`;
+
+      const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
       fnGenerator.addStatement(conversionCode);
     });
 
