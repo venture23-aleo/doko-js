@@ -42,8 +42,10 @@ async function writeToFile(filename: string, data: string) {
     fileStream.write(data);
     fileStream.close();
     return new Promise((resolve, reject) => {
-      console.log('Generated file:', filename);
       fileStream.on('error', reject);
+      fileStream.on('finish', () => {
+        console.log('Generated file: ', filename);
+      });
       fileStream.on('close', resolve);
     });
   } catch (error) {
