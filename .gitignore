@@ -4,5 +4,4 @@ contracts
 output.json
 dist
 generated
-artifacts
 .vscode
