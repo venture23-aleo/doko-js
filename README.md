@@ -108,6 +108,13 @@ node ../aleojs/dist/index.js init demo
 
     This command executes the test files inside the tests folder.
 
+5. Deploy contract
+
+    To deploy your contract, run the following command:
+    ```sh
+    aleojs-dev deploy [program_name] --network [network_name]
+    ```
+
 
 ## Example
 Let's walk through a quick example to illustrate the process.
@@ -149,3 +156,8 @@ Let's walk through a quick example to illustrate the process.
     aleojs-dev run test
     ```
     This will run our token.js
+
+6. At last we deploy contract
+    ```sh
+    aleojs-dev deploy token --network testnet
+    ```
