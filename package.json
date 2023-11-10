@@ -50,6 +50,6 @@
     "typescript": "^5.2.2"
   },
   "bin": {
-    "aleojs-dev": "./dist/index.js"
+    "aleojs-beta": "./dist/index.js"
   }
 }
