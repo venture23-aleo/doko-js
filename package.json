@@ -1,6 +1,6 @@
 {
-  "name": "aleojs-cli",
-  "version": "1.0.0",
+  "name": "aleojs-beta",
+  "version": "0.0.1",
   "description": "AleoJS Cli tool",
   "main": "dist/index.js",
   "scripts": {
