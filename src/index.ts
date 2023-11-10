@@ -8,9 +8,10 @@ import {
   createProjectStructure,
   installNpmPackages
 } from './generator/program-generator';
-import { runAleoNode } from './scripts/runAleoNode';
-import { compileAndBuildPrograms } from './compile';
-import { runTest } from './runner/test-runner';
+import { runAleoNode } from './scripts/leo-node';
+import { compileAndBuildPrograms } from './scripts/compile';
+import { runTest } from './scripts/test';
+import { deploy } from './scripts/deploy';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const figlet = require('figlet');
@@ -89,6 +90,19 @@ program
   .action(async (file, options) => {
     console.log('No network');
     await runTest(file);
+    process.exit(0);
+  });
+
+program
+  .command('deploy <program-name>')
+  .description('Deploy program')
+  .option('-n --network <network-name>', 'Network name')
+  .option('-i --private-key-index', 'Private key index on config')
+  .action(async (programName, options) => {
+    await deploy(programName, {
+      privateKeyIndex: options.privateKeyIndex || 0,
+      network: options.network || 'testnet'
+    });
     process.exit(0);
   });
 

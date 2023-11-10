@@ -1,9 +1,11 @@
+import fs from 'fs';
+import path from 'path';
+
 import { Tokenizer } from './tokenizer';
 import { Parser } from './parser';
 
-import fs from 'fs';
 import { Generator } from '../generator/generator';
-import { writeToFile } from '../utils/fs-utils';
+import { getProjectRoot, pathFromRoot, writeToFile } from '../utils/fs-utils';
 import {
   PROGRAM_DIRECTORY,
   GENERATE_FILE_OUT_DIR
@@ -19,7 +21,7 @@ function generateIndexFileCode(
     return item.importName && item.importName?.trim() !== '';
   });
 
-  let code = declaredImports
+  const code = declaredImports
     .map(
       (imports) =>
         `import { ${imports.importName} } from "./${imports.filename}";\n`
@@ -67,7 +69,7 @@ async function parseAleo(programFolder: string) {
     console.log('Available Environment Variables: ', aleoReflection.env);
 
     // Create Output Directory
-    const outputFolder = GENERATE_FILE_OUT_DIR;
+    const outputFolder = pathFromRoot(GENERATE_FILE_OUT_DIR);
     if (!fs.existsSync(outputFolder)) fs.mkdirSync(outputFolder);
 
     const programName = aleoReflection.programName;
@@ -113,20 +115,23 @@ async function parseAleo(programFolder: string) {
 
 async function compilePrograms() {
   try {
-    const contents = fs.readdirSync(PROGRAM_DIRECTORY);
+    const projectRoot = getProjectRoot();
+    const programPath = path.join(projectRoot, PROGRAM_DIRECTORY);
+    const outputPath = path.join(projectRoot, GENERATE_FILE_OUT_DIR);
+
+    const contents = fs.readdirSync(programPath);
     const folders = contents.filter((name) =>
-      fs.statSync(PROGRAM_DIRECTORY + name).isDirectory()
+      fs.statSync(programPath + name).isDirectory()
     );
 
     // Create Output Directory
-    if (!fs.existsSync(GENERATE_FILE_OUT_DIR))
-      fs.mkdirSync(GENERATE_FILE_OUT_DIR);
+    if (!fs.existsSync(outputPath)) fs.mkdirSync(outputPath);
 
     const result = await Promise.all(
-      folders.map((program) => parseAleo(PROGRAM_DIRECTORY + program + '/'))
+      folders.map((program) => parseAleo(programPath + program + '/'))
     );
 
-    let typesIndexFileData = generateIndexFileCode(
+    const typesIndexFileData = generateIndexFileCode(
       result.map((elm) => {
         return {
           importName: elm?.types.join(', '),
@@ -136,7 +141,7 @@ async function compilePrograms() {
     );
 
     // Create import for leo2ts/index.ts file
-    let leo2jsIndexFileData = generateIndexFileCode(
+    const leo2jsIndexFileData = generateIndexFileCode(
       result.map((elm) => {
         return {
           importName: elm?.leo2jsFn.join(', '),
@@ -146,7 +151,7 @@ async function compilePrograms() {
     );
 
     // Create import for js2leo/index.ts file
-    let js2leoIndexFileData = generateIndexFileCode(
+    const js2leoIndexFileData = generateIndexFileCode(
       result.map((elm) => {
         return {
           importName: elm?.js2LeoFn.join(', '),
@@ -156,15 +161,12 @@ async function compilePrograms() {
     );
 
     await Promise.all([
-      writeToFile(GENERATE_FILE_OUT_DIR + 'types/index.ts', typesIndexFileData),
+      writeToFile(path.join(outputPath, 'types/index.ts'), typesIndexFileData),
       writeToFile(
-        GENERATE_FILE_OUT_DIR + 'leo2js/index.ts',
+        path.join(outputPath, 'leo2js/index.ts'),
         leo2jsIndexFileData
       ),
-      writeToFile(
-        GENERATE_FILE_OUT_DIR + 'js2leo/index.ts',
-        js2leoIndexFileData
-      )
+      writeToFile(path.join(outputPath, 'js2leo/index.ts'), js2leoIndexFileData)
     ]);
   } catch (error) {
     console.log(error);

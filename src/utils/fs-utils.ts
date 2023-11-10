@@ -28,7 +28,6 @@ function getProjectRoot() {
   const npmRootDir = findRootDirectory(startingDirectory);
 
   if (npmRootDir) {
-    console.log(`Found package.json in ${npmRootDir}`);
     return npmRootDir;
   } else {
     console.error('Aleo project initialization not found');
@@ -53,4 +52,18 @@ async function writeToFile(filename: string, data: string) {
   }
 }
 
-export { getProjectRoot, writeToFile };
+function getAleoConfig() {
+  const configPath = path.join(getProjectRoot(), 'aleo-config.js');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const config = require(configPath);
+
+  return config;
+}
+
+function pathFromRoot(repoPath: string) {
+  const projectRoot = getProjectRoot();
+
+  return path.join(projectRoot, repoPath);
+}
+
+export { getProjectRoot, writeToFile, getAleoConfig, pathFromRoot };
