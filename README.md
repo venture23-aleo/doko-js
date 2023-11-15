@@ -1,7 +1,7 @@
 # AleoJS
 > EthersJS (+Hardhat) for the Aleo ecosystem
 
-AleoJS library aims to be a simple and compact library for interacting with the Aleo blockchain and its ecosystem. It’ll fully leverage the existing tools and provide an easy to use interface to anyone who wants to build on top of Aleo.
+AleoJS library aims to be a simple and compact library for interacting with the Aleo blockchain and its ecosystem. Inspired by the work from [zk-gaming-toolkit](https://github.com/kryha/zk-gaming-toolkit), it’ll fully leverage the existing tools and provide an easy to use interface to anyone who wants to build on top of Aleo.
 
 ## Installation and Setup
 
