@@ -86,7 +86,7 @@ async function createProjectStructure(
 
   try {
     await fse.copy(source, destination);
-    destination = destination.replace(/\\/g, '/');
+    destination = destination.replace(/\\(?! )/g, '/');
     console.log(destination);
     console.log('Template copied');
     await fse.mkdir(`${destination}/programs`, { recursive: true });
@@ -110,7 +110,7 @@ async function installNpmPackages(path: string | undefined) {
     '@babel/preset-env'
   ];
   const dependencies = ['zod'];
-  const command = `cd ${path} && npm install --save-dev ${devDeps.join(
+  const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
     ' '
   )} && npm install ${dependencies.join(' ')}`;
 
