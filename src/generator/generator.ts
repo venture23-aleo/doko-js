@@ -223,6 +223,7 @@ class Generator {
 
       let fnName = `${converterFuncName}(${argName})`;
       if (this.refl.isCustomType(leoType)) fnName = `JSON.stringify(${fnName})`;
+      else fnName = `js2leo.${fnName}`;
 
       const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
       fnGenerator.addStatement(conversionCode);
@@ -233,7 +234,7 @@ class Generator {
     fnGenerator.addStatement(`\n\tconst params = [${params}]\n`);
 
     // Add zkRun statement
-    fnGenerator.addStatement(`\tawait zkRun({
+    fnGenerator.addStatement(`\tconst result = await zkRun({
       /*privateKey: PRIVATE_KEY,
       viewKey: VIEW_KEY,
       appName: APP_NAME,*/
@@ -243,26 +244,59 @@ class Generator {
       /*fee: FEE*/
     });\n`);
 
-    const returnType = null;
-    return fnGenerator.generate(func.name, args, returnType);
+    let returnType = func.output.split('.')[0];
+    if (returnType === 'void')
+      return fnGenerator.generate(func.name, args, returnType);
+
+    let resultConverter = this.generateConverterFunctionName(
+      returnType,
+      STRING_JS
+    );
+
+    if (this.refl.isCustomType(returnType)) {
+      fnGenerator.addStatement(`\t return ${resultConverter}(result.data);\n`);
+    } else {
+      resultConverter = `leo2js.${resultConverter}`;
+      // cast non-custom datatype to string
+      fnGenerator.addStatement(
+        `\t return ${resultConverter}(result.data as string);\n`
+      );
+    }
+    returnType = this.inferJSDataType(returnType);
+    return fnGenerator.generate(func.name, args, `Promise<${returnType}>`);
   }
 
   // Generate transition function body
   public generatedTransitionFunctions() {
     // Create import statement for custom types
-    let importStatement = 'import {\n';
+    let importStatement = "import * as js2leo from './js2leo/common';\n";
     importStatement = importStatement.concat(
-      this.refl.customTypes.map((member) => `\t${member.name},`).join('\n'),
-      '\n} from "./types";\n',
-      LEO_FN_IMPORT.replace('./common', './js2leo/common'),
-      '\n',
-      'import {\n',
-      this.refl.customTypes
-        .map(
-          (member) =>
-            `\t${this.generateConverterFunctionName(member.name, STRING_LEO)},`
-        )
-        .join('\n') + `\n} from './js2leo';\n\n`,
+      "import * as leo2js from './leo2js/common';\n"
+    );
+
+    if (this.refl.customTypes.length > 0) {
+      const mapping = this.refl.customTypes.map((member) => {
+        return {
+          name: member.name,
+          leoFn: this.generateConverterFunctionName(member.name, STRING_LEO),
+          jsFn: this.generateConverterFunctionName(member.name, STRING_JS)
+        };
+      });
+
+      importStatement = importStatement.concat(
+        'import {\n',
+        mapping.map((member) => `\t${member.name},`).join('\n'),
+        '\n} from "./types";\n',
+        'import {\n',
+        mapping.map((member) => `\t${member.leoFn},`).join('\n') +
+          `\n} from './js2leo';\n`,
+        'import {\n',
+        mapping.map((member) => `\t${member.jsFn},`).join('\n') +
+          `\n} from './leo2js';\n\n`
+      );
+    }
+
+    importStatement = importStatement.concat(
       `import { zkRun } from './utils'; \n`
     );
 

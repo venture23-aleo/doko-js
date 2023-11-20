@@ -16,33 +16,20 @@ export const parseRecordString = (
 };
 
 const parseCmdOutput = (cmdOutput: string): Record<string, unknown> => {
-  const lines = cmdOutput.split('\n');
+  const strAfterOutput = cmdOutput.split("Output")[1];
+  let lines = strAfterOutput.split("\n").filter((str) => str != "");
+
+  // Remove last line which include the location details
+  lines.pop();
+
+  // Remove the '• ' first two character
+  lines[0] = lines[0].replace(/^.{2}/g, "");
+  lines = lines.map((str) => str.trim());
 
   let res: Record<string, unknown> = {};
-
-  let objectStarted = false;
-  let objectFinished = false;
-  let done = false;
-  let toParse = '';
-
-  lines.forEach((line) => {
-    if (done) return;
-
-    if (objectStarted && objectFinished) {
-      res = parseRecordString(toParse);
-      done = true;
-    } else if (objectStarted) {
-      if (line.startsWith('}')) {
-        objectFinished = true;
-      }
-      const trimmedLine = line.trim();
-      toParse = toParse + trimmedLine;
-    } else if (line.includes('• {') || line.startsWith('{')) {
-      toParse = toParse + '{';
-      objectStarted = true;
-    }
-  });
-
+  // Return type is primitive type
+  if (lines.length === 1) res = { data: lines[0] };
+  else res = { data: parseRecordString(lines.join("\n")) };
   return res;
 };
 
