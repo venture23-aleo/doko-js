@@ -73,24 +73,25 @@ class Parser {
     const mappingName = this.tokenizer.readToken().value;
 
     // Eat the left parenthesis
-    this.tokenizer.readToken();
+    const leftParen = this.tokenizer.readToken();
+    if (leftParen.value !== '{')
+      throw new Error(
+        `Error encountered while parsing mapping: ${mappingName}`
+      );
 
-    // Eat 'key' keyword
-    this.tokenizer.readToken();
+    const key = this.parseExpression();
+    const value = this.parseExpression();
 
-    // Parse left declaration
-    const leftDeclaration = this.parseExpression();
-
-    // Eat 'value' keyword
-    this.tokenizer.readToken();
-
-    // Parse right declaration
-    const rightDeclaration = this.parseExpression();
-
+    //Eat right parenthesis
+    const rightParen = this.tokenizer.readToken();
+    if (rightParen.value !== '}')
+      throw new Error(
+        `Error encountered while parsing mapping: ${mappingName}`
+      );
     return {
       name: mappingName,
-      left: leftDeclaration.val,
-      right: rightDeclaration.val
+      key: key.val,
+      value: value.val
     };
   }
 
