@@ -1,5 +1,5 @@
 {
-  "name": "aleojs-beta",
+  "name": "aleojs-alpha",
   "version": "0.0.1",
   "description": "AleoJS Cli tool",
   "main": "dist/index.js",
@@ -50,6 +50,6 @@
     "typescript": "^5.2.2"
   },
   "bin": {
-    "aleojs-beta": "./dist/index.js"
+    "aleojs-alpha": "./dist/index.js"
   }
 }

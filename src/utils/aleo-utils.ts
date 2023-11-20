@@ -55,8 +55,8 @@ interface FunctionDefinition {
 
 interface MappingDefinition {
   name: string;
-  left: DataType;
-  right: DataType;
+  key: DataType;
+  value: DataType;
 }
 
 const ALEO_TO_JS_TYPE_MAPPING = new Map([
