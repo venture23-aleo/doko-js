@@ -9,7 +9,7 @@ class Shell {
   private rl: readline.Interface;
 
   constructor(command: string) {
-    this.command = command.replace(/\\/g, '/');
+    this.command = command.replace(/\\(?! )/g, '/');
     this.shell = getUserShell();
     this.rl = readline.createInterface({
       input: process.stdin,
@@ -28,10 +28,6 @@ class Shell {
       });
 
       shellProcess.stdout.on('data', (data) => {
-        console.log(data.toString());
-      });
-
-      shellProcess.stderr.on('data', (data) => {
         console.log(data.toString());
       });
 
