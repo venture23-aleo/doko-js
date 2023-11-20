@@ -20,7 +20,7 @@ const program = new Command();
 
 console.log(figlet.textSync('AleoJS'));
 
-program.version('1.0.0').description('AleoJS CLI');
+program.version('0.1.1').description('AleoJS CLI');
 
 program
   .command('init <project-name>')
