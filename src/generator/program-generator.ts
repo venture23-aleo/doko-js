@@ -5,13 +5,17 @@ import { getProjectRoot } from '../utils/fs-utils';
 import { toSnakeCase } from '../utils/formatters';
 import Shell from '../utils/shell';
 
-async function replaceProgramName(filePath: string, newProgramName: string) {
+async function replaceProgramName(
+  filePath: string,
+  newProgramName: string,
+  oldName = 'temp_sample_program'
+) {
   try {
     // Read the contents of the file
     let fileContent = await fse.readFile(filePath, 'utf8');
 
     // Replace 'temp_sample_program' with the new program name using a regular expression
-    const regex = new RegExp('temp_sample_program', 'g');
+    const regex = new RegExp(oldName, 'g');
     console.log(fileContent);
     fileContent = fileContent.replace(regex, newProgramName);
     console.log(fileContent);
@@ -59,6 +63,7 @@ async function addProgram(
     await baseCommand(testPathToCopy, testDestPath);
 
     await replaceProgramName(destPath, parsedProgramName);
+    await replaceProgramName(testDestPath, parsedProgramName, 'sample_program');
 
     return 'success';
   } catch (err) {
@@ -81,7 +86,9 @@ async function createProjectStructure(
 
   try {
     await fse.copy(source, destination);
-    destination = destination.replace(/\\/g, '/');
+    destination = destination.replace(/\\(?! )/g, '/');
+    console.log(destination);
+    console.log('Template copied');
     await fse.mkdir(`${destination}/programs`, { recursive: true });
     await fse.rename(`${destination}/env`, `${destination}/.env`);
     await fse.rename(`${destination}/gitignore`, `${destination}/.gitignore`);
@@ -106,7 +113,7 @@ async function installNpmPackages(path: string | undefined) {
     '@babel/preset-env'
   ];
   const dependencies = ['zod'];
-  const command = `cd ${path} && npm install --save-dev ${devDeps.join(
+  const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
     ' '
   )} && npm install ${dependencies.join(' ')}`;
 
@@ -116,7 +123,7 @@ async function installNpmPackages(path: string | undefined) {
 
 async function initializeGit(path: string | undefined) {
   console.log('Initializing git');
-  const command = `cd ${path} && git init`;
+  const command = `cd "${path}" && git init`;
 
   const shell = new Shell(command);
   return shell.asyncExec();
