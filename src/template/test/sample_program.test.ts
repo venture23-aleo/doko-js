@@ -1,7 +1,6 @@
 import { main } from '../artifacts/js/sample_program';
 
-describe('Add', () => {
-  it('1+2', async () => {
-    await main(1, 2);
-  });
+test('Add', async () => {
+  const result = await main(1, 2);
+  expect(result).toBe(3);
 });
