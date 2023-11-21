@@ -244,26 +244,47 @@ class Generator {
       /*fee: FEE*/
     });\n`);
 
-    let returnType = func.output.split('.')[0];
-    if (returnType === 'void')
-      return fnGenerator.generate(func.name, args, returnType);
+    if (func.outputs.length == 0)
+      return fnGenerator.generate(func.name, args, null);
 
-    let resultConverter = this.generateConverterFunctionName(
-      returnType,
-      STRING_JS
-    );
+    let outputs = func.outputs.map((output) => output.split('.')[0]);
+    const returnTypes: string[] = [];
 
-    if (this.refl.isCustomType(returnType)) {
-      fnGenerator.addStatement(`\t return ${resultConverter}(result.data);\n`);
-    } else {
-      resultConverter = `leo2js.${resultConverter}`;
-      // cast non-custom datatype to string
-      fnGenerator.addStatement(
-        `\t return ${resultConverter}(result.data as string);\n`
+    const createOutputVariable = (index: number) => `out${index}`;
+
+    outputs.forEach((output, index) => {
+      let resultConverter = this.generateConverterFunctionName(
+        output,
+        STRING_JS
       );
+
+      if (this.refl.isCustomType(output)) {
+        fnGenerator.addStatement(
+          `\t const ${createOutputVariable(
+            index
+          )} =  ${resultConverter}(result.data);\n`
+        );
+      } else {
+        resultConverter = `leo2js.${resultConverter}`;
+        // cast non-custom datatype to string
+        fnGenerator.addStatement(
+          `\t const ${createOutputVariable(index)} = ${resultConverter}(result.data as string);\n`
+        );
+      }
+      returnTypes.push(this.inferJSDataType(output));
+    });
+
+    // Format return statement and return type accordingly
+    let returnTypeString = '';
+    if (returnTypes.length === 1) {
+      fnGenerator.addStatement(`\t return ${createOutputVariable(0)};\n`);
+      returnTypeString = `Promise<${returnTypes[0]}>`;
+    } else {
+      const returnValues = returnTypes.map((type, index) => createOutputVariable(index));
+      fnGenerator.addStatement(`\t return [${returnValues.join(', ')}];\n`);
+      returnTypeString = `Promise<[${returnTypes.join(', ')}]>`;
     }
-    returnType = this.inferJSDataType(returnType);
-    return fnGenerator.generate(func.name, args, `Promise<${returnType}>`);
+    return fnGenerator.generate(func.name, args, returnTypeString);
   }
 
   // Generate transition function body

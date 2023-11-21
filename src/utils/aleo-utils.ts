@@ -50,7 +50,7 @@ interface FunctionDefinition {
   name: string;
   type: string;
   inputs: Array<KeyVal<Identifier, DataType>>;
-  output: DataType;
+  outputs: Array<DataType>;
 }
 
 interface MappingDefinition {

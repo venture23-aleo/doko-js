@@ -98,7 +98,7 @@ class Parser {
   private parseFunctionPrototype(token: TokenInfo): FunctionDefinition {
     const fnName = this.tokenizer.readToken().value;
     const inputs = new Array<KeyVal<Identifier, DataType>>();
-    const output = 'void';
+    const outputs: DataType[] = [];
 
     // Eat the left parenthesis
     this.tokenizer.readToken();
@@ -115,7 +115,7 @@ class Parser {
       // Parse declaration
       inputs.push(this.parseExpression());
     }
-    return { name: fnName, type: token.value, inputs, output };
+    return { name: fnName, type: token.value, inputs, outputs };
   }
 
   private parseFunction(token: TokenInfo): FunctionDefinition {
@@ -125,7 +125,7 @@ class Parser {
       // Eat the whole function body
       const tk = this.tokenizer.readToken();
       if (tk.value === KEYWORDS.OUTPUT) {
-        functionDef.output = this.parseExpression().val;
+        functionDef.outputs.push(this.parseExpression().val);
       }
     }
 
