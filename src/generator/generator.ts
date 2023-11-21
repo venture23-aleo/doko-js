@@ -262,13 +262,15 @@ class Generator {
         fnGenerator.addStatement(
           `\t const ${createOutputVariable(
             index
-          )} =  ${resultConverter}(result.data);\n`
+          )} =  ${resultConverter}(result.data[${index}]);\n`
         );
       } else {
         resultConverter = `leo2js.${resultConverter}`;
         // cast non-custom datatype to string
         fnGenerator.addStatement(
-          `\t const ${createOutputVariable(index)} = ${resultConverter}(result.data as string);\n`
+          `\t const ${createOutputVariable(
+            index
+          )} = ${resultConverter}(result.data[0] as string);\n`
         );
       }
       returnTypes.push(this.inferJSDataType(output));
@@ -280,7 +282,9 @@ class Generator {
       fnGenerator.addStatement(`\t return ${createOutputVariable(0)};\n`);
       returnTypeString = `Promise<${returnTypes[0]}>`;
     } else {
-      const returnValues = returnTypes.map((type, index) => createOutputVariable(index));
+      const returnValues = returnTypes.map((type, index) =>
+        createOutputVariable(index)
+      );
       fnGenerator.addStatement(`\t return [${returnValues.join(', ')}];\n`);
       returnTypeString = `Promise<[${returnTypes.join(', ')}]>`;
     }

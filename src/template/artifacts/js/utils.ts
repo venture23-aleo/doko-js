@@ -16,20 +16,37 @@ export const parseRecordString = (
 };
 
 const parseCmdOutput = (cmdOutput: string): Record<string, unknown> => {
-  const strAfterOutput = cmdOutput.split("Output")[1];
-  let lines = strAfterOutput.split("\n").filter((str) => str != "");
+  // Try splitting as if it is multiple output
+  let strAfterOutput = cmdOutput.split('Outputs')[1];
 
-  // Remove last line which include the location details
-  lines.pop();
-
-  // Remove the '• ' first two character
-  lines[0] = lines[0].replace(/^.{2}/g, "");
-  lines = lines.map((str) => str.trim());
-
+  // if it has multiple outputs
   let res: Record<string, unknown> = {};
-  // Return type is primitive type
-  if (lines.length === 1) res = { data: lines[0] };
-  else res = { data: parseRecordString(lines.join("\n")) };
+
+  if (strAfterOutput) {
+    const outputLines = strAfterOutput
+      .split('\n')
+      .filter((str) => str.trim().length > 0);
+    outputLines.pop();
+
+    strAfterOutput = outputLines.join('\n');
+    const outputs = strAfterOutput
+      .split('•')
+      .filter((str) => str.trim()?.length > 0);
+    res = { data: outputs.map((output) => parseRecordString(output)) };
+  } else {
+    strAfterOutput = cmdOutput.split('Output')[1];
+    let lines = strAfterOutput.split('\n').filter((str) => str != '');
+    // Remove last line which include the location details
+    lines.pop();
+
+    // Remove the '• ' first two character
+    lines[0] = lines[0].replace(/^.{2}/g, '');
+    lines = lines.map((str) => str.trim());
+
+    // Return type is primitive type
+    if (lines.length === 1) res = { data: [lines[0]] };
+    else res = { data: [parseRecordString(lines.join('\n'))] };
+  }
   return res;
 };
 
@@ -44,7 +61,8 @@ export const leoRun = async ({
   params = [],
   transition = 'main'
 }: LeoRunParams): Promise<Record<string, unknown>> => {
-  const stringedParams = params.join(' ');
+  let stringedParams = params.join(' ');
+  stringedParams = stringedParams.replace(/"|"/g, '');
   const cmd = `cd ${contractPath} && leo run ${transition} ${stringedParams}`;
   console.log(cmd);
   const { stdout } = await execute(cmd);

@@ -143,9 +143,14 @@ class Parser {
         case TokenType.UNKNOWN:
           break;
         case TokenType.KEYWORD:
-          if (token.value === KEYWORDS.STRUCT || token.value == KEYWORDS.RECORD)
+          if (token.value === KEYWORDS.STRUCT)
             aleoReflection.customTypes.push(this.parseStruct(token));
-          else if (
+          else if (token.value == KEYWORDS.RECORD) {
+            const recordDef = this.parseStruct(token);
+            // Add additional member _nonce if it is record
+            recordDef.members.push({key: '_nonce' , val: 'group' });
+            aleoReflection.customTypes.push(recordDef);
+          } else if (
             token.value === KEYWORDS.FUNCTION ||
             token.value === KEYWORDS.FINALIZE ||
             token.value === KEYWORDS.CLOSURE
