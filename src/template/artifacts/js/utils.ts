@@ -16,33 +16,37 @@ export const parseRecordString = (
 };
 
 const parseCmdOutput = (cmdOutput: string): Record<string, unknown> => {
-  const lines = cmdOutput.split('\n');
+  // Try splitting as if it is multiple output
+  let strAfterOutput = cmdOutput.split('Outputs')[1];
 
+  // if it has multiple outputs
   let res: Record<string, unknown> = {};
 
-  let objectStarted = false;
-  let objectFinished = false;
-  let done = false;
-  let toParse = '';
+  if (strAfterOutput) {
+    const outputLines = strAfterOutput
+      .split('\n')
+      .filter((str) => str.trim().length > 0);
+    outputLines.pop();
 
-  lines.forEach((line) => {
-    if (done) return;
+    strAfterOutput = outputLines.join('\n');
+    const outputs = strAfterOutput
+      .split('•')
+      .filter((str) => str.trim()?.length > 0);
+    res = { data: outputs.map((output) => parseRecordString(output)) };
+  } else {
+    strAfterOutput = cmdOutput.split('Output')[1];
+    let lines = strAfterOutput.split('\n').filter((str) => str != '');
+    // Remove last line which include the location details
+    lines.pop();
 
-    if (objectStarted && objectFinished) {
-      res = parseRecordString(toParse);
-      done = true;
-    } else if (objectStarted) {
-      if (line.startsWith('}')) {
-        objectFinished = true;
-      }
-      const trimmedLine = line.trim();
-      toParse = toParse + trimmedLine;
-    } else if (line.includes('• {') || line.startsWith('{')) {
-      toParse = toParse + '{';
-      objectStarted = true;
-    }
-  });
+    // Remove the '• ' first two character
+    lines[0] = lines[0].replace(/^.{2}/g, '');
+    lines = lines.map((str) => str.trim());
 
+    // Return type is primitive type
+    if (lines.length === 1) res = { data: [lines[0]] };
+    else res = { data: [parseRecordString(lines.join('\n'))] };
+  }
   return res;
 };
 
@@ -57,7 +61,8 @@ export const leoRun = async ({
   params = [],
   transition = 'main'
 }: LeoRunParams): Promise<Record<string, unknown>> => {
-  const stringedParams = params.join(' ');
+  let stringedParams = params.join(' ');
+  stringedParams = stringedParams.replace(/"|"/g, '');
   const cmd = `cd ${contractPath} && leo run ${transition} ${stringedParams}`;
   console.log(cmd);
   const { stdout } = await execute(cmd);

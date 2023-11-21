@@ -98,7 +98,7 @@ class Parser {
   private parseFunctionPrototype(token: TokenInfo): FunctionDefinition {
     const fnName = this.tokenizer.readToken().value;
     const inputs = new Array<KeyVal<Identifier, DataType>>();
-    const output = 'void';
+    const outputs: DataType[] = [];
 
     // Eat the left parenthesis
     this.tokenizer.readToken();
@@ -115,7 +115,7 @@ class Parser {
       // Parse declaration
       inputs.push(this.parseExpression());
     }
-    return { name: fnName, type: token.value, inputs, output };
+    return { name: fnName, type: token.value, inputs, outputs };
   }
 
   private parseFunction(token: TokenInfo): FunctionDefinition {
@@ -125,7 +125,7 @@ class Parser {
       // Eat the whole function body
       const tk = this.tokenizer.readToken();
       if (tk.value === KEYWORDS.OUTPUT) {
-        functionDef.output = this.parseExpression().val;
+        functionDef.outputs.push(this.parseExpression().val);
       }
     }
 
@@ -143,9 +143,14 @@ class Parser {
         case TokenType.UNKNOWN:
           break;
         case TokenType.KEYWORD:
-          if (token.value === KEYWORDS.STRUCT || token.value == KEYWORDS.RECORD)
+          if (token.value === KEYWORDS.STRUCT)
             aleoReflection.customTypes.push(this.parseStruct(token));
-          else if (
+          else if (token.value == KEYWORDS.RECORD) {
+            const recordDef = this.parseStruct(token);
+            // Add additional member _nonce if it is record
+            recordDef.members.push({key: '_nonce' , val: 'group' });
+            aleoReflection.customTypes.push(recordDef);
+          } else if (
             token.value === KEYWORDS.FUNCTION ||
             token.value === KEYWORDS.FINALIZE ||
             token.value === KEYWORDS.CLOSURE
