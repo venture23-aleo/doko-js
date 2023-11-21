@@ -90,6 +90,9 @@ async function createProjectStructure(
     console.log(destination);
     console.log('Template copied');
     await fse.mkdir(`${destination}/programs`, { recursive: true });
+    await fse.rename(`${destination}/env`, `${destination}/.env`);
+    await fse.rename(`${destination}/gitignore`, `${destination}/.gitignore`);
+    console.log('Project structure initialized');
 
     return {
       status: 'success',
@@ -118,4 +121,17 @@ async function installNpmPackages(path: string | undefined) {
   return shell.asyncExec();
 }
 
-export { createProjectStructure, addProgram, installNpmPackages };
+async function initializeGit(path: string | undefined) {
+  console.log('Initializing git');
+  const command = `cd "${path}" && git init`;
+
+  const shell = new Shell(command);
+  return shell.asyncExec();
+}
+
+export {
+  createProjectStructure,
+  addProgram,
+  installNpmPackages,
+  initializeGit
+};

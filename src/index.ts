@@ -6,6 +6,7 @@ import { compilePrograms } from './parser';
 import {
   addProgram,
   createProjectStructure,
+  initializeGit,
   installNpmPackages
 } from './generator/program-generator';
 import { runAleoNode } from './scripts/leo-node';
@@ -34,6 +35,11 @@ program
     await checkAndInstallRequirements();
     const response = await createProjectStructure(projectName, programName);
     await addProgram(programName, response?.destination);
+    try {
+      await initializeGit(response?.destination);
+    } catch (e) {
+      console.error('Git setup error');
+    }
     await installNpmPackages(response?.destination);
     console.log(
       `Checkout to ${projectName} directory for accessing the program`

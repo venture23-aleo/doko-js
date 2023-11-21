@@ -1,0 +1,8 @@
+node_modules/
+./artifacts/
+.env
+
+!./artifacts/js/js2leo/common.ts
+!./artifacts/js/leo2js/common.ts
+!./artifacts/js/types/leo-types.ts
+!./artifacts/js/utils.ts
