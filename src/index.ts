@@ -21,7 +21,7 @@ const program = new Command();
 
 console.log(figlet.textSync('AleoJS'));
 
-program.version('0.1.2').description('AleoJS CLI');
+program.version('0.1.3').description('AleoJS CLI');
 
 program
   .command('init <project-name>')
