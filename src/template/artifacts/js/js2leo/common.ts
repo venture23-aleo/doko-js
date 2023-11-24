@@ -120,3 +120,11 @@ export const boolean = (value: boolean): LeoU128 => {
 export const address = (value: string): LeoAddress => {
   return value;
 };
+
+export const privateField = (value: string): string => {
+  return value.concat('.private');
+};
+
+export const publicField = (value: string): string => {
+  return value.concat('.public');
+};

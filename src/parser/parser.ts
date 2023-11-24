@@ -148,7 +148,7 @@ class Parser {
           else if (token.value == KEYWORDS.RECORD) {
             const recordDef = this.parseStruct(token);
             // Add additional member _nonce if it is record
-            recordDef.members.push({key: '_nonce' , val: 'group' });
+            recordDef.members.push({key: '_nonce' , val: 'group.public' });
             aleoReflection.customTypes.push(recordDef);
           } else if (
             token.value === KEYWORDS.FUNCTION ||

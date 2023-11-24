@@ -15,13 +15,13 @@ import {
   leoGroupSchema,
   leoRecordSchema,
   leoTxSchema,
+  privateField,
+  publicField
 } from "./leo-types";`;
 
 // Converter function for leo and ts
-export const LEO_FN_IMPORT =
-  'import { u8, u16, u32, u128, u64, i8, i16, i32, i64, i128, field, scalar, group, boolean, address } from "./common";';
-export const TS_FN_IMPORT =
-  'import { u8, u16, u32, u128, u64, i8, i16, i32, i64, i128, field, scalar, group, boolean, address } from "./common";';
+export const LEO_FN_IMPORT = 'import * as js2leo from "./common";\n';
+export const JS_FN_IMPORT = 'import * as leo2js from "./common";\n';
 
 export const STRING_JS: string = 'js';
 export const STRING_LEO: string = 'leo';

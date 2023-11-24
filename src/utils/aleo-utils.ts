@@ -77,6 +77,11 @@ const ALEO_TO_JS_TYPE_MAPPING = new Map([
   ['scalar', 'BigInt']
 ]);
 
+export const isLeoPrimitiveType = (value: string) => {
+  if (ALEO_TO_JS_TYPE_MAPPING.get(value)) return true;
+  return false;
+};
+
 const ConvertToJSType = (type: string) => {
   return ALEO_TO_JS_TYPE_MAPPING.get(type);
 };
