@@ -25,6 +25,7 @@ import {
   JS_FN_IMPORT
 } from './string-constants';
 import { toCamelCase, capitalize } from '../utils/formatters';
+import TSClassGenerator from './ts-class-generator';
 
 class Generator {
   private refl: AleoReflection;
@@ -238,7 +239,10 @@ class Generator {
   }
 
   private generateTransitionFunction(func: FunctionDefinition) {
-    const fnGenerator = new TSFunctionGenerator().makeAsync();
+    const fnGenerator = new TSFunctionGenerator()
+      .setIsAsync(true)
+      .setIsClassMethod(true)
+      .setIsExported(false);
 
     const args: FunctionArgs[] = [];
     const localVariables: string[] = [];
@@ -273,13 +277,9 @@ class Generator {
 
     // Add zkRun statement
     fnGenerator.addStatement(`\tconst result = await zkRun({
-      /*privateKey: PRIVATE_KEY,
-      viewKey: VIEW_KEY,
-      appName: APP_NAME,*/
-      contractPath: CONTRACT_PATH,
+      config: this.config,
       transition: '${func.name}',
       params,
-      /*fee: FEE*/
     });\n`);
 
     if (func.outputs.length == 0)
@@ -302,7 +302,7 @@ class Generator {
         input,
         STRING_JS
       );
-      fnGenerator.addStatement(`\t const ${lhs} = ${rhs};\n`);
+      fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
       returnTypes.push(this.inferJSDataType(type));
     });
 
@@ -322,7 +322,7 @@ class Generator {
   }
 
   // Generate transition function body
-  public generatedTransitionFunctions() {
+  public generateContractClass() {
     // Create import statement for custom types
     let importStatement = "import * as js2leo from './js2leo/common';\n";
     importStatement = importStatement.concat(
@@ -352,7 +352,7 @@ class Generator {
     }
 
     importStatement = importStatement.concat(
-      `import { zkRun } from './utils'; \n`
+      `import { zkRun, ContractConfig } from './utils'; \n`
     );
 
     let code = importStatement;
@@ -364,21 +364,32 @@ class Generator {
         'Invalid private key for program: ' + this.refl.programName
       );
 
-    code = code.concat(
-      `const PRIVATE_KEY = '${privateKey}';\n`,
-      `const VIEW_KEY = '${privateKey}';\n`,
-      `const APP_NAME = '${programName}';\n`,
-      `const CONTRACT_PATH = '${PROGRAM_DIRECTORY}${programName}';\n`,
-      `const FEE = '0.01';\n\n`
+    const classGenerator = new TSClassGenerator();
+
+    // Add constructor
+    classGenerator.addMethod(
+      `constructor(config?: ContractConfig) {
+    this.config = {
+        privateKey: '${privateKey}',
+        viewKey: '${privateKey}', 
+        appName: '${programName}',
+        contractPath: '${PROGRAM_DIRECTORY}${programName}', 
+        fee: '0.01'
+    };
+    if(config) 
+        this.config = {...this.config, ...config};
+}\n\n`
     );
+    classGenerator.addMember({ key: 'config', val: 'ContractConfig' });
 
     this.refl.functions.forEach((func) => {
       if (func.type === 'function') {
-        code = code.concat(this.generateTransitionFunction(func));
+        classGenerator.addMethod(this.generateTransitionFunction(func));
       }
     });
-
-    return code;
+    return code.concat(
+      classGenerator.generate(`${capitalize(programName)}Contract`)
+    );
   }
 }
 

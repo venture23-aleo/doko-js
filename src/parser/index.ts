@@ -99,7 +99,7 @@ async function parseAleo(programFolder: string) {
 
     await writeToFile(
       `${outputFolder}${outputFile}`,
-      generator.generatedTransitionFunctions()
+      generator.generateContractClass()
     );
 
     return {

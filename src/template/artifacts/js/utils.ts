@@ -5,6 +5,14 @@ import { promisify } from 'util';
 //import { LeoTx, LeoRecord, LeoViewKey } from './types/leo-types';
 //import { ViewKey } from '@aleohq/sdk';
 
+export interface ContractConfig {
+  privateKey?: string;
+  viewKey?: string;
+  appName?: string;
+  contractPath?: string;
+  fee?: string;
+}
+
 export const execute = promisify(exec);
 
 export const parseRecordString = (
@@ -51,19 +59,19 @@ const parseCmdOutput = (cmdOutput: string): Record<string, unknown> => {
 };
 
 interface LeoRunParams {
-  contractPath: string;
+  config: ContractConfig;
   params?: string[];
   transition?: string;
 }
 
 export const leoRun = async ({
-  contractPath,
+  config,
   params = [],
   transition = 'main'
 }: LeoRunParams): Promise<Record<string, unknown>> => {
   let stringedParams = params.join(' ');
   stringedParams = stringedParams.replace(/"|"/g, '');
-  const cmd = `cd ${contractPath} && leo run ${transition} ${stringedParams}`;
+  const cmd = `cd ${config.contractPath} && leo run ${transition} ${stringedParams}`;
   console.log(cmd);
   const { stdout } = await execute(cmd);
   console.log(stdout);
