@@ -368,7 +368,7 @@ class Generator {
 
     // Add constructor
     classGenerator.addMethod(
-      `constructor(config?: ContractConfig) {
+      `constructor(config: ContractConfig = {}) {
     this.config = {
         privateKey: '${privateKey}',
         viewKey: '${privateKey}', 
@@ -376,8 +376,7 @@ class Generator {
         contractPath: '${PROGRAM_DIRECTORY}${programName}', 
         fee: '0.01'
     };
-    if(config) 
-        this.config = {...this.config, ...config};
+    this.config = {...this.config, ...config};
 }\n\n`
     );
     classGenerator.addMember({ key: 'config', val: 'ContractConfig' });

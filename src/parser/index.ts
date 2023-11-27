@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import * as jsbeautifier from 'js-beautify';
 
 import { Tokenizer } from './tokenizer';
 import { Parser } from './parser';
@@ -10,6 +11,14 @@ import {
   PROGRAM_DIRECTORY,
   GENERATE_FILE_OUT_DIR
 } from '../generator/string-constants';
+
+const formatterOptions = {
+  indent_size: 2
+};
+
+const FormatCode = (code: string) => {
+  return jsbeautifier.js_beautify(code, formatterOptions);
+};
 
 // Generate Import/Export code for index file from definitions and filename
 // definition has an item which can be function or types
@@ -84,22 +93,22 @@ async function parseAleo(programFolder: string) {
       await Promise.all([
         writeToFile(
           `${outputFolder}types/${outputFile}`,
-          generator.generateTypes()
+          FormatCode(generator.generateTypes())
         ),
         writeToFile(
           `${outputFolder}leo2js/${outputFile}`,
-          generator.generateLeoToJS()
+          FormatCode(generator.generateLeoToJS())
         ),
         writeToFile(
           `${outputFolder}js2leo/${outputFile}`,
-          generator.generateJSToLeo()
+          FormatCode(generator.generateJSToLeo())
         )
       ]);
     }
 
     await writeToFile(
       `${outputFolder}${outputFile}`,
-      generator.generateContractClass()
+      FormatCode(generator.generateContractClass())
     );
 
     return {
@@ -161,12 +170,18 @@ async function compilePrograms() {
     );
 
     await Promise.all([
-      writeToFile(path.join(outputPath, 'types/index.ts'), typesIndexFileData),
+      writeToFile(
+        path.join(outputPath, 'types/index.ts'),
+        FormatCode(typesIndexFileData)
+      ),
       writeToFile(
         path.join(outputPath, 'leo2js/index.ts'),
-        leo2jsIndexFileData
+        FormatCode(leo2jsIndexFileData)
       ),
-      writeToFile(path.join(outputPath, 'js2leo/index.ts'), js2leoIndexFileData)
+      writeToFile(
+        path.join(outputPath, 'js2leo/index.ts'),
+        FormatCode(js2leoIndexFileData)
+      )
     ]);
   } catch (error) {
     console.log(error);
