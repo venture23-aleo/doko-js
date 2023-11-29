@@ -249,11 +249,12 @@ class Generator {
 
     func.inputs.forEach((input) => {
       // Generate argument array
+      const leoTypeAndQualifier = input.val;
       const leoType = input.val.split('.')[0];
       const jsType = this.inferJSDataType(leoType);
       const argName = input.key;
       args.push({ name: argName, type: jsType });
-
+      /*
       // Generate JS to leo conversion code for each type
       const converterFuncName = this.generateConverterFunctionName(
         leoType,
@@ -266,6 +267,17 @@ class Generator {
       let fnName = `${converterFuncName}(${argName})`;
       if (this.refl.isCustomType(leoType)) fnName = `JSON.stringify(${fnName})`;
       else fnName = `js2leo.${fnName}`;
+      */
+      const variableName = `${argName}Leo`;
+      localVariables.push(variableName);
+      let fnName = this.generateTypeConversionStatement(
+        leoTypeAndQualifier,
+        argName,
+        STRING_LEO
+      );
+
+      // For custom type that produce object it must be converted to string
+      if (this.refl.isCustomType(leoType)) fnName = `JSON.stringify(${fnName})`;
 
       const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
       fnGenerator.addStatement(conversionCode);
@@ -282,14 +294,18 @@ class Generator {
       params,
     });\n`);
 
-    if (func.outputs.length == 0)
+    // Ignore 'future' returntype for now
+    const funcOutputs = func.outputs.filter(
+      (output) => !output.includes('future')
+    );
+
+    if (funcOutputs.length == 0)
       return fnGenerator.generate(func.name, args, null);
 
-    const returnTypes: string[] = [];
-
+    const returnValues: { name: string; type: string }[] = [];
     const createOutputVariable = (index: number) => `out${index}`;
 
-    func.outputs.forEach((output, index) => {
+    funcOutputs.forEach((output, index) => {
       const lhs = createOutputVariable(index);
       let input = `result.data[${index}]`;
 
@@ -303,20 +319,23 @@ class Generator {
         STRING_JS
       );
       fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
-      returnTypes.push(this.inferJSDataType(type));
+
+      returnValues.push({
+        name: lhs,
+        type: this.inferJSDataType(type)
+      });
     });
 
     // Format return statement and return type accordingly
     let returnTypeString = '';
-    if (returnTypes.length === 1) {
-      fnGenerator.addStatement(`\t return ${createOutputVariable(0)};\n`);
-      returnTypeString = `Promise<${returnTypes[0]}>`;
+    if (returnValues.length === 1) {
+      fnGenerator.addStatement(`\t return ${returnValues[0].name};\n`);
+      returnTypeString = `Promise<${returnValues[0].type}>`;
     } else {
-      const returnValues = returnTypes.map((type, index) =>
-        createOutputVariable(index)
-      );
-      fnGenerator.addStatement(`\t return [${returnValues.join(', ')}];\n`);
-      returnTypeString = `Promise<[${returnTypes.join(', ')}]>`;
+      const variables = returnValues.map((returnValue) => returnValue.name);
+      const types = returnValues.map((returnValues) => returnValues.type);
+      fnGenerator.addStatement(`\t return [${variables.join(', ')}];\n`);
+      returnTypeString = `Promise<[${types.join(', ')}]>`;
     }
     return fnGenerator.generate(func.name, args, returnTypeString);
   }
@@ -347,12 +366,12 @@ class Generator {
           `\n} from './js2leo';\n`,
         'import {\n',
         mapping.map((member) => `\t${member.jsFn},`).join('\n') +
-          `\n} from './leo2js';\n\n`
+          `\n} from './leo2js';\n`
       );
     }
 
     importStatement = importStatement.concat(
-      `import { zkRun, ContractConfig } from './utils'; \n`
+      `import { zkRun, ContractConfig } from './utils'; \n\n`
     );
 
     let code = importStatement;
