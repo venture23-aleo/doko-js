@@ -15,8 +15,6 @@ import {
   leoGroupSchema,
   leoRecordSchema,
   leoTxSchema,
-  privateField,
-  publicField
 } from "./leo-types";`;
 
 // Converter function for leo and ts

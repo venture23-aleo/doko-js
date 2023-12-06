@@ -254,24 +254,14 @@ class Generator {
       const jsType = this.inferJSDataType(leoType);
       const argName = input.key;
       args.push({ name: argName, type: jsType });
-      /*
-      // Generate JS to leo conversion code for each type
-      const converterFuncName = this.generateConverterFunctionName(
-        leoType,
-        STRING_LEO
-      );
 
       const variableName = `${argName}Leo`;
       localVariables.push(variableName);
 
-      let fnName = `${converterFuncName}(${argName})`;
-      if (this.refl.isCustomType(leoType)) fnName = `JSON.stringify(${fnName})`;
-      else fnName = `js2leo.${fnName}`;
-      */
-      const variableName = `${argName}Leo`;
-      localVariables.push(variableName);
+      // We ignore the qualifier while generating conversion function
+      // for transition function parameter
       let fnName = this.generateTypeConversionStatement(
-        leoTypeAndQualifier,
+        leoType,
         argName,
         STRING_LEO
       );
