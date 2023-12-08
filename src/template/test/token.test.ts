@@ -13,9 +13,5 @@ test('mint private', async () => {
 
 test('tranfer private', async () => {
   const token = await contract.mint_private(owner, amount);
-  const result = await contract.transfer_private(
-    token,
-    token.owner,
-    token.amount
-  );
+  const result = await contract.transfer_private(token, token.owner, amount);
 });

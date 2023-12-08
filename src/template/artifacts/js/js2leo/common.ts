@@ -128,3 +128,7 @@ export const privateField = (value: string): string => {
 export const publicField = (value: string): string => {
   return value.concat('.public');
 };
+
+export const json = (value: any): string => {
+  return JSON.stringify(value).replace(/\"/g, '');
+};

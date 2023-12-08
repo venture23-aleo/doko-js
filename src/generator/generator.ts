@@ -249,7 +249,6 @@ class Generator {
 
     func.inputs.forEach((input) => {
       // Generate argument array
-      const leoTypeAndQualifier = input.val;
       const leoType = input.val.split('.')[0];
       const jsType = this.inferJSDataType(leoType);
       const argName = input.key;
@@ -267,7 +266,7 @@ class Generator {
       );
 
       // For custom type that produce object it must be converted to string
-      if (this.refl.isCustomType(leoType)) fnName = `JSON.stringify(${fnName})`;
+      if (this.refl.isCustomType(leoType)) fnName = `js2leo.json(${fnName})`;
 
       const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
       fnGenerator.addStatement(conversionCode);
