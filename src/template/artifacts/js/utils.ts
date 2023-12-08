@@ -5,12 +5,24 @@ import { promisify } from 'util';
 //import { LeoTx, LeoRecord, LeoViewKey } from './types/leo-types';
 //import { ViewKey } from '@aleohq/sdk';
 
+interface ServerConfig {
+  host: string;
+  port: number;
+}
+
+interface NetworkConfig {
+  node: string;
+  server: ServerConfig;
+}
 export interface ContractConfig {
   privateKey?: string;
   viewKey?: string;
   appName?: string;
   contractPath?: string;
   fee?: string;
+  network?: NetworkConfig;
+  networkName?: string;
+  mode?: string;
 }
 
 export const execute = promisify(exec);
@@ -19,7 +31,7 @@ export const parseRecordString = (
   recordString: string
 ): Record<string, unknown> => {
   const json = recordString.replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
-  let correctJson = json;
+  const correctJson = json;
   return JSON.parse(correctJson);
 };
 
@@ -62,7 +74,37 @@ interface LeoRunParams {
   config: ContractConfig;
   params?: string[];
   transition?: string;
+  mode?: string;
 }
+
+export const snarkExecute = async ({
+  config,
+  params = [],
+  transition = 'main'
+}: LeoRunParams): Promise<Record<string, unknown>> => {
+  const parsedParams = params.map((v) => v.split('.')[0]);
+  let stringedParams = parsedParams.join(' ');
+  stringedParams = stringedParams.replace(/"|"/g, '');
+
+  // snarkos developer execute sample_program.aleo main  "1u32" "2u32" --private-key APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --query "http://localhost:3030" --broadcast "http://localhost:3030/testnet3/transaction/broadcast"
+  // const cmd = `cd ${config.contractPath} && snarkos developer execute  ${config.appName}.aleo ${transition} ${stringedParams} --private-key ${config.privateKey} --query ${nodeEndPoint} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast"`;
+  const cmd = `cd ${config.contractPath} && leo execute ${transition} ${stringedParams}`; /* --private-key ${config.privateKey} --query ${nodeEndPoint} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast"`;*/
+  console.log(cmd);
+  const { stdout } = await execute(cmd);
+  console.log(stdout);
+  const output = stdout.match(/\{([^)]+)\}/);
+  const outArr = output[0].split('{');
+  const data = [
+    '',
+    ...outArr.slice(outArr.findIndex((v) => v.includes('"type":"execute"')))
+  ].join('{');
+  const parsedOutput = JSON.parse(data);
+  const outPuts = parsedOutput?.execution?.transitions?.map(
+    (transition) => transition.outputs
+  );
+
+  return { data: outPuts };
+};
 
 export const leoRun = async ({
   config,
@@ -84,5 +126,6 @@ type ExecuteZkLogicParams = LeoRunParams;
 export const zkRun = (
   params: ExecuteZkLogicParams
 ): Promise<Record<string, unknown>> => {
+  if (params.config.mode === 'execute') return snarkExecute(params);
   return leoRun(params);
 };

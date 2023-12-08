@@ -89,7 +89,7 @@ class Generator {
     const [type, qualifier] = leoType.split('.');
 
     // Determine member conversion function
-    let conversionFnName = this.generateConverterFunctionName(
+    const conversionFnName = this.generateConverterFunctionName(
       type,
       conversionTo
     );
@@ -186,7 +186,7 @@ class Generator {
     customType.members.forEach((member) => {
       const lhs = member.key;
       const inputField = `${argName}.${member.key}`;
-      let rhs = this.generateTypeConversionStatement(
+      const rhs = this.generateTypeConversionStatement(
         member.val,
         inputField,
         conversionTo
@@ -200,7 +200,7 @@ class Generator {
     fnGenerator.addStatement('\t}\n\treturn result;\n');
 
     const fnName = 'get' + returnType;
-    let code = fnGenerator.generate(
+    const code = fnGenerator.generate(
       fnName,
       [{ name: argName, type: argType }],
       returnType
@@ -284,6 +284,10 @@ class Generator {
       params,
     });\n`);
 
+    fnGenerator.addStatement(
+      '\t if(this.config.mode === "execute") return result; \n'
+    );
+
     // Ignore 'future' returntype for now
     const funcOutputs = func.outputs.filter(
       (output) => !output.includes('future')
@@ -320,12 +324,12 @@ class Generator {
     let returnTypeString = '';
     if (returnValues.length === 1) {
       fnGenerator.addStatement(`\t return ${returnValues[0].name};\n`);
-      returnTypeString = `Promise<${returnValues[0].type}>`;
+      returnTypeString = `Promise<${returnValues[0].type} | any>`;
     } else {
       const variables = returnValues.map((returnValue) => returnValue.name);
       const types = returnValues.map((returnValues) => returnValues.type);
       fnGenerator.addStatement(`\t return [${variables.join(', ')}];\n`);
-      returnTypeString = `Promise<[${types.join(', ')}]>`;
+      returnTypeString = `Promise<[${types.join(', ')}] | any>`;
     }
     return fnGenerator.generate(func.name, args, returnTypeString);
   }
@@ -353,18 +357,21 @@ class Generator {
         '\n} from "./types";\n',
         'import {\n',
         mapping.map((member) => `\t${member.leoFn},`).join('\n') +
-          `\n} from './js2leo';\n`,
+          "\n} from './js2leo';\n",
         'import {\n',
         mapping.map((member) => `\t${member.jsFn},`).join('\n') +
-          `\n} from './leo2js';\n`
+          "\n} from './leo2js';\n"
       );
     }
 
     importStatement = importStatement.concat(
-      `import { zkRun, ContractConfig } from './utils'; \n\n`
+      "import { zkRun, ContractConfig } from './utils'; \n\n"
+    );
+    importStatement = importStatement.concat(
+      "const networkConfig = require('../../aleo-config'); \n\n"
     );
 
-    let code = importStatement;
+    const code = importStatement;
     const programName = this.refl.programName;
 
     const privateKey = this.refl.env?.get('PRIVATE_KEY');
@@ -386,6 +393,14 @@ class Generator {
         fee: '0.01'
     };
     this.config = {...this.config, ...config};
+    if(config.networkName) {
+      if(!networkConfig?.[config.networkName])
+        throw Error(\`Network config not defined for \${config.networkName}. Please add the config in aleo-config.js file in root directory\`)
+      this.config = {
+        ...this.config, 
+        network: networkConfig[config.networkName]
+      };
+    }
 }\n\n`
     );
     classGenerator.addMember({ key: 'config', val: 'ContractConfig' });
