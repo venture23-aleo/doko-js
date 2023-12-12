@@ -341,8 +341,15 @@ class Generator {
       "import * as leo2js from './leo2js/common';\n"
     );
 
-    if (this.refl.customTypes.length > 0) {
-      const mapping = this.refl.customTypes.map((member) => {
+    const customTypes = [...this.refl.customTypes];
+    if (this.refl.imports) {
+      Array.from(this.refl.imports).forEach(([key, val]) =>
+        customTypes.push(...val.customTypes)
+      );
+    }
+
+    if (customTypes.length > 0) {
+      const mapping = customTypes.map((member) => {
         return {
           name: member.name,
           leoFn: this.generateConverterFunctionName(member.name, STRING_LEO),

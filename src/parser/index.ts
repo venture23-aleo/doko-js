@@ -1,48 +1,26 @@
 import fs from 'fs';
 import path from 'path';
-import * as jsbeautifier from 'js-beautify';
 
 import { Tokenizer } from './tokenizer';
-import { Parser } from './parser';
+import { ImportFileCache, Parser } from './parser';
 
 import { Generator } from '../generator/generator';
-import { getProjectRoot, pathFromRoot, writeToFile } from '../utils/fs-utils';
+import {
+  getFilenamesInDirectory,
+  getProjectRoot,
+  pathFromRoot,
+  writeToFile
+} from '../utils/fs-utils';
 import {
   PROGRAM_DIRECTORY,
   GENERATE_FILE_OUT_DIR
 } from '../generator/string-constants';
+import { FormatCode } from '../utils/js-formatter';
+import { GlobalIndexFileGenerator } from '../generator/global-index-file-generator';
 
-const formatterOptions = {
-  indent_size: 2
-};
-
-const FormatCode = (code: string) => {
-  return jsbeautifier.js_beautify(code, formatterOptions);
-};
-
-// Generate Import/Export code for index file from definitions and filename
-// definition has an item which can be function or types
-function generateIndexFileCode(
-  declaredImports: { importName?: string; filename?: string }[]
-): string {
-  // Create individual import statement according to type/function definition and filename
-  declaredImports = declaredImports.filter((item) => {
-    return item.importName && item.importName?.trim() !== '';
-  });
-
-  const code = declaredImports
-    .map(
-      (imports) =>
-        `import { ${imports.importName} } from "./${imports.filename}";\n`
-    )
-    .join('');
-
-  // Create a single line export statement from all the declared type/functions
-  const exportItems = declaredImports
-    .map((item) => item?.importName)
-    .join(', ');
-  return code.concat(`\nexport { ${exportItems} }`);
-}
+// Global Variables
+const ImportFileCaches = new Map<string, ImportFileCache>();
+const GlobalIndexGenerator = new GlobalIndexFileGenerator();
 
 function convertEnvToKeyVal(envData: string): Map<string, string> {
   envData = envData.trim();
@@ -57,19 +35,74 @@ function convertEnvToKeyVal(envData: string): Map<string, string> {
   );
 }
 
+async function generateReflection(filename: string) {
+  // Check if build directory exists
+  const data = fs.readFileSync(filename, 'utf-8');
+  const tokenizer = new Tokenizer(data);
+  return new Parser(tokenizer).parse();
+}
+
+async function generateTypesFile(
+  outputFolder: string,
+  outputFile: string,
+  generator: Generator
+) {
+  return Promise.all([
+    writeToFile(
+      `${outputFolder}types/${outputFile}`,
+      FormatCode(generator.generateTypes())
+    ),
+    writeToFile(
+      `${outputFolder}leo2js/${outputFile}`,
+      FormatCode(generator.generateLeoToJS())
+    ),
+    writeToFile(
+      `${outputFolder}js2leo/${outputFile}`,
+      FormatCode(generator.generateJSToLeo())
+    )
+  ]);
+}
+
+async function parseAleoImport(
+  importFolder: string,
+  filename: string
+): Promise<[string, ImportFileCache]> {
+  const fileCache = ImportFileCaches.get(filename);
+  if (fileCache) return [filename, fileCache];
+
+  const aleoReflection = await generateReflection(importFolder + filename);
+  if (aleoReflection.customTypes.length === 0) {
+    console.warn(
+      `No types generated for import file: ${filename}. No custom types[struct/record] declaration found`
+    );
+  } else {
+    const outputFile = `${aleoReflection.programName}.ts`;
+    const outputFolder = pathFromRoot(GENERATE_FILE_OUT_DIR);
+    const generator = new Generator(aleoReflection);
+    await generateTypesFile(outputFolder, outputFile, generator);
+
+    GlobalIndexGenerator.update(generator, aleoReflection.programName);
+  }
+
+  const cache: ImportFileCache = {
+    customTypes: aleoReflection.customTypes,
+    mapping: aleoReflection.mappings
+  };
+  ImportFileCaches.set(filename, cache);
+  return [filename, cache];
+}
+
 // Read file
-async function parseAleo(programFolder: string) {
+async function parseAleo(
+  programFolder: string,
+  imports: Map<string, ImportFileCache> | null
+) {
   try {
-    // Check if build directory exists
-    if (!fs.existsSync(programFolder + 'build')) return;
-
     const inputFile = programFolder + 'build/main.aleo';
-
     console.log(`Parsing program[${inputFile}]`);
 
-    const data = fs.readFileSync(inputFile, 'utf-8');
-    const tokenizer = new Tokenizer(data);
-    const aleoReflection = new Parser(tokenizer).parse();
+    const aleoReflection = await generateReflection(inputFile);
+    if (imports) aleoReflection.imports = imports;
 
     // Parse .env for private key
     const envFile = programFolder + '/.env';
@@ -89,37 +122,35 @@ async function parseAleo(programFolder: string) {
       console.warn(
         `No types generated for program: ${programName}. No custom types[struct/record] declaration found`
       );
-    } else {
-      await Promise.all([
-        writeToFile(
-          `${outputFolder}types/${outputFile}`,
-          FormatCode(generator.generateTypes())
-        ),
-        writeToFile(
-          `${outputFolder}leo2js/${outputFile}`,
-          FormatCode(generator.generateLeoToJS())
-        ),
-        writeToFile(
-          `${outputFolder}js2leo/${outputFile}`,
-          FormatCode(generator.generateJSToLeo())
-        )
-      ]);
+    } else await generateTypesFile(outputFolder, outputFile, generator);
+
+    if (aleoReflection.functions.length > 0) {
+      await writeToFile(
+        `${outputFolder}${outputFile}`,
+        FormatCode(generator.generateContractClass())
+      );
     }
-
-    await writeToFile(
-      `${outputFolder}${outputFile}`,
-      FormatCode(generator.generateContractClass())
-    );
-
-    return {
-      types: generator.generatedTypes,
-      js2LeoFn: generator.generatedJS2LeoFn,
-      leo2jsFn: generator.generatedLeo2JSFn,
-      programName
-    };
+    GlobalIndexGenerator.update(generator, programName);
   } catch (error) {
     console.log(error);
   }
+}
+
+async function parseProgram(programFolder: string) {
+  // Check if build directory exists
+  if (!fs.existsSync(programFolder + 'build')) return;
+
+  const importFolder = programFolder + 'build/imports/';
+  let imports = null;
+  if (fs.existsSync(importFolder)) {
+    const importFiles = getFilenamesInDirectory(importFolder);
+    const importPromises = importFiles.map((file) =>
+      parseAleoImport(importFolder, file)
+    );
+    const result = await Promise.all(importPromises);
+    imports = new Map<string, ImportFileCache>(result);
+  }
+  return parseAleo(programFolder, imports);
 }
 
 async function compilePrograms() {
@@ -136,53 +167,10 @@ async function compilePrograms() {
     // Create Output Directory
     if (!fs.existsSync(outputPath)) fs.mkdirSync(outputPath);
 
-    const result = await Promise.all(
-      folders.map((program) => parseAleo(programPath + program + '/'))
+    await Promise.all(
+      folders.map((program) => parseProgram(programPath + program + '/'))
     );
-
-    const typesIndexFileData = generateIndexFileCode(
-      result.map((elm) => {
-        return {
-          importName: elm?.types.join(', '),
-          filename: elm?.programName
-        };
-      })
-    );
-
-    // Create import for leo2ts/index.ts file
-    const leo2jsIndexFileData = generateIndexFileCode(
-      result.map((elm) => {
-        return {
-          importName: elm?.leo2jsFn.join(', '),
-          filename: elm?.programName
-        };
-      })
-    );
-
-    // Create import for js2leo/index.ts file
-    const js2leoIndexFileData = generateIndexFileCode(
-      result.map((elm) => {
-        return {
-          importName: elm?.js2LeoFn.join(', '),
-          filename: elm?.programName
-        };
-      })
-    );
-
-    await Promise.all([
-      writeToFile(
-        path.join(outputPath, 'types/index.ts'),
-        FormatCode(typesIndexFileData)
-      ),
-      writeToFile(
-        path.join(outputPath, 'leo2js/index.ts'),
-        FormatCode(leo2jsIndexFileData)
-      ),
-      writeToFile(
-        path.join(outputPath, 'js2leo/index.ts'),
-        FormatCode(js2leoIndexFileData)
-      )
-    ]);
+    await GlobalIndexGenerator.generate(outputPath);
   } catch (error) {
     console.log(error);
   }

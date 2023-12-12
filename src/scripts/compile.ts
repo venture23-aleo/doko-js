@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import { getProjectRoot } from '../utils/fs-utils';
+import { getFilenamesInDirectory, getProjectRoot } from '../utils/fs-utils';
 import { toSnakeCase } from '../utils/formatters';
 import Shell from '../utils/shell';
 
@@ -36,7 +36,7 @@ async function buildProgram(programName: string) {
 
   if (fileImports.length) {
     const copyImportsPath = fileImports.map(
-      (fileImport) => `"${projectRoot}/programs/${fileImport}"`
+      (fileImport) => `"${projectRoot}/programs/imports/${fileImport}"`
     );
 
     const createimports = `mkdir "${projectRoot}/${LEO_ARTIFACTS}/${programName}/imports" && cp ${copyImportsPath.join(
@@ -52,20 +52,13 @@ async function buildProgram(programName: string) {
   return shellCommand.asyncExec();
 }
 
-function getFilenamesInDirectory(directoryPath: string) {
-  return fs.readdir(directoryPath).then((files) => {
-    const filenames = files.filter((file) =>
-      fs.statSync(path.join(directoryPath, file)).isFile()
-    );
-    return filenames;
-  });
-}
-
 async function compileAndBuildPrograms() {
   try {
     const directoryPath = getProjectRoot();
     const programsPath = path.join(directoryPath, 'programs');
-    const names = await getFilenamesInDirectory(programsPath);
+    const names = getFilenamesInDirectory(programsPath);
+    console.log(names);
+
     const leoArtifactsPath = path.join(directoryPath, LEO_ARTIFACTS);
     console.log('Cleaning up old files');
     await fs.rm(leoArtifactsPath, { recursive: true, force: true });
