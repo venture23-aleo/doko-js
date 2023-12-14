@@ -9,9 +9,11 @@ import { AleoReflection } from '../parser/parser';
 import {
   ConvertToJSType,
   FunctionDefinition,
+  GetLeoArrTypeAndSize,
+  IsLeoArray,
   KeyVal,
   StructDefinition,
-  isLeoPrimitiveType
+  IsLeoPrimitiveType
 } from '../utils/aleo-utils';
 import { TSInterfaceGenerator } from './ts-interface-generator';
 import { ZodObjectGenerator } from './zod-object-generator';
@@ -48,8 +50,13 @@ class Generator {
     else throw new Error(`Undeclared type encountered: ${type}`);
   }
 
-  private createLeoSchemaName(customTypeName: string) {
-    return `leo${capitalize(customTypeName)}Schema`;
+  private createLeoSchemaName(typeName: string) {
+    if (IsLeoArray(typeName)) {
+      const [type, size] = GetLeoArrTypeAndSize(typeName);
+      const strippedSize = size.match(/\d+/);
+      return `z.array(leo${capitalize(type)}Schema).length(${strippedSize})`;
+    }
+    return `leo${capitalize(typeName)}Schema`;
   }
 
   private createLeoSchemaAlias(leoSchemaAlias: string, customType: string) {
@@ -99,7 +106,7 @@ class Generator {
 
     // if this is not a custom type we have to use the
     // conversion function from namespace
-    if (isLeoPrimitiveType(type)) {
+    if (IsLeoPrimitiveType(type) || IsLeoArray(type)) {
       fn = `${namespace}.${fn}`;
 
       // append qualifier (private/ public) to the string
@@ -161,6 +168,7 @@ class Generator {
   private generateConverterFunctionName(type: string, conversionTo: string) {
     if (this.refl.isCustomType(type))
       return conversionTo == 'js' ? `get${type}` : `get${type}Leo`;
+    else if (IsLeoArray(type)) return 'array';
     else return type;
   }
 
@@ -304,7 +312,7 @@ class Generator {
 
       // cast non-custom datatype to string
       const type = output.split('.')[0];
-      if (isLeoPrimitiveType(type)) input = `${input} as string`;
+      if (IsLeoPrimitiveType(type)) input = `${input} as string`;
 
       const rhs = this.generateTypeConversionStatement(
         output,

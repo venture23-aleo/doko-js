@@ -12,18 +12,13 @@ import {
 
 import { Tokenizer } from './tokenizer';
 
-interface ImportFileCache {
-  mapping: Array<MappingDefinition>;
-  customTypes: Array<StructDefinition>;
-}
-
 class AleoReflection {
   programName = '';
   customTypes = new Array<StructDefinition>();
   functions = new Array<FunctionDefinition>();
   mappings = new Array<MappingDefinition>();
   env?: Map<string, string>;
-  imports? = new Map<string, ImportFileCache>();
+  imports? = new Map<string, AleoReflection>();
 
   isCustomType(type: string): boolean {
     if (this.customTypes.find((customType) => customType.name === type))
@@ -205,4 +200,4 @@ class Parser {
   }
 }
 
-export { Parser, AleoReflection, ImportFileCache };
+export { Parser, AleoReflection };

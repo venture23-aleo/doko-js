@@ -132,3 +132,7 @@ export const publicField = (value: string): string => {
 export const json = (value: any): string => {
   return JSON.stringify(value).replace(/\"/g, '');
 };
+
+export const array = (value: any): string[] => {
+  return [''];
+};

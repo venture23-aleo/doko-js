@@ -7,7 +7,8 @@ class Tokenizer {
     const formattedCode = this.convertIndentToBlock(data);
 
     // Tokenize by splitting it using whitespace
-    this.data = formattedCode.split(/\s+/);
+    // But exclude anything between square bracket for handling array
+    this.data = formattedCode.split(/\s+(?!\w+\])/g);
   }
 
   // Convert indentation to block of {}

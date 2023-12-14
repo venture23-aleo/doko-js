@@ -74,15 +74,32 @@ const ALEO_TO_JS_TYPE_MAPPING = new Map([
   ['u32', 'number'],
   ['u64', 'BigInt'],
   ['u128', 'BigInt'],
-  ['scalar', 'BigInt']
+  ['scalar', 'BigInt'],
+  ['signature', 'string']
 ]);
 
-export const isLeoPrimitiveType = (value: string) => {
+const IsLeoPrimitiveType = (value: string) => {
   if (ALEO_TO_JS_TYPE_MAPPING.get(value)) return true;
   return false;
 };
 
+const IsLeoArray = (type: string) => {
+  return type.match(/\[(.*?)\]/g);
+};
+
+const GetLeoArrTypeAndSize = (arrDef: string) => {
+  const arrComponents = arrDef.substring(1, arrDef.length - 1).split(' ');
+  if (arrComponents.length !== 2)
+    console.error('Invalid array definition: ', arrDef);
+  return arrComponents;
+};
+
 const ConvertToJSType = (type: string) => {
+  if (IsLeoArray(type)) {
+    const [arrType, arrSize] = GetLeoArrTypeAndSize(type);
+    const jsType = ALEO_TO_JS_TYPE_MAPPING.get(arrType);
+    return `Array<${jsType}>`;
+  }
   return ALEO_TO_JS_TYPE_MAPPING.get(type);
 };
 
@@ -98,5 +115,8 @@ export {
   MappingDefinition,
   KeyWordSet,
   ConvertToJSType,
+  IsLeoArray,
+  GetLeoArrTypeAndSize,
+  IsLeoPrimitiveType,
   KEYWORDS
 };

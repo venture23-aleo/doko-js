@@ -94,3 +94,7 @@ export const boolean = (value: string): boolean => {
     throw new Error('bool parsing failed');
   }
 };
+
+export const array = (value: string) => {
+  return [''];
+};

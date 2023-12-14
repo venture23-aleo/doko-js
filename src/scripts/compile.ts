@@ -36,7 +36,7 @@ async function buildProgram(programName: string) {
 
   if (fileImports.length) {
     const copyImportsPath = fileImports.map(
-      (fileImport) => `"${projectRoot}/programs/imports/${fileImport}"`
+      (fileImport) => `"${projectRoot}/programs/${fileImport}"`
     );
 
     const createimports = `mkdir "${projectRoot}/${LEO_ARTIFACTS}/${programName}/imports" && cp ${copyImportsPath.join(

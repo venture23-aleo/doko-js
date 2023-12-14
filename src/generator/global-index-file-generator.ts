@@ -26,7 +26,7 @@ class GlobalIndexFileGenerator {
       this.types = this.types.concat(
         this.createImportStatement(types, filename)
       );
-      this.exportedTypes = this.exportedTypes.concat(types);
+      this.exportedTypes = this.exportedTypes.concat(types, ', ');
     }
 
     if (generator.generatedLeo2JSFn.length > 0) {
@@ -34,7 +34,7 @@ class GlobalIndexFileGenerator {
       this.leo2js = this.leo2js.concat(
         this.createImportStatement(leo2jsFn, filename)
       );
-      this.exportedLeo2JSFn = this.exportedLeo2JSFn.concat(leo2jsFn);
+      this.exportedLeo2JSFn = this.exportedLeo2JSFn.concat(leo2jsFn, ', ');
     }
 
     if (generator.generatedJS2LeoFn.length > 0) {
@@ -42,7 +42,7 @@ class GlobalIndexFileGenerator {
       this.js2leo = this.js2leo.concat(
         this.createImportStatement(js2leoFn, filename)
       );
-      this.exportedJS2LeoFn = this.exportedJS2LeoFn.concat(js2leoFn);
+      this.exportedJS2LeoFn = this.exportedJS2LeoFn.concat(js2leoFn, ', ');
     }
   }
 

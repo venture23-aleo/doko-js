@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { Tokenizer } from './tokenizer';
-import { ImportFileCache, Parser } from './parser';
+import { AleoReflection, Parser } from './parser';
 
 import { Generator } from '../generator/generator';
 import {
@@ -19,7 +19,7 @@ import { FormatCode } from '../utils/js-formatter';
 import { GlobalIndexFileGenerator } from '../generator/global-index-file-generator';
 
 // Global Variables
-const ImportFileCaches = new Map<string, ImportFileCache>();
+const ImportFileCaches = new Map<string, AleoReflection>();
 const GlobalIndexGenerator = new GlobalIndexFileGenerator();
 
 function convertEnvToKeyVal(envData: string): Map<string, string> {
@@ -62,7 +62,7 @@ async function generateTypesFile(
     )
   ]);
 }
-
+/*
 async function parseAleoImport(
   importFolder: string,
   filename: string
@@ -91,15 +91,14 @@ async function parseAleoImport(
   ImportFileCaches.set(filename, cache);
   return [filename, cache];
 }
-
+*/
 // Read file
 async function parseAleo(
   programFolder: string,
-  imports: Map<string, ImportFileCache> | null
-) {
+  imports: Map<string, AleoReflection> | null
+): Promise<AleoReflection> {
   try {
     const inputFile = programFolder + 'build/main.aleo';
-    console.log(`Parsing program[${inputFile}]`);
 
     const aleoReflection = await generateReflection(inputFile);
     if (imports) aleoReflection.imports = imports;
@@ -108,7 +107,6 @@ async function parseAleo(
     const envFile = programFolder + '/.env';
     const envData = fs.readFileSync(envFile, 'utf-8');
     aleoReflection.env = convertEnvToKeyVal(envData);
-    console.log('Available Environment Variables: ', aleoReflection.env);
 
     // Create Output Directory
     const outputFolder = pathFromRoot(GENERATE_FILE_OUT_DIR);
@@ -130,32 +128,68 @@ async function parseAleo(
         FormatCode(generator.generateContractClass())
       );
     }
+
+    // Update cache
+    const originalFilename = `${programName}.aleo`;
+    ImportFileCaches.set(originalFilename, aleoReflection);
+
     GlobalIndexGenerator.update(generator, programName);
+    return aleoReflection;
   } catch (error) {
-    console.log(error);
+    throw error;
   }
+}
+
+async function resolveImportDependencies(importFolder: string) {
+  const importFiles = getFilenamesInDirectory(importFolder);
+
+  const filesToParse = importFiles.filter(
+    (filename) => !ImportFileCaches.has(filename)
+  );
+  console.log('Unresolved import dependencies: ', filesToParse.join(', '));
+
+  const importCachesPromise = filesToParse.map(async (filename: string) => {
+    // @TODO nested import??
+    const projectRoot = getProjectRoot();
+    const programPath = path.join(
+      projectRoot,
+      PROGRAM_DIRECTORY,
+      filename.split('.aleo')[0],
+      '/'
+    );
+    await parseAleo(programPath, null);
+  });
+
+  await Promise.all(importCachesPromise);
+
+  // Build imports
+  const imports = new Map<string, AleoReflection>();
+  importFiles.forEach((filename) => {
+    imports.set(filename, ImportFileCaches.get(filename)!);
+  });
+  return imports;
 }
 
 async function parseProgram(programFolder: string) {
   // Check if build directory exists
-  if (!fs.existsSync(programFolder + 'build')) return;
-
-  const importFolder = programFolder + 'build/imports/';
-  let imports = null;
-  if (fs.existsSync(importFolder)) {
-    const importFiles = getFilenamesInDirectory(importFolder);
-    const importPromises = importFiles.map((file) =>
-      parseAleoImport(importFolder, file)
-    );
-    const result = await Promise.all(importPromises);
-    imports = new Map<string, ImportFileCache>(result);
+  try {
+    if (!fs.existsSync(programFolder + 'build')) return;
+    console.log('Parsing program: ', programFolder);
+    const importFolder = programFolder + 'build/imports/';
+    let imports = null;
+    if (fs.existsSync(importFolder)) {
+      console.log('Resolving import dependencies ...');
+      imports = await resolveImportDependencies(importFolder);
+    }
+    return parseAleo(programFolder, imports);
+  } catch (err) {
+    console.log(err);
   }
-  return parseAleo(programFolder, imports);
 }
 
-async function compilePrograms() {
+async function compilePrograms(projectRoot?: string) {
   try {
-    const projectRoot = getProjectRoot();
+    if (!projectRoot) projectRoot = getProjectRoot();
     const programPath = path.join(projectRoot, PROGRAM_DIRECTORY);
     const outputPath = path.join(projectRoot, GENERATE_FILE_OUT_DIR);
 
@@ -167,9 +201,16 @@ async function compilePrograms() {
     // Create Output Directory
     if (!fs.existsSync(outputPath)) fs.mkdirSync(outputPath);
 
-    await Promise.all(
-      folders.map((program) => parseProgram(programPath + program + '/'))
-    );
+    for (let program of folders) {
+      const originalName = `${program}.aleo`;
+      if (ImportFileCaches.has(originalName)) {
+        console.log('Program is already parsed: ', originalName);
+        continue;
+      }
+
+      await parseProgram(programPath + program + '/');
+    }
+
     await GlobalIndexGenerator.generate(outputPath);
   } catch (error) {
     console.log(error);

@@ -15,6 +15,8 @@ import {
   leoGroupSchema,
   leoRecordSchema,
   leoTxSchema,
+  leoSignatureSchema,
+  LeoArray
 } from "./leo-types";`;
 
 // Converter function for leo and ts
