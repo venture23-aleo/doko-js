@@ -84,7 +84,7 @@ const IsLeoPrimitiveType = (value: string) => {
 };
 
 const IsLeoArray = (type: string) => {
-  return type.match(/\[(.*?)\]/g);
+  return type.match(/\[(.*?)\]/g) !== null;
 };
 
 const GetLeoArrTypeAndSize = (arrDef: string) => {

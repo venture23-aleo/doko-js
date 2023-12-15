@@ -10,10 +10,9 @@ import {
   ConvertToJSType,
   FunctionDefinition,
   GetLeoArrTypeAndSize,
-  IsLeoArray,
-  KeyVal,
   StructDefinition,
-  IsLeoPrimitiveType
+  IsLeoPrimitiveType,
+  IsLeoArray
 } from '../utils/aleo-utils';
 import { TSInterfaceGenerator } from './ts-interface-generator';
 import { ZodObjectGenerator } from './zod-object-generator';
@@ -102,16 +101,24 @@ class Generator {
     );
 
     const namespace = conversionTo === 'js' ? 'leo2js' : 'js2leo';
+
+    const isArray = IsLeoArray(type);
+    if (isArray) {
+      // Pass additional conversion function
+      const [dataType, size] = GetLeoArrTypeAndSize(type);
+      inputField = inputField.concat(`, ${namespace}.${dataType}`);
+    }
+
     let fn = `${conversionFnName}(${inputField})`;
 
     // if this is not a custom type we have to use the
     // conversion function from namespace
-    if (IsLeoPrimitiveType(type) || IsLeoArray(type)) {
+    if (IsLeoPrimitiveType(type) || isArray) {
       fn = `${namespace}.${fn}`;
 
-      // append qualifier (private/ public) to the string
-      if (conversionTo === 'leo' && qualifier)
-        fn = `${namespace}.${qualifier}Field(${fn})`;
+      if (conversionTo === 'leo') {
+        if (qualifier) fn = `${namespace}.${qualifier}Field(${fn})`;
+      }
     }
 
     return fn;
@@ -275,6 +282,7 @@ class Generator {
 
       // For custom type that produce object it must be converted to string
       if (this.refl.isCustomType(leoType)) fnName = `js2leo.json(${fnName})`;
+      if (IsLeoArray(leoType)) fnName = `js2leo.arr2string(${fnName})`;
 
       const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
       fnGenerator.addStatement(conversionCode);
