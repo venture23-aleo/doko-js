@@ -84,6 +84,11 @@ export const i128 = (value: string): BigInt => {
   return parsed;
 };
 
+export const signature = (value: string): string => {
+  const parsed = replaceValue(value, 'signature');
+  return parsed;
+};
+
 export const boolean = (value: string): boolean => {
   const parsed = replaceValue(value, '');
   if (parsed === 'true') {
@@ -93,4 +98,8 @@ export const boolean = (value: string): boolean => {
   } else {
     throw new Error('bool parsing failed');
   }
+};
+
+export const array = <T>(value: Array<T>, converterFn: Function): string[] => {
+  return value.map((v) => converterFn(v));
 };

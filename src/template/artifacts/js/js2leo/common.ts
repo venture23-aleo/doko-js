@@ -28,7 +28,9 @@ import {
   leoRecordSchema,
   LeoRecord,
   leoTxSchema,
-  LeoTx
+  LeoTx,
+  LeoSignature,
+  leoSignatureSchema
 } from '../types/leo-types';
 
 // Leo Type Converter
@@ -118,5 +120,29 @@ export const boolean = (value: boolean): LeoU128 => {
 };
 
 export const address = (value: string): LeoAddress => {
-  return value;
+  return leoAddressSchema.parse(value);
+};
+
+export const signature = (value: string): LeoSignature => {
+  return leoSignatureSchema.parse(value);
+};
+
+export const privateField = (value: string): string => {
+  return value.concat('.private');
+};
+
+export const publicField = (value: string): string => {
+  return value.concat('.public');
+};
+
+export const json = (value: any): string => {
+  return JSON.stringify(value).replace(/\"/g, '');
+};
+
+export const array = <T>(value: Array<T>, converterFn: Function): string[] => {
+  return value.map((v) => converterFn(v));
+};
+
+export const arr2string = (arr: Array<string>) => {
+  return `[${arr.join(',')}]`;
 };

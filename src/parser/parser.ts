@@ -18,12 +18,18 @@ class AleoReflection {
   functions = new Array<FunctionDefinition>();
   mappings = new Array<MappingDefinition>();
   env?: Map<string, string>;
+  imports? = new Map<string, AleoReflection>();
 
-  isCustomType(type: string) {
-    return (
-      this.customTypes.find((customType) => customType.name === type) !=
-      undefined
-    );
+  isCustomType(type: string): boolean {
+    if (this.customTypes.find((customType) => customType.name === type))
+      return true;
+
+    if (!this.imports) return false;
+    for (let [key, val] of this.imports) {
+      if (val.customTypes.find((customType) => customType.name === type))
+        return true;
+    }
+    return false;
   }
 }
 
@@ -133,7 +139,29 @@ class Parser {
     this.tokenizer.readToken();
     return functionDef;
   }
+  /*
+  private async parseImport(
+    importFolder: string,
+    filename: string
+  ): Promise<ImportFileCache> {
+    // Although each contract has own version of import file, they
+    // are the same copies of import file defined in the program folders
+    const entry = ImportFileCaches.get(filename);
+    if (entry) return entry;
+    // Add new file to the cache
+    const data = fs.readFileSync(importFolder + filename, 'utf-8');
+    const tokenizer = new Tokenizer(data);
 
+    const refl = await new Parser(tokenizer).parse(importFolder);
+
+    const cache: ImportFileCache = {
+      customTypes: refl.customTypes,
+      mapping: refl.mappings
+    };
+    ImportFileCaches.set(filename, cache);
+    return cache;
+  }
+  */
   parse(): AleoReflection {
     const aleoReflection = new AleoReflection();
 
@@ -148,7 +176,7 @@ class Parser {
           else if (token.value == KEYWORDS.RECORD) {
             const recordDef = this.parseStruct(token);
             // Add additional member _nonce if it is record
-            recordDef.members.push({key: '_nonce' , val: 'group' });
+            recordDef.members.push({ key: '_nonce', val: 'group.public' });
             aleoReflection.customTypes.push(recordDef);
           } else if (
             token.value === KEYWORDS.FUNCTION ||
@@ -161,6 +189,8 @@ class Parser {
           else if (token.value === KEYWORDS.PROGRAM) {
             const programNameWithExt = this.tokenizer.readToken().value;
             aleoReflection.programName = programNameWithExt.split('.aleo')[0];
+          } else if (token.value === KEYWORDS.IMPORT) {
+            console.log('import found:', this.tokenizer.readToken().value);
           } else console.warn('[Warning] Unparsed keyword: ', token.value);
           break;
       }

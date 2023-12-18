@@ -13,6 +13,7 @@ import { runAleoNode } from './scripts/leo-node';
 import { compileAndBuildPrograms } from './scripts/compile';
 import { runTest } from './scripts/test';
 import { deploy } from './scripts/deploy';
+import { leoExecute } from './scripts/execute';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const figlet = require('figlet');
@@ -109,6 +110,14 @@ program
       privateKeyIndex: options.privateKeyIndex || 0,
       network: options.network || 'testnet'
     });
+    process.exit(0);
+  });
+
+program
+  .command('execute <file-path>')
+  .description('Execute script')
+  .action(async (filePath) => {
+    await leoExecute(filePath);
     process.exit(0);
   });
 

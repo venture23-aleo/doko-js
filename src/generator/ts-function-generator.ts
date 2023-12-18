@@ -6,13 +6,25 @@ export interface FunctionArgs {
 class TSFunctionGenerator {
   code = '';
   isAsync = false;
+  isExported = true;
+  isClassMethod = false;
 
   addStatement(statement: String) {
     this.code += statement;
   }
 
-  makeAsync() {
-    this.isAsync = true;
+  setIsAsync(state: boolean) {
+    this.isAsync = state;
+    return this;
+  }
+
+  setIsExported(state: boolean) {
+    this.isExported = state;
+    return this;
+  }
+
+  setIsClassMethod(state: boolean) {
+    this.isClassMethod = state;
     return this;
   }
 
@@ -21,11 +33,13 @@ class TSFunctionGenerator {
       .map((arg) => `${arg.name}: ${arg.type}`)
       .join(', ');
 
+    const exportDecl = this.isExported ? 'export ' : '';
+    const asynDecl = this.isAsync ? 'async ' : '';
+    const functionDecl = this.isClassMethod ? '' : 'function ';
+
     const returnDeclaration = returnType ? `: ${returnType}` : '';
     return (
-      `export ${
-        this.isAsync ? 'async ' : ''
-      }function ${fnName}(${formattedArgs}) ${returnDeclaration} {\n` +
+      `${exportDecl}${asynDecl}${functionDecl}${fnName}(${formattedArgs}) ${returnDeclaration} {\n` +
       this.code +
       '}\n\n'
     );

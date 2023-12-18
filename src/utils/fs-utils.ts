@@ -66,4 +66,16 @@ function pathFromRoot(repoPath: string) {
   return path.join(projectRoot, repoPath);
 }
 
-export { getProjectRoot, writeToFile, getAleoConfig, pathFromRoot };
+function getFilenamesInDirectory(directoryPath: string) {
+  return fs.readdirSync(directoryPath, null).filter((file: string) => {
+    return fs.statSync(path.join(directoryPath, file)).isFile();
+  });
+}
+
+export {
+  getProjectRoot,
+  writeToFile,
+  getAleoConfig,
+  pathFromRoot,
+  getFilenamesInDirectory
+};
