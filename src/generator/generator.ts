@@ -253,6 +253,14 @@ class Generator {
     return code;
   }
 
+  // Resolve import return types
+  // Some return types are referenced by import file
+  // Eg: token.leo/token.record
+  private formatLeoDataType(type: string) {
+    if (type.includes('/')) type = type.split('/')[1];
+    return type;
+  }
+
   private generateTransitionFunction(func: FunctionDefinition) {
     const fnGenerator = new TSFunctionGenerator()
       .setIsAsync(true)
@@ -264,7 +272,7 @@ class Generator {
 
     func.inputs.forEach((input) => {
       // Generate argument array
-      const leoType = input.val.split('.')[0];
+      const leoType = this.formatLeoDataType(input.val).split('.')[0];
       const jsType = this.inferJSDataType(leoType);
       const argName = input.key;
       args.push({ name: argName, type: jsType });
@@ -304,15 +312,8 @@ class Generator {
     );
 
     // Ignore 'future' returntype for now
-    // Resolve import return types
-    // Some return types are referenced by import file
-    // Eg: token.leo/token.record
     let funcOutputs = func.outputs
-      .map((output) => {
-        if (!output.includes('/')) return output;
-        output = output.split('/')[1];
-        return output;
-      })
+      .map((output) => this.formatLeoDataType(output))
       .filter((output) => !output.includes('future'));
 
     if (funcOutputs.length == 0)
