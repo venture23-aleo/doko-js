@@ -304,9 +304,16 @@ class Generator {
     );
 
     // Ignore 'future' returntype for now
-    const funcOutputs = func.outputs.filter(
-      (output) => !output.includes('future')
-    );
+    // Resolve import return types
+    // Some return types are referenced by import file
+    // Eg: token.leo/token.record
+    let funcOutputs = func.outputs
+      .map((output) => {
+        if (!output.includes('/')) return output;
+        output = output.split('/')[1];
+        return output;
+      })
+      .filter((output) => !output.includes('future'));
 
     if (funcOutputs.length == 0)
       return fnGenerator.generate(func.name, args, null);
