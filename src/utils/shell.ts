@@ -18,7 +18,7 @@ class Shell {
   }
 
   public async asyncExec() {
-    return new Promise((res) => {
+    return new Promise((res, rej) => {
       const shellProcess = spawn(this.shell, [
         '-c',
         `FORCE_COLOR=true ${this.command}`
@@ -29,6 +29,17 @@ class Shell {
 
       shellProcess.stdout.on('data', (data) => {
         console.log(data.toString());
+      });
+      shellProcess.stdout.on('error', (err: any) => {
+        console.log(err);
+      });
+
+      shellProcess.stderr.on('data', (data) => {
+        if (!data.toString().includes('ECLI0377010')) {
+          rej(data.toString());
+        } else {
+          console.warn(`\x1b[31;1;33m${data.toString()}\x1b[0m`);
+        }
       });
 
       shellProcess.on('close', (code) => {
