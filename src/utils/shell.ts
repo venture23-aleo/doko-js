@@ -3,6 +3,10 @@ import { spawn } from 'child_process';
 
 import { getUserShell } from './requirementsCheck';
 
+const ERROR_CODES = {
+  SNARK_VM_ERROR: 'ECLI0377010'
+};
+
 class Shell {
   private command: string;
   private shell: string;
@@ -35,7 +39,7 @@ class Shell {
       });
 
       shellProcess.stderr.on('data', (data) => {
-        if (!data.toString().includes('ECLI0377010')) {
+        if (!data.toString().includes(ERROR_CODES.SNARK_VM_ERROR)) {
           rej(data.toString());
         } else {
           console.warn(`\x1b[31;1;33m${data.toString()}\x1b[0m`);
