@@ -68,9 +68,13 @@ async function compileAndBuildPrograms() {
       return buildProgram(programName);
     });
 
-    const buildResults = await Promise.all(buildPromises);
-
-    return { status: 'success', result: buildResults };
+    try {
+      const buildResults = await Promise.all(buildPromises);
+      return { status: 'success', result: buildResults };
+    } catch (e: any) {
+      console.error(`\x1b[31;1;31m${e}\x1b[0m`);
+      process.exit(1);
+    }
   } catch (err) {
     console.error('Error:', err);
 
