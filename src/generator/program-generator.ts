@@ -112,7 +112,7 @@ async function installNpmPackages(path: string | undefined) {
     'babel-jest',
     '@babel/preset-env'
   ];
-  const dependencies = ['zod'];
+  const dependencies = ['zod', 'axios'];
   const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
     ' '
   )} && npm install ${dependencies.join(' ')}`;

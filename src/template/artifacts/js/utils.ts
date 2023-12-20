@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { exec } from 'child_process';
 //import { readFile } from 'fs/promises';
 //import { join } from 'path';
@@ -23,6 +24,7 @@ export interface ContractConfig {
   network?: NetworkConfig;
   networkName?: string;
   mode?: string;
+  priorityFee?: number;
 }
 
 export const execute = promisify(exec);
@@ -102,6 +104,48 @@ export const snarkExecute = async ({
   );
 
   return { data: outPuts };
+};
+
+const checkDeployment = async (endpoint: string): Promise<boolean> => {
+  try {
+    console.log(`Checking deployment: ${endpoint}`);
+    await axios.get(endpoint);
+
+    return true;
+  } catch (e: any) {
+    if (e?.response?.data?.includes('Missing program for ID')) {
+      return false;
+    }
+
+    throw new Error(
+      `Failed to deploy program: ${
+        e?.response?.data ?? 'Error occured while deploying program'
+      }`
+    );
+  }
+};
+
+export const snarkDeploy = async ({
+  config
+}: LeoRunParams): Promise<Record<string, unknown>> => {
+  const nodeEndPoint = config['network']?.node;
+  if (!nodeEndPoint) {
+    throw new Error('networkName missing in contract config for deployment');
+  }
+
+  const priorityFee = config.priorityFee || 0;
+  const isProgramDeployed = await checkDeployment(
+    `${nodeEndPoint}/testnet3/program/${config.appName}.aleo`
+  );
+
+  if (isProgramDeployed) {
+    throw new Error(`Program ${config.appName} is already deployed`);
+  }
+
+  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast"`;
+  const { stdout } = await execute(cmd);
+  console.log(stdout);
+  return { data: stdout };
 };
 
 export const leoRun = async ({
