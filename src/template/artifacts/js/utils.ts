@@ -130,7 +130,7 @@ export const zkRun = (
 };
 
 export const zkGetMapping = async (params: ExecuteZkLogicParams): Promise<any> => {
-  const url = `http://localhost:3030/testnet3/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params[0]}`;
+  const url = `${params.config.network.node}/${params.config.networkName}/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params[0]}`;
   console.log(url);
   const response = await fetch(url);
   let data = await response.json();
