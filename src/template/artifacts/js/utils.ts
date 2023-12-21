@@ -128,3 +128,7 @@ export const zkRun = (
   if (params.config.mode === 'execute') return snarkExecute(params);
   return leoRun(params);
 };
+
+export const zkGetMapping = async () => {
+  return {}
+}

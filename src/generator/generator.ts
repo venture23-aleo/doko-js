@@ -434,15 +434,15 @@ class Generator {
         '\n} from "./types";\n',
         'import {\n',
         mapping.map((member) => `\t${member.leoFn},`).join('\n') +
-          "\n} from './js2leo';\n",
+        "\n} from './js2leo';\n",
         'import {\n',
         mapping.map((member) => `\t${member.jsFn},`).join('\n') +
-          "\n} from './leo2js';\n"
+        "\n} from './leo2js';\n"
       );
     }
 
     importStatement = importStatement.concat(
-      "import { zkRun, ContractConfig } from './utils'; \n\n"
+      "import { zkRun, zkGetMapping, ContractConfig } from './utils'; \n\n"
     );
     importStatement = importStatement.concat(
       "const networkConfig = require('../../aleo-config'); \n\n"
@@ -489,7 +489,6 @@ class Generator {
     });
 
     this.refl.mappings.forEach((mapping) => {
-      console.log('Mapping: ', mapping);
       classGenerator.addMethod(this.generateMappingFunction(mapping));
     });
 
