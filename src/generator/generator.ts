@@ -12,7 +12,8 @@ import {
   GetLeoArrTypeAndSize,
   StructDefinition,
   IsLeoPrimitiveType,
-  IsLeoArray
+  IsLeoArray,
+  MappingDefinition
 } from '../utils/aleo-utils';
 import { TSInterfaceGenerator } from './ts-interface-generator';
 import { ZodObjectGenerator } from './zod-object-generator';
@@ -357,6 +358,52 @@ class Generator {
     return fnGenerator.generate(func.name, args, returnTypeString);
   }
 
+  private generateMappingFunction(mapping: MappingDefinition) {
+    const fnGenerator = new TSFunctionGenerator()
+      .setIsAsync(true)
+      .setIsClassMethod(true)
+      .setIsExported(false);
+
+    // Generate argument array
+    const leoType = this.formatLeoDataType(mapping.key).split('.')[0];
+    const jsType = this.inferJSDataType(leoType);
+
+    const argName = 'key';
+    const fnArg = { name: argName, type: jsType };
+
+    const variableName = `${argName}Leo`;
+
+    // We ignore the qualifier while generating conversion function
+    // for transition function parameter
+    let fnName = this.generateTypeConversionStatement(
+      leoType,
+      argName,
+      STRING_LEO
+    );
+
+    // For custom type that produce object it must be converted to string
+    if (this.refl.isCustomType(leoType)) fnName = `js2leo.json(${fnName})`;
+
+    const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
+    fnGenerator.addStatement(conversionCode);
+
+    // Param declaration
+    fnGenerator.addStatement(`\n\tconst params = [${variableName}]\n`);
+
+    // Add zkRun statement
+    fnGenerator.addStatement(`\tconst result = await zkGetMapping({
+      config: this.config,
+      transition: '${mapping.name}',
+      params,
+    });\n`);
+
+    fnGenerator.addStatement(
+      '\t if(this.config.mode === "execute") return result; \n'
+    );
+    fnGenerator.addStatement('\t return {}; \n');
+    return fnGenerator.generate(mapping.name, [fnArg], null);
+  }
+
   // Generate transition function body
   public generateContractClass() {
     // Create import statement for custom types
@@ -440,6 +487,12 @@ class Generator {
         classGenerator.addMethod(this.generateTransitionFunction(func));
       }
     });
+
+    this.refl.mappings.forEach((mapping) => {
+      console.log('Mapping: ', mapping);
+      classGenerator.addMethod(this.generateMappingFunction(mapping));
+    });
+
     return code.concat(
       classGenerator.generate(`${capitalize(programName)}Contract`)
     );
