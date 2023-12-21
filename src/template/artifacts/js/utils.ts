@@ -129,6 +129,14 @@ export const zkRun = (
   return leoRun(params);
 };
 
-export const zkGetMapping = async () => {
-  return {}
+export const zkGetMapping = async (params: ExecuteZkLogicParams): Promise<any> => {
+  const url = `http://localhost:3030/testnet3/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params[0]}`;
+  console.log(url);
+  const response = await fetch(url);
+  let data = await response.json();
+  if (data == null) {
+    throw new Error(`Mapping ${params.transition} doesn't have key ${params.params[0]}.[link: ${url}]`);
+  }
+  data = (data as string).replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
+  return JSON.parse(data as string);
 }

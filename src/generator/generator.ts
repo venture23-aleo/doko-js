@@ -397,11 +397,18 @@ class Generator {
       params,
     });\n`);
 
-    fnGenerator.addStatement(
-      '\t if(this.config.mode === "execute") return result; \n'
+    let fieldName = 'result';
+
+    const strippedType = mapping.value.split('.')[0];
+    const result = this.generateTypeConversionStatement(
+      mapping.value,
+      'result',
+      STRING_JS
     );
-    fnGenerator.addStatement('\t return {}; \n');
-    return fnGenerator.generate(mapping.name, [fnArg], null);
+    fnGenerator.addStatement(`\t return ${result}; \n`);
+
+    const returnType = this.inferJSDataType(strippedType);
+    return fnGenerator.generate(mapping.name, [fnArg], `Promise<${returnType}>`);
   }
 
   // Generate transition function body
