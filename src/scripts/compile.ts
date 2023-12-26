@@ -52,7 +52,7 @@ async function buildProgram(programName: string) {
   return shellCommand.asyncExec();
 }
 
-async function compileAndBuildPrograms() {
+async function buildPrograms() {
   try {
     const directoryPath = getProjectRoot();
     const programsPath = path.join(directoryPath, 'programs');
@@ -82,4 +82,4 @@ async function compileAndBuildPrograms() {
   }
 }
 
-export { compileAndBuildPrograms };
+export { buildPrograms };
