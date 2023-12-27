@@ -172,3 +172,15 @@ export const zkRun = (
   if (params.config.mode === 'execute') return snarkExecute(params);
   return leoRun(params);
 };
+
+export const zkGetMapping = async (params: ExecuteZkLogicParams): Promise<any> => {
+  const url = `${params.config.network.node}/${params.config.networkName}/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params[0]}`;
+  console.log(url);
+  const response = await fetch(url);
+  let data = await response.json();
+  if (data == null) {
+    throw new Error(`Mapping ${params.transition} doesn't have key ${params.params[0]}.[link: ${url}]`);
+  }
+  data = (data as string).replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
+  return JSON.parse(data as string);
+}

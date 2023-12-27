@@ -12,7 +12,8 @@ import {
   GetLeoArrTypeAndSize,
   StructDefinition,
   IsLeoPrimitiveType,
-  IsLeoArray
+  IsLeoArray,
+  MappingDefinition
 } from '../utils/aleo-utils';
 import { TSInterfaceGenerator } from './ts-interface-generator';
 import { ZodObjectGenerator } from './zod-object-generator';
@@ -357,6 +358,59 @@ class Generator {
     return fnGenerator.generate(func.name, args, returnTypeString);
   }
 
+  private generateMappingFunction(mapping: MappingDefinition) {
+    const fnGenerator = new TSFunctionGenerator()
+      .setIsAsync(true)
+      .setIsClassMethod(true)
+      .setIsExported(false);
+
+    // Generate argument array
+    const leoType = this.formatLeoDataType(mapping.key).split('.')[0];
+    const jsType = this.inferJSDataType(leoType);
+
+    const argName = 'key';
+    const fnArg = { name: argName, type: jsType };
+
+    const variableName = `${argName}Leo`;
+
+    // We ignore the qualifier while generating conversion function
+    // for transition function parameter
+    let fnName = this.generateTypeConversionStatement(
+      leoType,
+      argName,
+      STRING_LEO
+    );
+
+    // For custom type that produce object it must be converted to string
+    if (this.refl.isCustomType(leoType)) fnName = `js2leo.json(${fnName})`;
+
+    const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
+    fnGenerator.addStatement(conversionCode);
+
+    // Param declaration
+    fnGenerator.addStatement(`\n\tconst params = [${variableName}]\n`);
+
+    // Add zkRun statement
+    fnGenerator.addStatement(`\tconst result = await zkGetMapping({
+      config: this.config,
+      transition: '${mapping.name}',
+      params,
+    });\n`);
+
+    let fieldName = 'result';
+
+    const strippedType = mapping.value.split('.')[0];
+    const result = this.generateTypeConversionStatement(
+      mapping.value,
+      'result',
+      STRING_JS
+    );
+    fnGenerator.addStatement(`\t return ${result}; \n`);
+
+    const returnType = this.inferJSDataType(strippedType);
+    return fnGenerator.generate(mapping.name, [fnArg], `Promise<${returnType}>`);
+  }
+
   // Generate transition function body
   public generateContractClass() {
     // Create import statement for custom types
@@ -387,15 +441,15 @@ class Generator {
         '\n} from "./types";\n',
         'import {\n',
         mapping.map((member) => `\t${member.leoFn},`).join('\n') +
-          "\n} from './js2leo';\n",
+        "\n} from './js2leo';\n",
         'import {\n',
         mapping.map((member) => `\t${member.jsFn},`).join('\n') +
-          "\n} from './leo2js';\n"
+        "\n} from './leo2js';\n"
       );
     }
 
     importStatement = importStatement.concat(
-      "import { zkRun, ContractConfig, snarkDeploy } from './utils'; \n\n"
+      "import { zkRun, ContractConfig, snarkDeploy, zkGetMapping } from './utils'; \n\n"
     );
     importStatement = importStatement.concat(
       "const networkConfig = require('../../aleo-config'); \n\n"
@@ -447,6 +501,11 @@ class Generator {
         classGenerator.addMethod(this.generateTransitionFunction(func));
       }
     });
+
+    this.refl.mappings.forEach((mapping) => {
+      classGenerator.addMethod(this.generateMappingFunction(mapping));
+    });
+
     return code.concat(
       classGenerator.generate(`${capitalize(programName)}Contract`)
     );

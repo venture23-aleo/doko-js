@@ -11,5 +11,9 @@ module.exports = {
   devnet: {
     node: 'http://localhost:4040',
     server: {}
+  },
+  testnet3: {
+    node: 'http://localhost:3030',
+    server: {}
   }
 };

@@ -139,7 +139,7 @@ export const json = (value: any): string => {
   return JSON.stringify(value).replace(/\"/g, '');
 };
 
-export const array = <T>(value: Array<T>, converterFn: Function): string[] => {
+export const array = <T>(value: Array<T>, converterFn: Function): T[] => {
   return value.map((v) => converterFn(v));
 };
 
