@@ -84,8 +84,7 @@ export const snarkExecute = async ({
   params = [],
   transition = 'main'
 }: LeoRunParams): Promise<Record<string, unknown>> => {
-  let stringedParams = params.join(' ');
-  stringedParams = stringedParams.replace(/{/g, '"{').replace(/}/, '}"');
+  let stringedParams = params.map(s => `"${s}"`).join(' ');
   // snarkos developer execute sample_program.aleo main  "1u32" "2u32" --private-key APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --query "http://localhost:3030" --broadcast "http://localhost:3030/testnet3/transaction/broadcast"
   // const cmd = `cd ${config.contractPath} && snarkos developer execute  ${config.appName}.aleo ${transition} ${stringedParams} --private-key ${config.privateKey} --query ${nodeEndPoint} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast"`;
   const cmd = `cd ${config.contractPath} && leo execute ${transition} ${stringedParams}`; /* --private-key ${config.privateKey} --query ${nodeEndPoint} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast"`;*/
@@ -118,8 +117,7 @@ const checkDeployment = async (endpoint: string): Promise<boolean> => {
     }
 
     throw new Error(
-      `Failed to deploy program: ${
-        e?.response?.data ?? 'Error occured while deploying program'
+      `Failed to deploy program: ${e?.response?.data ?? 'Error occured while deploying program'
       }`
     );
   }
@@ -153,9 +151,7 @@ export const leoRun = async ({
   params = [],
   transition = 'main'
 }: LeoRunParams): Promise<Record<string, unknown>> => {
-  let stringedParams = params.join(' ');
-  stringedParams = stringedParams.replace(/{/g, '"{').replace(/}/, '}"');
-
+  let stringedParams = params.map(s => `"${s}"`).join(' ');
   const cmd = `cd ${config.contractPath} && leo run ${transition} ${stringedParams}`;
   console.log(cmd);
   const { stdout } = await execute(cmd);
