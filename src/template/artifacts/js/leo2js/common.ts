@@ -100,6 +100,6 @@ export const boolean = (value: string): boolean => {
   }
 };
 
-export const array = <T>(value: Array<T>, converterFn: Function): T[] => {
+export const array = (value: Array<any>, converterFn: Function): any[] => {
   return value.map((v) => converterFn(v));
 };
