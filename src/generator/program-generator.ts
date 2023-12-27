@@ -112,7 +112,7 @@ async function installNpmPackages(path: string | undefined) {
     'babel-jest',
     '@babel/preset-env'
   ];
-  const dependencies = ['zod'];
+  const dependencies = ['zod', 'axios'];
   const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
     ' '
   )} && npm install ${dependencies.join(' ')}`;
@@ -123,7 +123,7 @@ async function installNpmPackages(path: string | undefined) {
 
 async function initializeGit(path: string | undefined) {
   console.log('Initializing git');
-  const command = `cd "${path}" && git init`;
+  const command = `cd "${path}" && git init -b main`;
 
   const shell = new Shell(command);
   return shell.asyncExec();

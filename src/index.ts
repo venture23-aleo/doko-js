@@ -10,7 +10,7 @@ import {
   installNpmPackages
 } from './generator/program-generator';
 import { runAleoNode } from './scripts/leo-node';
-import { compileAndBuildPrograms } from './scripts/compile';
+import { buildPrograms } from './scripts/compile';
 import { runTest } from './scripts/test';
 import { deploy } from './scripts/deploy';
 import { leoExecute } from './scripts/execute';
@@ -39,7 +39,7 @@ program
     try {
       await initializeGit(response?.destination);
     } catch (e) {
-      console.error('Git setup error');
+      console.error('Git setup error', e);
     }
     await installNpmPackages(response?.destination);
     console.log(
@@ -64,8 +64,31 @@ program
   .action(async () => {
     console.log('Compiling AleoJS project...');
     // Add your compilation logic here
-    await compileAndBuildPrograms();
+    await buildPrograms();
     // For ts files
+    await compilePrograms();
+
+    process.exit(0);
+  });
+program
+  .command('unflatten')
+  .description('Create leo build for programs')
+  .action(async () => {
+    console.log('Building leo programs...');
+    // Add your compilation logic here
+    await buildPrograms();
+
+    process.exit(0);
+  });
+
+program
+  .command('autogen')
+  .description(
+    'Generate ts types for contracts - use only after the build has been generated'
+  )
+  .action(async () => {
+    console.log('Generating JS files...');
+    // Add your compilation logic here
     await compilePrograms();
 
     process.exit(0);

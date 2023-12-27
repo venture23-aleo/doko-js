@@ -7,4 +7,4 @@ generated
 .vscode
 programs/
 test/
-artifacts/
+./artifacts/

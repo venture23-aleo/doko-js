@@ -312,7 +312,7 @@ class Generator {
     );
 
     // Ignore 'future' returntype for now
-    let funcOutputs = func.outputs
+    const funcOutputs = func.outputs
       .map((output) => this.formatLeoDataType(output))
       .filter((output) => !output.includes('future'));
 
@@ -395,7 +395,7 @@ class Generator {
     }
 
     importStatement = importStatement.concat(
-      "import { zkRun, ContractConfig } from './utils'; \n\n"
+      "import { zkRun, ContractConfig, snarkDeploy } from './utils'; \n\n"
     );
     importStatement = importStatement.concat(
       "const networkConfig = require('../../aleo-config'); \n\n"
@@ -433,6 +433,13 @@ class Generator {
     }
 }\n\n`
     );
+    classGenerator.addMethod(` async deploy(): Promise<any> {
+      const result = await snarkDeploy({
+        config: this.config,
+      });
+  
+      return result;
+    }`);
     classGenerator.addMember({ key: 'config', val: 'ContractConfig' });
 
     this.refl.functions.forEach((func) => {
