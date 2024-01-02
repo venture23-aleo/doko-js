@@ -458,20 +458,12 @@ class Generator {
     const code = importStatement;
     const programName = this.refl.programName;
 
-    const privateKey = this.refl.env?.get('PRIVATE_KEY');
-    if (!privateKey || privateKey.length == 0)
-      throw new Error(
-        'Invalid private key for program: ' + this.refl.programName
-      );
-
     const classGenerator = new TSClassGenerator();
 
     // Add constructor
     classGenerator.addMethod(
       `constructor(config: ContractConfig = {}) {
     this.config = {
-        privateKey: '${privateKey}',
-        viewKey: '${privateKey}', 
         appName: '${programName}',
         contractPath: '${PROGRAM_DIRECTORY}${programName}', 
         fee: '0.01'
