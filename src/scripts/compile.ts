@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import { getFilenamesInDirectory, getProjectRoot } from '../utils/fs-utils';
+import { getAleoConfig, getFilenamesInDirectory, getProjectRoot } from '../utils/fs-utils';
 import { toSnakeCase } from '../utils/formatters';
 import Shell from '../utils/shell';
 import { Node, sort } from '../utils/graph';
@@ -42,6 +42,41 @@ async function createGraph(programs: Array<string>, programPath: string): Promis
   return nodes;
 }
 
+interface ImportDependency {
+  name: string,
+  location: string,
+  network?: string,
+  endpoint?: string,
+  path?: string
+};
+
+function createImportConfig(programDir: string, artifactDir: string, imports: string[]) {
+  // We handle the import dependencies with the program.json  
+  const aleoConfig = getAleoConfig();
+  const executionMode = aleoConfig['mode'];
+  const defaultNetwork = aleoConfig['defaultNetwork'];
+  const networkConfig = aleoConfig.networks[defaultNetwork];
+
+  const importConfigs = imports.map((fileImport) => {
+    let config: Record<string, string> = {};
+    config.name = fileImport;
+    switch (executionMode) {
+      case 'evaluate':
+        config.location = 'local';
+        config.path = path.relative(programDir, `${artifactDir}/${fileImport.split('.aleo')[0]}`);
+        break;
+      case 'execute':
+        config.location = 'network';
+        config.endpoint = networkConfig.endpoint;
+        config.network = defaultNetwork;
+        break;
+      default:
+        throw new Error(`Unrecognized execution mode ${executionMode}`);
+    }
+    return config;
+  });
+  return importConfigs;
+}
 
 async function buildProgram(programName: string) {
   const parsedProgramName = toSnakeCase(programName);
@@ -53,21 +88,13 @@ async function buildProgram(programName: string) {
   let fileImports = await getFileImports(
     `${projectRoot}/programs/${programName}.leo`
   );
-  if (fileImports.length) {
-    // We handle the import dependencies with the program.json  
-    const artifactDir = `${projectRoot}/${LEO_ARTIFACTS}`;
-    const configFilePath = `${artifactDir}/${parsedProgramName}/program.json`
-    let executionMode = 'evaluate';
-    const configs = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
-    const location = 'local';
 
-    // @TODO Check if program directory exists or not in evaluate mode
-    const dependencies = fileImports.map(fileImport => ({
-      name: fileImport,
-      location,
-      path: `${artifactDir}/${fileImport.split('.aleo')[0]}`,
-    }));
-    configs.dependencies = dependencies;
+  if (fileImports.length) {
+    const artifactDir = `${projectRoot}/${LEO_ARTIFACTS}`;
+    const programDir = `${artifactDir}/${parsedProgramName}`;
+    const configFilePath = `${programDir}/program.json`
+    const configs = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
+    configs.dependencies = createImportConfig(programDir, artifactDir, fileImports);
     fs.writeFileSync(configFilePath, JSON.stringify(configs));
   }
 
@@ -86,17 +113,13 @@ async function buildPrograms() {
     console.log('Cleaning up old files');
     await fs.rm(leoArtifactsPath, { recursive: true, force: true });
     console.log('Compiling new files');
-    /*
-    const buildPromises = names.map(async (name) => {
-      const programName = name.split('.')[0];
-      buildProgram(programName);
-    });
-    */
+
     const graph = await createGraph(names, programsPath);
     if (graph.length === 0) return;
 
     const sortedNodes = sort(graph);
     if (!sortedNodes) return;
+
     names = sortedNodes.map(node => node.name);
     console.log(names);
 
