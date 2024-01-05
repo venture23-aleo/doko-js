@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
+import os from 'os'
 
 import { getAleoConfig, getFilenamesInDirectory, getProjectRoot } from '../utils/fs-utils';
 import { toSnakeCase } from '../utils/formatters';
@@ -78,29 +79,48 @@ function createImportConfig(programDir: string, artifactDir: string, imports: st
   return importConfigs;
 }
 
+// Only cache the program in network mode
+async function cachePrograms(programName: string, programDir: string, networkName: string) {
+  const homeDir = os.homedir();
+  const srcFilePath = `${programDir}/build/main.aleo`;
+  const dstFilePath = `${homeDir}/.aleo/registry/${networkName}/${programName}.aleo`;
+
+  const createLeoCommand = `cp "${srcFilePath}" "${dstFilePath}"`;
+  const leoShellCommand = new Shell(createLeoCommand);
+  return leoShellCommand.asyncExec();
+}
+
 async function buildProgram(programName: string) {
   const parsedProgramName = toSnakeCase(programName);
   const projectRoot = getProjectRoot();
-  const createLeoCommand = `mkdir -p "${projectRoot}/${LEO_ARTIFACTS}" && cd "${projectRoot}/${LEO_ARTIFACTS}" && leo new ${parsedProgramName} && rm "${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo"`;
+  const artifactDir = `${projectRoot}/${LEO_ARTIFACTS}`;
+  const programDir = `${artifactDir}/${parsedProgramName}`;
+
+  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
   const leoShellCommand = new Shell(createLeoCommand);
-  const res = await leoShellCommand.asyncExec();
+  await leoShellCommand.asyncExec();
 
   let fileImports = await getFileImports(
     `${projectRoot}/programs/${programName}.leo`
   );
-
   if (fileImports.length) {
-    const artifactDir = `${projectRoot}/${LEO_ARTIFACTS}`;
-    const programDir = `${artifactDir}/${parsedProgramName}`;
     const configFilePath = `${programDir}/program.json`
     const configs = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
     configs.dependencies = createImportConfig(programDir, artifactDir, fileImports);
     fs.writeFileSync(configFilePath, JSON.stringify(configs));
   }
 
-  const leoRunCommand = `cd "${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}" && leo run`;
+  const leoRunCommand = `cd "${programDir}" && leo run`;
   const shellCommand = new Shell(leoRunCommand);
-  return shellCommand.asyncExec();
+  const res = await shellCommand.asyncExec();
+
+  const aleoConfig = getAleoConfig();
+  if (aleoConfig['mode'] === 'execute') {
+    await cachePrograms(programName, programDir, aleoConfig['defaultNetwork']);
+    console.log(`Program ${programName}.aleo cached to aleo registry`)
+  }
+
+  return res;
 }
 
 async function buildPrograms() {
@@ -126,7 +146,7 @@ async function buildPrograms() {
     try {
       for (let name of names) {
         const programName = name.split('.')[0];
-        await buildProgram(programName)
+        await buildProgram(programName);
       }
       //try {
       //  const buildResults = await Promise.all(buildPromises);

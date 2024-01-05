@@ -203,10 +203,8 @@ async function compilePrograms(projectRoot?: string) {
 
     for (let program of folders) {
       const originalName = `${program}.aleo`;
-      if (ImportFileCaches.has(originalName)) {
-        console.log('Program is already parsed: ', originalName);
+      if (ImportFileCaches.has(originalName))
         continue;
-      }
 
       await parseProgram(programPath + program + '/');
     }
