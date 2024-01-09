@@ -1,7 +1,7 @@
 import readline from 'readline';
 import { spawn } from 'child_process';
 
-import { getUserShell } from './requirementsCheck';
+import { getUserShell } from '@/utils/requirementsCheck';
 
 const ERROR_CODES = {
   SNARK_VM_ERROR: 'ECLI0377010'

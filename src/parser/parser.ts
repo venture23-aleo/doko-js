@@ -8,9 +8,9 @@ import {
   KEYWORDS,
   TokenType,
   MappingDefinition
-} from '../utils/aleo-utils';
+} from '@/utils/aleo-utils';
 
-import { Tokenizer } from './tokenizer';
+import { Tokenizer } from '@/parser/tokenizer';
 
 class AleoReflection {
   programName = '';
@@ -25,7 +25,7 @@ class AleoReflection {
       return true;
 
     if (!this.imports) return false;
-    for (let [key, val] of this.imports) {
+    for (const [key, val] of this.imports) {
       if (val.customTypes.find((customType) => customType.name === type))
         return true;
     }

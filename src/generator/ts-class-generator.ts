@@ -1,6 +1,5 @@
-import { KeyVal } from '../utils/aleo-utils';
-import { tabify } from '../utils/formatters';
-import { FunctionArgs } from './ts-function-generator';
+import { KeyVal } from '@/utils/aleo-utils';
+import { tabify } from '@/utils/formatters';
 
 export default class TSClassGenerator {
   methods: string[] = [];
