@@ -43,14 +43,6 @@ async function createGraph(programs: Array<string>, programPath: string): Promis
   return nodes;
 }
 
-interface ImportDependency {
-  name: string,
-  location: string,
-  network?: string,
-  endpoint?: string,
-  path?: string
-};
-
 function createImportConfig(programDir: string, artifactDir: string, imports: string[]) {
   // We handle the import dependencies with the program.json  
   const aleoConfig = getAleoConfig();
@@ -68,7 +60,7 @@ function createImportConfig(programDir: string, artifactDir: string, imports: st
         break;
       case 'execute':
         config.location = 'network';
-        config.endpoint = networkConfig.endpoint;
+        config.endpoint = networkConfig.endpoint || '';
         config.network = defaultNetwork;
         break;
       default:
