@@ -96,6 +96,7 @@ async function buildProgram(programName: string) {
     `${projectRoot}/programs/${programName}.leo`
   );
   if (fileImports.length) {
+    fileImports.sort();
     const configFilePath = `${programDir}/program.json`
     const configs = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
     configs.dependencies = createImportConfig(programDir, artifactDir, fileImports);
@@ -119,7 +120,7 @@ async function buildPrograms() {
   try {
     const directoryPath = getProjectRoot();
     const programsPath = path.join(directoryPath, 'programs');
-    let names = getFilenamesInDirectory(programsPath);
+    let names = getFilenamesInDirectory(programsPath).sort();
 
     const leoArtifactsPath = path.join(directoryPath, LEO_ARTIFACTS);
     console.log('Cleaning up old files');
