@@ -5,7 +5,7 @@
  * 3. Leo2JS File : Conversion from Leo Object to JS Object
  */
 
-import { AleoReflection } from '../parser/parser';
+import { AleoReflection } from '@/parser/parser';
 import {
   ConvertToJSType,
   FunctionDefinition,
@@ -14,10 +14,13 @@ import {
   IsLeoPrimitiveType,
   IsLeoArray,
   MappingDefinition
-} from '../utils/aleo-utils';
-import { TSInterfaceGenerator } from './ts-interface-generator';
-import { ZodObjectGenerator } from './zod-object-generator';
-import { FunctionArgs, TSFunctionGenerator } from './ts-function-generator';
+} from '@/utils/aleo-utils';
+import { TSInterfaceGenerator } from '@/generator/ts-interface-generator';
+import { ZodObjectGenerator } from '@/generator/zod-object-generator';
+import {
+  FunctionArgs,
+  TSFunctionGenerator
+} from '@/generator/ts-function-generator';
 import {
   SCHEMA_IMPORT,
   STRING_JS,
@@ -25,9 +28,9 @@ import {
   PROGRAM_DIRECTORY,
   LEO_FN_IMPORT,
   JS_FN_IMPORT
-} from './string-constants';
-import { toCamelCase, capitalize } from '../utils/formatters';
-import TSClassGenerator from './ts-class-generator';
+} from '@/generator/string-constants';
+import { toCamelCase, capitalize } from '@/utils/formatters';
+import TSClassGenerator from '@/generator/ts-class-generator';
 
 class Generator {
   private refl: AleoReflection;
@@ -397,7 +400,7 @@ class Generator {
       params,
     });\n`);
 
-    let fieldName = 'result';
+    const fieldName = 'result';
 
     const strippedType = mapping.value.split('.')[0];
     const result = this.generateTypeConversionStatement(
@@ -408,7 +411,11 @@ class Generator {
     fnGenerator.addStatement(`\t return ${result}; \n`);
 
     const returnType = this.inferJSDataType(strippedType);
-    return fnGenerator.generate(mapping.name, [fnArg], `Promise<${returnType}>`);
+    return fnGenerator.generate(
+      mapping.name,
+      [fnArg],
+      `Promise<${returnType}>`
+    );
   }
 
   // Generate transition function body
@@ -441,10 +448,10 @@ class Generator {
         '\n} from "./types";\n',
         'import {\n',
         mapping.map((member) => `\t${member.leoFn},`).join('\n') +
-        "\n} from './js2leo';\n",
+          "\n} from './js2leo';\n",
         'import {\n',
         mapping.map((member) => `\t${member.jsFn},`).join('\n') +
-        "\n} from './leo2js';\n"
+          "\n} from './leo2js';\n"
       );
     }
 

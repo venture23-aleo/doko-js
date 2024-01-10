@@ -9,7 +9,7 @@ class TSFunctionGenerator {
   isExported = true;
   isClassMethod = false;
 
-  addStatement(statement: String) {
+  addStatement(statement: string) {
     this.code += statement;
   }
 

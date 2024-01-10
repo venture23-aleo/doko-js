@@ -2,21 +2,21 @@ import fs from 'fs';
 import path from 'path';
 
 import { Tokenizer } from './tokenizer';
-import { AleoReflection, Parser } from './parser';
+import { AleoReflection, Parser } from '@/parser/parser';
 
-import { Generator } from '../generator/generator';
+import { Generator } from '@/generator/generator';
 import {
   getFilenamesInDirectory,
   getProjectRoot,
   pathFromRoot,
   writeToFile
-} from '../utils/fs-utils';
+} from '@/utils/fs-utils';
 import {
   PROGRAM_DIRECTORY,
   GENERATE_FILE_OUT_DIR
-} from '../generator/string-constants';
-import { FormatCode } from '../utils/js-formatter';
-import { GlobalIndexFileGenerator } from '../generator/global-index-file-generator';
+} from '@/generator/string-constants';
+import { FormatCode } from '@/utils/js-formatter';
+import { GlobalIndexFileGenerator } from '@/generator/global-index-file-generator';
 
 // Global Variables
 const ImportFileCaches = new Map<string, AleoReflection>();
@@ -201,7 +201,7 @@ async function compilePrograms(projectRoot?: string) {
     // Create Output Directory
     if (!fs.existsSync(outputPath)) fs.mkdirSync(outputPath);
 
-    for (let program of folders) {
+    for (const program of folders) {
       const originalName = `${program}.aleo`;
       if (ImportFileCaches.has(originalName)) {
         console.log('Program is already parsed: ', originalName);

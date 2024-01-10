@@ -34,17 +34,17 @@ import {
 } from '../types/leo-types';
 
 // Leo Type Converter
-export const field = (value: BigInt): LeoField => {
+export const field = (value: bigint): LeoField => {
   const parsed = value + 'field';
   return leoFieldSchema.parse(parsed);
 };
 
-export const scalar = (value: BigInt): LeoScalar => {
+export const scalar = (value: bigint): LeoScalar => {
   const parsed = value + 'scalar';
   return leoScalarSchema.parse(parsed);
 };
 
-export const group = (value: BigInt): LeoGroup => {
+export const group = (value: bigint): LeoGroup => {
   const parsed = value + 'group';
   return leoGroupSchema.parse(parsed);
 };
@@ -74,12 +74,12 @@ export const u32 = (value: number): LeoU32 => {
   return leoU32Schema.parse(parsed);
 };
 
-export const u64 = (value: BigInt): LeoU64 => {
+export const u64 = (value: bigint): LeoU64 => {
   const parsed = value + 'u64';
   return leoU64Schema.parse(parsed);
 };
 
-export const u128 = (value: BigInt): LeoU128 => {
+export const u128 = (value: bigint): LeoU128 => {
   if (!value) throw new Error('u128 parsing failed');
   const parsed = value + 'u128';
   return leoU128Schema.parse(parsed);
@@ -103,12 +103,12 @@ export const i32 = (value: number): LeoU32 => {
   return leoU32Schema.parse(parsed);
 };
 
-export const i64 = (value: BigInt): LeoU64 => {
+export const i64 = (value: bigint): LeoU64 => {
   const parsed = value + 'i64';
   return leoU64Schema.parse(parsed);
 };
 
-export const i128 = (value: BigInt): LeoU128 => {
+export const i128 = (value: bigint): LeoU128 => {
   if (!value) throw new Error('u128 parsing failed');
   const parsed = value + 'i128';
   return leoU128Schema.parse(parsed);

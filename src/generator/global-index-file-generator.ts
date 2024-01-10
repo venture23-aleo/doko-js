@@ -1,7 +1,8 @@
 import path from 'path';
-import { writeToFile } from '../utils/fs-utils';
-import { Generator } from './generator';
-import { FormatCode } from '../utils/js-formatter';
+
+import { Generator } from '@/generator/generator';
+import { writeToFile } from '@/utils/fs-utils';
+import { FormatCode } from '@/utils/js-formatter';
 
 class GlobalIndexFileGenerator {
   private types = '';

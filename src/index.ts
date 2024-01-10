@@ -1,19 +1,19 @@
 #! /usr/bin/env node
 
 import { Command } from 'commander';
-import { checkAndInstallRequirements } from './utils/requirementsCheck';
-import { compilePrograms } from './parser';
+import { checkAndInstallRequirements } from '@/utils/requirementsCheck';
+import { compilePrograms } from '@/parser';
 import {
   addProgram,
   createProjectStructure,
   initializeGit,
   installNpmPackages
-} from './generator/program-generator';
-import { runAleoNode } from './scripts/leo-node';
-import { buildPrograms } from './scripts/compile';
-import { runTest } from './scripts/test';
-import { deploy } from './scripts/deploy';
-import { leoExecute } from './scripts/execute';
+} from '@/generator/program-generator';
+import { runAleoNode } from '@/scripts/leo-node';
+import { buildPrograms } from '@/scripts/compile';
+import { runTest } from '@/scripts/test';
+import { deploy } from '@/scripts/deploy';
+import { leoExecute } from '@/scripts/execute';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const figlet = require('figlet');
