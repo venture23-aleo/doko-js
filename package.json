@@ -4,7 +4,7 @@
   "description": "AleoJS Cli tool",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx tsc && npm run copy-template",
+    "build": "npx tsc && tsc-alias && npm run copy-template",
     "build:install": "rm -rf dist && npm run build && npm install -g .",
     "win:install": "rmdir /s /q dist && npm run build && npm install -g .",
     "copy-template": "copyfiles --all -u 1 src/template/* src/template/**/* src/template/**/**/* src/template/**/**/**/* src/template/.env.example src/template/.gitignore ./dist",
@@ -51,7 +51,5 @@
     "prettier": "^3.0.3",
     "typescript": "^5.2.2"
   },
-  "bin": {
-    "aleojs-alpha": "./dist/index.js"
-  }
+  "bin":  "./dist/index.js"
 }

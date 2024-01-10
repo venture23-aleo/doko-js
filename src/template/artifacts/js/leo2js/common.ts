@@ -6,17 +6,17 @@ const replaceValue = (value: string, searchValue = '') =>
 
 export const address = (value: string): string => replaceValue(value);
 
-export const field = (value: string): BigInt => {
+export const field = (value: string): bigint => {
   const parsed = BigInt(replaceValue(value, 'field'));
   return parsed;
 };
 
-export const scalar = (value: string): BigInt => {
+export const scalar = (value: string): bigint => {
   const parsed = BigInt(replaceValue(value, 'scalar'));
   return parsed;
 };
 
-export const group = (value: string): BigInt => {
+export const group = (value: string): bigint => {
   const parsed = BigInt(replaceValue(value, 'group'));
   return parsed;
 };
@@ -44,12 +44,12 @@ export const u32 = (value: string): number => {
   return parsed;
 };
 
-export const u64 = (value: string): BigInt => {
+export const u64 = (value: string): bigint => {
   const parsed = BigInt(replaceValue(value, 'u64'));
   return parsed;
 };
 
-export const u128 = (value: string): BigInt => {
+export const u128 = (value: string): bigint => {
   const parsed = BigInt(replaceValue(value, 'u128'));
   // if (isNaN(parsed)) throw new Error("u128 parsing failed");
   return parsed;
@@ -73,12 +73,12 @@ export const i32 = (value: string): number => {
   return parsed;
 };
 
-export const i64 = (value: string): BigInt => {
+export const i64 = (value: string): bigint => {
   const parsed = BigInt(replaceValue(value, 'i64'));
   return parsed;
 };
 
-export const i128 = (value: string): BigInt => {
+export const i128 = (value: string): bigint => {
   const parsed = BigInt(replaceValue(value, 'u128'));
   // if (isNaN(parsed)) throw new Error("u128 parsing failed");
   return parsed;
