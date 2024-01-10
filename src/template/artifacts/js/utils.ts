@@ -6,14 +6,8 @@ import { promisify } from 'util';
 //import { LeoTx, LeoRecord, LeoViewKey } from './types/leo-types';
 //import { ViewKey } from '@aleohq/sdk';
 
-interface ServerConfig {
-  host: string;
-  port: number;
-}
-
 interface NetworkConfig {
-  node: string;
-  server: ServerConfig;
+  endpoint: string;
 }
 export interface ContractConfig {
   privateKey?: string;
@@ -88,7 +82,7 @@ export const snarkExecute = async ({
   params = [],
   transition = 'main'
 }: LeoRunParams): Promise<Record<string, unknown>> => {
-  const nodeEndPoint = config['network']?.node;
+  const nodeEndPoint = config['network']?.endpoint;
   if (!nodeEndPoint) {
     throw new Error('networkName missing in contract config for deployment');
   }
@@ -141,8 +135,7 @@ const checkDeployment = async (endpoint: string): Promise<boolean> => {
     }
 
     throw new Error(
-      `Failed to deploy program: ${
-        e?.response?.data ?? 'Error occured while deploying program'
+      `Failed to deploy program: ${e?.response?.data ?? 'Error occured while deploying program'
       }`
     );
   }
@@ -203,7 +196,7 @@ const waitTransaction = async (stdOut: string, endpoint: string) => {
 export const snarkDeploy = async ({
   config
 }: LeoRunParams): Promise<Record<string, unknown>> => {
-  const nodeEndPoint = config['network']?.node;
+  const nodeEndPoint = config['network']?.endpoint;
 
   if (!nodeEndPoint) {
     throw new Error('networkName missing in contract config for deployment');
@@ -252,15 +245,24 @@ export const zkRun = (
 export const zkGetMapping = async (
   params: ExecuteZkLogicParams
 ): Promise<any> => {
-  const url = `${params.config.network.node}/${params.config.networkName}/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params[0]}`;
+  const url = `${params.config.network.endpoint}/${params.config.networkName}/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params[0]}`;
   console.log(url);
-  const response = await fetch(url);
-  let data = await response.json();
-  if (data == null) {
-    throw new Error(
-      `Mapping ${params.transition} doesn't have key ${params.params[0]}.[link: ${url}]`
-    );
+  try {
+    const response = await fetch(url);
+    let data = await response.json();
+    if (data == null) {
+      return null;
+    }
+    data = (data as string).replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
+    return JSON.parse(data as string);
+  } catch (err) {
+    console.log(err);
   }
-  data = (data as string).replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
-  return JSON.parse(data as string);
 };
+
+export const leoGetContractAddress = async (contractName: string) => {
+  const cmd = `leo account program ${contractName}`;
+  const { stdout } = await execute(cmd);
+  console.log(stdout);
+  return stdout;
+}

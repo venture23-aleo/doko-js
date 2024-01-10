@@ -1,9 +1,11 @@
 import fs from 'fs-extra';
 import path from 'path';
+import os from 'os'
 
-import { getFilenamesInDirectory, getProjectRoot } from '@/utils/fs-utils';
-import { toSnakeCase } from '@/utils/formatters';
+import { getAleoConfig, getFilenamesInDirectory, getProjectRoot } from '@/utils/fs-utils';
 import Shell from '@/utils/shell';
+import { Node, sort } from '@/utils/graph';
+import { toSnakeCase } from '@/utils/formatters';
 
 const GENERATE_FILE_OUT_DIR = 'artifacts';
 const LEO_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/leo`;
@@ -24,55 +26,126 @@ async function getFileImports(filePath: string) {
   return matches;
 }
 
+async function createGraph(programs: Array<string>, programPath: string): Promise<Node[]> {
+  const nodePromises = programs.map(async (programName) => {
+    const imports = await getFileImports(
+      `${programPath}/${programName}`
+    );
+
+    const node: Node = {
+      name: programName,
+      inputs: imports.map(importName => importName.replace('.aleo', '.leo'))
+    }
+    return node;
+  });
+
+  const nodes = Promise.all(nodePromises);
+  return nodes;
+}
+
+function createImportConfig(programDir: string, artifactDir: string, imports: string[]) {
+  // We handle the import dependencies with the program.json  
+  const aleoConfig = getAleoConfig();
+  const executionMode = aleoConfig['mode'];
+  const defaultNetwork = aleoConfig['defaultNetwork'];
+  const networkConfig = aleoConfig.networks[defaultNetwork];
+
+  const importConfigs = imports.map((fileImport) => {
+    let config: Record<string, string> = {};
+    config.name = fileImport;
+    switch (executionMode) {
+      case 'evaluate':
+        config.location = 'local';
+        config.path = path.relative(programDir, `${artifactDir}/${fileImport.split('.aleo')[0]}`);
+        break;
+      case 'execute':
+        config.location = 'network';
+        config.endpoint = networkConfig.endpoint || '';
+        config.network = defaultNetwork;
+        break;
+      default:
+        throw new Error(`Unrecognized execution mode ${executionMode}`);
+    }
+    return config;
+  });
+  return importConfigs;
+}
+
+// Only cache the program in network mode
+async function cachePrograms(programName: string, programDir: string, networkName: string) {
+  const homeDir = os.homedir();
+  const srcFilePath = `${programDir}/build/main.aleo`;
+  const dstFilePath = `${homeDir}/.aleo/registry/${networkName}/${programName}.aleo`;
+
+  const createLeoCommand = `cp "${srcFilePath}" "${dstFilePath}"`;
+  const leoShellCommand = new Shell(createLeoCommand);
+  return leoShellCommand.asyncExec();
+}
+
 async function buildProgram(programName: string) {
   const parsedProgramName = toSnakeCase(programName);
   const projectRoot = getProjectRoot();
-  const fileImports = await getFileImports(
+  const artifactDir = `${projectRoot}/${LEO_ARTIFACTS}`;
+  const programDir = `${artifactDir}/${parsedProgramName}`;
+
+  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
+  const leoShellCommand = new Shell(createLeoCommand);
+  await leoShellCommand.asyncExec();
+
+  let fileImports = await getFileImports(
     `${projectRoot}/programs/${programName}.leo`
   );
-  const createLeoCommand = `mkdir -p "${projectRoot}/${LEO_ARTIFACTS}" && cd "${projectRoot}/${LEO_ARTIFACTS}" && leo new ${parsedProgramName} && rm "${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/src/main.leo"`;
-  const leoShellCommand = new Shell(createLeoCommand);
-  const res = await leoShellCommand.asyncExec();
-
   if (fileImports.length) {
-    const copyImportsPath = fileImports.map(
-      (fileImport) => `"${projectRoot}/programs/${fileImport}"`
-    );
-
-    const createimports = `mkdir "${projectRoot}/${LEO_ARTIFACTS}/${programName}/imports" && cp ${copyImportsPath.join(
-      ' '
-    )} "${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}/imports"`;
-    console.log(createimports);
-    const importShellCommand = new Shell(createimports);
-    await importShellCommand.asyncExec();
+    fileImports.sort();
+    const configFilePath = `${programDir}/program.json`
+    const configs = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
+    configs.dependencies = createImportConfig(programDir, artifactDir, fileImports);
+    fs.writeFileSync(configFilePath, JSON.stringify(configs));
   }
 
-  const leoRunCommand = `cd "${projectRoot}/${LEO_ARTIFACTS}/${parsedProgramName}" && leo run`;
+  const leoRunCommand = `cd "${programDir}" && leo run`;
   const shellCommand = new Shell(leoRunCommand);
-  return shellCommand.asyncExec();
+  const res = await shellCommand.asyncExec();
+
+  const aleoConfig = getAleoConfig();
+  if (aleoConfig['mode'] === 'execute') {
+    await cachePrograms(programName, programDir, aleoConfig['defaultNetwork']);
+    console.log(`Program ${programName}.aleo cached to aleo registry`)
+  }
+
+  return res;
 }
 
 async function buildPrograms() {
   try {
     const directoryPath = getProjectRoot();
     const programsPath = path.join(directoryPath, 'programs');
-    const names = getFilenamesInDirectory(programsPath);
-    console.log(names);
+    let names = getFilenamesInDirectory(programsPath).sort();
 
     const leoArtifactsPath = path.join(directoryPath, LEO_ARTIFACTS);
     console.log('Cleaning up old files');
     await fs.rm(leoArtifactsPath, { recursive: true, force: true });
     console.log('Compiling new files');
-    const buildPromises = names.map(async (name) => {
-      const programName = name.split('.')[0];
-      return buildProgram(programName);
-    });
+
+    const graph = await createGraph(names, programsPath);
+    if (graph.length === 0) return;
+
+    const sortedNodes = sort(graph);
+    if (!sortedNodes) return;
+
+    names = sortedNodes.map(node => node.name);
+    console.log(names);
 
     try {
-      const buildResults = await Promise.all(buildPromises);
-      return { status: 'success', result: buildResults };
+      for (let name of names) {
+        const programName = name.split('.')[0];
+        await buildProgram(programName);
+      }
+      //try {
+      //  const buildResults = await Promise.all(buildPromises);
+      //  return { status: 'success', result: buildResults };
     } catch (e: any) {
-      console.error(`\x1b[31;1;31m${e}\x1b[0m`);
+      console.error(`\x1b[31; 1; 31m${e} \x1b[0m`);
       process.exit(1);
     }
   } catch (err) {
