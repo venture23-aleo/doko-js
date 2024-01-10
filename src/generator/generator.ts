@@ -448,10 +448,10 @@ class Generator {
         '\n} from "./types";\n',
         'import {\n',
         mapping.map((member) => `\t${member.leoFn},`).join('\n') +
-          "\n} from './js2leo';\n",
+        "\n} from './js2leo';\n",
         'import {\n',
         mapping.map((member) => `\t${member.jsFn},`).join('\n') +
-          "\n} from './leo2js';\n"
+        "\n} from './leo2js';\n"
       );
     }
 
@@ -475,16 +475,27 @@ class Generator {
         contractPath: '${PROGRAM_DIRECTORY}${programName}', 
         fee: '0.01'
     };
-    this.config = {...this.config, ...config};
-    if(config.networkName) {
-      if(!networkConfig?.networks[config.networkName])
-        throw Error(\`Network config not defined for \${config.networkName}. Please add the config in aleo-config.js file in root directory\`)
+    this.config = {
+      ...this.config,
+      ...config
+    };
+    if (!config.networkName)
+      this.config.networkName = networkConfig.defaultNetwork;
+
+    const networkName = this.config.networkName;
+    if (networkName) {
+      if (!networkConfig?.networks[networkName])
+        throw Error(\`Network config not defined for \${ networkName }.Please add the config in aleo - config.js file in root directory\`)
+
       this.config = {
-        ...this.config, 
-        network: networkConfig.networks[config.networkName]
+        ...this.config,
+        network: networkConfig.networks[networkName]
       };
     }
-}\n\n`
+
+    if (!this.config.privateKey)
+      this.config.privateKey = networkConfig.networks[networkName].accounts[0];
+    }\n\n`
     );
     classGenerator.addMethod(` async deploy(): Promise<any> {
       const result = await snarkDeploy({

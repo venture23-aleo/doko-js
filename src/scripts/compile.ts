@@ -2,9 +2,9 @@ import fs from 'fs-extra';
 import path from 'path';
 import os from 'os'
 
-import { getAleoConfig, getFilenamesInDirectory, getProjectRoot } from '../utils/fs-utils';
-import Shell from '../utils/shell';
-import { Node, sort } from '../utils/graph';
+import { getAleoConfig, getFilenamesInDirectory, getProjectRoot } from '@/utils/fs-utils';
+import Shell from '@/utils/shell';
+import { Node, sort } from '@/utils/graph';
 import { toSnakeCase } from '@/utils/formatters';
 
 const GENERATE_FILE_OUT_DIR = 'artifacts';
