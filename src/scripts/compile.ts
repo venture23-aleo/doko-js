@@ -94,7 +94,7 @@ async function cachePrograms(
   const dstFolder = `${homeDir}/.aleo/registry/${networkName}`;
   const dstFilePath = `${dstFolder}/${programName}.aleo`;
 
-  const createLeoCommand = `mkdir -p "${dstFilePath}" && cp "${srcFilePath}" "${dstFilePath}"`;
+  const createLeoCommand = `mkdir -p "${dstFolder}" && cp "${srcFilePath}" "${dstFilePath}"`;
   const leoShellCommand = new Shell(createLeoCommand);
   return leoShellCommand.asyncExec();
 }
