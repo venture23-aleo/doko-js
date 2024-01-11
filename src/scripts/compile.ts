@@ -1,8 +1,12 @@
 import fs from 'fs-extra';
 import path from 'path';
-import os from 'os'
+import os from 'os';
 
-import { getAleoConfig, getFilenamesInDirectory, getProjectRoot } from '@/utils/fs-utils';
+import {
+  getAleoConfig,
+  getFilenamesInDirectory,
+  getProjectRoot
+} from '@/utils/fs-utils';
 import Shell from '@/utils/shell';
 import { Node, sort } from '@/utils/graph';
 import { toSnakeCase } from '@/utils/formatters';
@@ -26,16 +30,17 @@ async function getFileImports(filePath: string) {
   return matches;
 }
 
-async function createGraph(programs: Array<string>, programPath: string): Promise<Node[]> {
+async function createGraph(
+  programs: Array<string>,
+  programPath: string
+): Promise<Node[]> {
   const nodePromises = programs.map(async (programName) => {
-    const imports = await getFileImports(
-      `${programPath}/${programName}`
-    );
+    const imports = await getFileImports(`${programPath}/${programName}`);
 
     const node: Node = {
       name: programName,
-      inputs: imports.map(importName => importName.replace('.aleo', '.leo'))
-    }
+      inputs: imports.map((importName) => importName.replace('.aleo', '.leo'))
+    };
     return node;
   });
 
@@ -43,20 +48,27 @@ async function createGraph(programs: Array<string>, programPath: string): Promis
   return nodes;
 }
 
-function createImportConfig(programDir: string, artifactDir: string, imports: string[]) {
-  // We handle the import dependencies with the program.json  
+function createImportConfig(
+  programDir: string,
+  artifactDir: string,
+  imports: string[]
+) {
+  // We handle the import dependencies with the program.json
   const aleoConfig = getAleoConfig();
   const executionMode = aleoConfig['mode'];
   const defaultNetwork = aleoConfig['defaultNetwork'];
   const networkConfig = aleoConfig.networks[defaultNetwork];
 
   const importConfigs = imports.map((fileImport) => {
-    let config: Record<string, string> = {};
+    const config: Record<string, string> = {};
     config.name = fileImport;
     switch (executionMode) {
       case 'evaluate':
         config.location = 'local';
-        config.path = path.relative(programDir, `${artifactDir}/${fileImport.split('.aleo')[0]}`);
+        config.path = path.relative(
+          programDir,
+          `${artifactDir}/${fileImport.split('.aleo')[0]}`
+        );
         break;
       case 'execute':
         config.location = 'network';
@@ -72,12 +84,17 @@ function createImportConfig(programDir: string, artifactDir: string, imports: st
 }
 
 // Only cache the program in network mode
-async function cachePrograms(programName: string, programDir: string, networkName: string) {
+async function cachePrograms(
+  programName: string,
+  programDir: string,
+  networkName: string
+) {
   const homeDir = os.homedir();
   const srcFilePath = `${programDir}/build/main.aleo`;
-  const dstFilePath = `${homeDir}/.aleo/registry/${networkName}/${programName}.aleo`;
+  const dstFolder = `${homeDir}/.aleo/registry/${networkName}`;
+  const dstFilePath = `${dstFolder}/${programName}.aleo`;
 
-  const createLeoCommand = `cp "${srcFilePath}" "${dstFilePath}"`;
+  const createLeoCommand = `mkdir -p "${dstFilePath}" && cp "${srcFilePath}" "${dstFilePath}"`;
   const leoShellCommand = new Shell(createLeoCommand);
   return leoShellCommand.asyncExec();
 }
@@ -92,14 +109,18 @@ async function buildProgram(programName: string) {
   const leoShellCommand = new Shell(createLeoCommand);
   await leoShellCommand.asyncExec();
 
-  let fileImports = await getFileImports(
+  const fileImports = await getFileImports(
     `${projectRoot}/programs/${programName}.leo`
   );
   if (fileImports.length) {
     fileImports.sort();
-    const configFilePath = `${programDir}/program.json`
+    const configFilePath = `${programDir}/program.json`;
     const configs = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
-    configs.dependencies = createImportConfig(programDir, artifactDir, fileImports);
+    configs.dependencies = createImportConfig(
+      programDir,
+      artifactDir,
+      fileImports
+    );
     fs.writeFileSync(configFilePath, JSON.stringify(configs));
   }
 
@@ -110,7 +131,7 @@ async function buildProgram(programName: string) {
   const aleoConfig = getAleoConfig();
   if (aleoConfig['mode'] === 'execute') {
     await cachePrograms(programName, programDir, aleoConfig['defaultNetwork']);
-    console.log(`Program ${programName}.aleo cached to aleo registry`)
+    console.log(`Program ${programName}.aleo cached to aleo registry`);
   }
 
   return res;
@@ -133,11 +154,11 @@ async function buildPrograms() {
     const sortedNodes = sort(graph);
     if (!sortedNodes) return;
 
-    names = sortedNodes.map(node => node.name);
+    names = sortedNodes.map((node) => node.name);
     console.log(names);
 
     try {
-      for (let name of names) {
+      for (const name of names) {
         const programName = name.split('.')[0];
         await buildProgram(programName);
       }
