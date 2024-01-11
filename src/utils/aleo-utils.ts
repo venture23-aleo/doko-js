@@ -62,19 +62,19 @@ interface MappingDefinition {
 const ALEO_TO_JS_TYPE_MAPPING = new Map([
   ['address', 'string'],
   ['boolean', 'boolean'],
-  ['field', 'BigInt'],
-  ['group', 'BigInt'],
+  ['field', 'bigint'],
+  ['group', 'bigint'],
   ['i8', 'number'],
   ['i16', 'number'],
   ['i32', 'number'],
-  ['i64', 'BigInt'],
-  ['i128', 'BigInt'],
+  ['i64', 'bigint'],
+  ['i128', 'bigint'],
   ['u8', 'number'],
   ['u16', 'number'],
   ['u32', 'number'],
-  ['u64', 'BigInt'],
-  ['u128', 'BigInt'],
-  ['scalar', 'BigInt'],
+  ['u64', 'bigint'],
+  ['u128', 'bigint'],
+  ['scalar', 'bigint'],
   ['signature', 'string']
 ]);
 
