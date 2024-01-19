@@ -15,12 +15,17 @@ import { runTest } from '@/scripts/test';
 import { deploy } from '@/scripts/deploy';
 import { leoExecute } from '@/scripts/execute';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-// const figlet = require('figlet');
+function printProjectName() {
+  console.log('     _    _                _ ____ ');
+  console.log('    / \\  | | ___  ___     | / ___| ');
+  console.log('   / _ \\ | |/ _ \\/ _ \\ _  | \\___ \\ ');
+  console.log('  / ___ \\| |  __/ (_) | |_| |___) |');
+  console.log(' /_/   \\_\\_|\\___|\\___/ \\___/|____/ ');
+}
+
+printProjectName();
 
 const program = new Command();
-
-console.log('AleoJS');
 
 program.version('0.2.4').description('AleoJS CLI');
 
