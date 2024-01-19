@@ -5,6 +5,11 @@ import { getProjectRoot } from '@/utils/fs-utils';
 import { toSnakeCase } from '@/utils/formatters';
 import Shell from '@/utils/shell';
 
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 async function replaceProgramName(
   filePath: string,
   newProgramName: string,
@@ -35,7 +40,7 @@ async function addProgram(
   const parsedProgramName = toSnakeCase(programName);
   const projectRoot = rootDestination || getProjectRoot();
 
-  const templatesDir = path.join(__dirname, '../template');
+  const templatesDir = path.join(__dirname, 'template');
   const source = path.join(templatesDir, '');
 
   const baseCommand = rootDestination ? fse.rename : fse.copyFile;
@@ -80,7 +85,7 @@ async function createProjectStructure(
   const leoProjectName = toSnakeCase(programName);
 
   const CURR_DIR = process.cwd();
-  const templatesDir = path.join(__dirname, '../template');
+  const templatesDir = path.join(__dirname, 'template');
   const source = path.join(templatesDir, '');
   let destination = path.join(CURR_DIR, projectRoot);
 
@@ -110,7 +115,7 @@ async function installNpmPackages(path: string | undefined) {
     'jest',
     'ts-jest',
     'babel-jest',
-    '@babel/preset-env',
+    '@babel/preset-env'
   ];
   const dependencies = ['zod', 'axios', 'dotenv'];
   const command = `cd "${path}" && npm install --save-dev ${devDeps.join(

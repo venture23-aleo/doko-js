@@ -52,12 +52,14 @@ async function writeToFile(filename: string, data: string) {
   }
 }
 
-function getAleoConfig() {
+async function getAleoConfig() {
   const configPath = path.join(getProjectRoot(), 'aleo-config.js');
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const config = require(configPath);
+  const config = await import(configPath);
 
-  return config;
+  // const config = require(configPath);
+
+  return config.default;
 }
 
 function pathFromRoot(repoPath: string) {

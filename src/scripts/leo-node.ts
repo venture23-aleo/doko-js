@@ -1,6 +1,7 @@
 import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
+import { getAleoConfig } from '@/utils/fs-utils';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -9,12 +10,9 @@ const rl = readline.createInterface({
 
 const userShell = process.env.SHELL || '/bin/sh';
 
-function runAleoNode(network: string) {
-  const currentPath = process.cwd();
-  const configFile = path.join(currentPath, 'aleo-config.js');
-
+async function runAleoNode(network: string) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const config = require(configFile);
+  const config = await getAleoConfig();
   const nodeConfig = config[network];
 
   if (!nodeConfig) {

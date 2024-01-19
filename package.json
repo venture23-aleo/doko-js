@@ -3,9 +3,11 @@
   "version": "0.2.4",
   "description": "AleoJS Cli tool",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
-    "build": "npx tsc && tsc-alias && npm run copy-template",
-    "build:install": "rm -rf dist && npm run build && npm install -g .",
+    "build": "rollup -c && npm run copy-template",
+    "build:tsc": "npx tsc && tsc-alias && npm run copy-template",
+    "build:install": "rimraf dist && npm run build && npm install -g .",
     "win:install": "rmdir /s /q dist && npm run build && npm install -g .",
     "copy-template": "copyfiles --all -u 1 src/template/* src/template/**/* src/template/**/**/* src/template/**/**/**/* src/template/.env.example src/template/.gitignore ./dist",
     "test": "ts-node test/parser-test.ts",
@@ -36,6 +38,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/fs-extra": "^11.0.2",
     "@types/js-beautify": "^1.14.3",
     "@types/node": "^20.8.0",
@@ -49,7 +53,10 @@
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-promise": "^6.1.1",
     "prettier": "^3.0.3",
+    "rimraf": "^5.0.5",
+    "rollup": "^4.9.5",
     "tsc-alias": "^1.8.8",
+    "tslib": "^2.6.2",
     "typescript": "^5.2.2"
   },
   "bin": "./dist/index.js"

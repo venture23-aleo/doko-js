@@ -48,18 +48,18 @@ async function createGraph(
   return nodes;
 }
 
-function createImportConfig(
+async function createImportConfig(
   programDir: string,
   artifactDir: string,
-  imports: string[]
+  fileImports: string[]
 ) {
   // We handle the import dependencies with the program.json
-  const aleoConfig = getAleoConfig();
+  const aleoConfig = await getAleoConfig();
   const executionMode = aleoConfig['mode'];
   const defaultNetwork = aleoConfig['defaultNetwork'];
   const networkConfig = aleoConfig.networks[defaultNetwork];
 
-  const importConfigs = imports.map((fileImport) => {
+  const importConfigs = fileImports.map((fileImport) => {
     const config: Record<string, string> = {};
     config.name = fileImport;
     switch (executionMode) {
@@ -116,7 +116,7 @@ async function buildProgram(programName: string) {
     fileImports.sort();
     const configFilePath = `${programDir}/program.json`;
     const configs = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
-    configs.dependencies = createImportConfig(
+    configs.dependencies = await createImportConfig(
       programDir,
       artifactDir,
       fileImports
@@ -128,7 +128,7 @@ async function buildProgram(programName: string) {
   const shellCommand = new Shell(leoRunCommand);
   const res = await shellCommand.asyncExec();
 
-  const aleoConfig = getAleoConfig();
+  const aleoConfig = await getAleoConfig();
   if (aleoConfig['mode'] === 'execute') {
     await cachePrograms(programName, programDir, aleoConfig['defaultNetwork']);
     console.log(`Program ${programName}.aleo cached to aleo registry`);

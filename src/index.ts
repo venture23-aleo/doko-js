@@ -1,4 +1,4 @@
-#! /usr/bin/env node
+#!/usr/bin/env node --experimental-modules
 
 import { Command } from 'commander';
 import { checkAndInstallRequirements } from '@/utils/requirementsCheck';
@@ -16,11 +16,11 @@ import { deploy } from '@/scripts/deploy';
 import { leoExecute } from '@/scripts/execute';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const figlet = require('figlet');
+// const figlet = require('figlet');
 
 const program = new Command();
 
-console.log(figlet.textSync('AleoJS'));
+console.log('AleoJS');
 
 program.version('0.2.4').description('AleoJS CLI');
 
@@ -98,14 +98,14 @@ program
   .command('start node')
   .description('Run your AleoJS project')
   .option('-n --network <network-name>', 'Network name')
-  .action((_, options) => {
+  .action(async (_, options) => {
     console.log('Running AleoJS project...');
     console.log(options);
     const networkName = options.network;
 
     if (networkName) {
       console.log('Run aleo node');
-      runAleoNode(networkName);
+      await runAleoNode(networkName);
     }
 
     console.log('No network');

@@ -1,4 +1,5 @@
-import * as jsbeautifier from 'js-beautify';
+import jsBeautify from 'js-beautify';
+const { js_beautify } = jsBeautify;
 
 const formatterOptions = {
   indent_size: 2
@@ -6,5 +7,5 @@ const formatterOptions = {
 
 // Helpers
 export const FormatCode = (code: string) => {
-  return jsbeautifier.js_beautify(code, formatterOptions);
+  return js_beautify(code, formatterOptions);
 };

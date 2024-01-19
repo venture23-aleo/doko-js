@@ -34,7 +34,7 @@ function programExists(programName: string) {
   return fse.existsSync(programPath);
 }
 
-function deploy(
+async function deploy(
   programName: string,
   { privateKeyIndex = 0, network = 'testnet' }
 ) {
@@ -44,7 +44,7 @@ function deploy(
     console.error(`Program file for ${programName} not found`);
     process.exit(1);
   }
-  const config = getAleoConfig();
+  const config = await getAleoConfig();
   const appName = programName;
   const privateKey = config.accounts[privateKeyIndex];
   const nodeEndPoint = config[network].node;

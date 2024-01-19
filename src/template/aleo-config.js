@@ -1,5 +1,7 @@
-require('dotenv').config();
-module.exports = {
+import dotenv from 'dotenv';
+dotenv.config();
+
+export default {
   accounts: [process.env.ALEO_PRIVATE_KEY],
   mode: 'execute',
   mainnet: {},

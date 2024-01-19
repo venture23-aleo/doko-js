@@ -448,10 +448,10 @@ class Generator {
         '\n} from "./types";\n',
         'import {\n',
         mapping.map((member) => `\t${member.leoFn},`).join('\n') +
-        "\n} from './js2leo';\n",
+          "\n} from './js2leo';\n",
         'import {\n',
         mapping.map((member) => `\t${member.jsFn},`).join('\n') +
-        "\n} from './leo2js';\n"
+          "\n} from './leo2js';\n"
       );
     }
 
@@ -459,7 +459,7 @@ class Generator {
       "import { zkRun, ContractConfig, snarkDeploy, zkGetMapping } from './utils'; \n\n"
     );
     importStatement = importStatement.concat(
-      "const networkConfig = require('../../aleo-config'); \n\n"
+      "import networkConfig from '../../aleo-config'; \n\n"
     );
 
     const code = importStatement;
