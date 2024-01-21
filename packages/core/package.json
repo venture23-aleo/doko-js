@@ -1,0 +1,32 @@
+{
+  "name": "@aleojs/core",
+  "version": "0.0.1",
+  "description": "AleoJS Cli tool",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "rimraf dist && rollup -c",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix --ext .ts ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venture23-zkp/aleojs.git"
+  },
+  "keywords": [
+    "aleo",
+    "aleojs",
+    "aleo-cli"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/venture23-zkp/aleojs/issues"
+  },
+  "homepage": "https://github.com/venture23-zkp/aleojs#readme",
+  "dependencies": {
+    "@aleojs/utils": "workspace:*",
+    "js-beautify": "^1.14.11",
+    "zod": "^3.22.4"
+  }
+}

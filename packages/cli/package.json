@@ -1,0 +1,40 @@
+{
+  "name": "@aleojs/cli",
+  "version": "0.0.1",
+  "description": "AleoJS Cli tool",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "rimraf dist && rollup -c && pnpm copy-template",
+    "build:tsc": "npx tsc && tsc-alias && pnpm copy-template",
+    "build:install": "rimraf dist && pnpm build && npm install -g .",
+    "copy-template": "copyfiles --all -u 1 template/* template/**/* template/**/**/* template/**/**/**/* template/.env.example template/.gitignore ./dist/template",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix --ext .ts ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venture23-zkp/aleojs.git"
+  },
+  "keywords": [
+    "aleo",
+    "aleojs",
+    "aleo-cli"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/venture23-zkp/aleojs/issues"
+  },
+  "homepage": "https://github.com/venture23-zkp/aleojs#readme",
+  "dependencies": {
+    "@aleojs/core": "workspace:*",
+    "@aleojs/utils": "workspace:*",
+    "commander": "^11.0.0",
+    "fs-extra": "^11.1.1"
+  },
+  "bin": {
+    "aleojs-cli-dev": "dist/index.js"
+  },
+  "types": "./dist/index.d.ts"
+}
