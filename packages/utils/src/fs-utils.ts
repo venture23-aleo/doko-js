@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url'
+import { isWindows } from './shell';
 
 function findRootDirectory(startingDir: string) {
   let currentDir = startingDir;
@@ -38,6 +39,10 @@ function getProjectRoot() {
 
 async function writeToFile(filename: string, data: string) {
   try {
+    const folder = path.dirname(filename);
+    if (!fs.existsSync(folder))
+      fs.mkdirSync(folder, { recursive: true });
+
     const fileStream = fs.createWriteStream(filename, 'utf-8');
     fileStream.write(data);
     fileStream.close();

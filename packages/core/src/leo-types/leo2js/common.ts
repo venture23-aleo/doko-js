@@ -83,7 +83,7 @@ export const i128 = (value: string): bigint => {
 };
 
 export const signature = (value: string): string => {
-  const parsed = replaceValue(value, 'signature');
+  const parsed = replaceValue(value, 'sign1');
   return parsed;
 };
 

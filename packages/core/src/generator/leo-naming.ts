@@ -35,7 +35,7 @@ export function GetLeoTypeNameFromJS(jsType: string) {
 }
 
 export function GetLeoMappingFuncName(mappingName: string) {
-    return 'mapping_' + mappingName;
+    return /*'mapping_' + */mappingName;
 }
 
 export function GetContractClassName(programName: string) {

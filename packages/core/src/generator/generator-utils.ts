@@ -15,11 +15,6 @@ export function GenerateTSImport(types: string[], location: string) {
     return `import {\n ${types.join(',\n')}} from "${location}";\n\n`
 }
 
-export function GenerateTSImportWithAlias(aliasName: string, location: string) {
-    return `import * as ${aliasName} from "${location}"\n\n`;
-}
-
-
 // Generate statement to convert type back and forth
 // Eg: private(js2leo.u32(count))
 // type: u32.private

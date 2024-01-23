@@ -32,7 +32,7 @@ import {
 import { toCamelCase, capitalize } from '@aleojs/utils';
 import TSClassGenerator from '@/generator/ts-class-generator';
 import { GetLeoSchemaAlias, GetLeoSchemaName, GetConverterFunctionName, GetLeoTypeNameFromJS, GetLeoMappingFuncName, GetContractClassName, } from './leo-naming';
-import { FormatLeoDataType, GenerateTSImport, InferJSDataType, GenerateTypeConversionStatement, GenerateZkRunCode, GenerateZkMappingCode, GenerateTSImportWithAlias, } from './generator-utils';
+import { FormatLeoDataType, GenerateTSImport, InferJSDataType, GenerateTypeConversionStatement, GenerateZkRunCode, GenerateZkMappingCode} from './generator-utils';
 
 class Generator {
   private refl: AleoReflection;
@@ -317,8 +317,7 @@ class Generator {
   // Generate transition function body
   public generateContractClass() {
     // Create import statement for custom types
-    let importStatement = GenerateTSImportWithAlias('js2leo', './js2leo/common').
-      concat(GenerateTSImportWithAlias('leo2js', './leo2js/common'));
+    let importStatement = '';
 
     // List all the custom types required including that from imports  
     const customTypes = [...this.refl.customTypes];
@@ -345,7 +344,7 @@ class Generator {
     }
 
     importStatement = importStatement.concat(
-      GenerateTSImport(['zkRun', 'ContractConfig', 'snarkDeploy', 'zkGetMapping'], './utils'),
+      GenerateTSImport(['zkRun', 'ContractConfig', 'snarkDeploy', 'zkGetMapping', 'js2leo', 'leo2js'], '@aleojs/core'),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
     );
 
