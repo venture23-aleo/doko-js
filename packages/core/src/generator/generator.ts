@@ -346,7 +346,7 @@ class Generator {
 
     importStatement = importStatement.concat(
       GenerateTSImport(['zkRun', 'ContractConfig', 'snarkDeploy', 'zkGetMapping'], './utils'),
-      GenerateTSImport(['BaseContract'], './base-contract'),
+      GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
     );
 
     const code = importStatement;
