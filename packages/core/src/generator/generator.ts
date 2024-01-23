@@ -5,11 +5,9 @@
  * 3. Leo2JS File : Conversion from Leo Object to JS Object
  */
 
-import { AleoReflection } from '@/parser';
+import { AleoReflection } from '@/parser/parser';
 import {
-  ConvertToJSType,
   FunctionDefinition,
-  GetLeoArrTypeAndSize,
   StructDefinition,
   IsLeoPrimitiveType,
   IsLeoArray,
@@ -17,6 +15,7 @@ import {
 } from '@/utils/aleo-utils';
 import { TSInterfaceGenerator } from '@/generator/ts-interface-generator';
 import { ZodObjectGenerator } from '@/generator/zod-object-generator';
+
 import {
   FunctionArgs,
   TSFunctionGenerator
@@ -29,8 +28,11 @@ import {
   LEO_FN_IMPORT,
   JS_FN_IMPORT
 } from '@/generator/string-constants';
+
 import { toCamelCase, capitalize } from '@aleojs/utils';
-import {TSClassGenerator} from '@/generator/ts-class-generator';
+import TSClassGenerator from '@/generator/ts-class-generator';
+import { GetLeoSchemaAlias, GetLeoSchemaName, GetConverterFunctionName, GetLeoTypeNameFromJS, GetLeoMappingFuncName, GetContractClassName, } from './leo-naming';
+import { FormatLeoDataType, GenerateTSImport, InferJSDataType, GenerateTypeConversionStatement, GenerateZkRunCode, GenerateZkMappingCode, GenerateTSImportWithAlias, } from './generator-utils';
 
 class Generator {
   private refl: AleoReflection;
@@ -41,91 +43,6 @@ class Generator {
 
   constructor(aleoReflection: AleoReflection) {
     this.refl = aleoReflection;
-  }
-
-  private inferJSDataType(type: string): string {
-    // Check if it is a custom type
-    if (this.refl.isCustomType(type)) return type;
-
-    // Check if it is a primitive type
-    const tsType = ConvertToJSType(type);
-    if (tsType) return tsType;
-    else throw new Error(`Undeclared type encountered: ${type}`);
-  }
-
-  private createLeoSchemaName(typeName: string) {
-    if (IsLeoArray(typeName)) {
-      const [type, size] = GetLeoArrTypeAndSize(typeName);
-      const strippedSize = size.match(/\d+/);
-      return `z.array(leo${capitalize(type)}Schema).length(${strippedSize})`;
-    }
-    return `leo${capitalize(typeName)}Schema`;
-  }
-
-  private createLeoSchemaAlias(leoSchemaAlias: string, customType: string) {
-    const leoSchemaName = this.createLeoSchemaName(customType);
-    return (
-      `export type ${leoSchemaAlias} = z.infer<typeof ${leoSchemaName}>;` +
-      '\n\n'
-    );
-  }
-
-  // @TODO make a common function for import statement generation
-  private createImportStatement() {
-    // Create import statement for custom types
-    let importStatement = 'import {\n';
-    importStatement = importStatement.concat(
-      this.refl.customTypes
-        .map((member) => `\t${member.name}, ${member.name}Leo,`)
-        .join('\n'),
-      '\n} from "../types";\n',
-      '\n'
-    );
-
-    return importStatement;
-  }
-
-  // Generate statement to convert type back and forth
-  // Eg: private(js2leo.u32(count))
-  // type: u32.private
-  // inputField: input to u32 function
-  // conversionTo: js or leo
-  private generateTypeConversionStatement(
-    leoType: string,
-    inputField: string,
-    conversionTo: string
-  ) {
-    // Split qualifier private/public
-    const [type, qualifier] = leoType.split('.');
-
-    // Determine member conversion function
-    const conversionFnName = this.generateConverterFunctionName(
-      type,
-      conversionTo
-    );
-
-    const namespace = conversionTo === 'js' ? 'leo2js' : 'js2leo';
-
-    const isArray = IsLeoArray(type);
-    if (isArray) {
-      // Pass additional conversion function
-      const [dataType, size] = GetLeoArrTypeAndSize(type);
-      inputField = inputField.concat(`, ${namespace}.${dataType}`);
-    }
-
-    let fn = `${conversionFnName}(${inputField})`;
-
-    // if this is not a custom type we have to use the
-    // conversion function from namespace
-    if (IsLeoPrimitiveType(type) || isArray) {
-      fn = `${namespace}.${fn}`;
-
-      if (conversionTo === 'leo') {
-        if (qualifier) fn = `${namespace}.${qualifier}Field(${fn})`;
-      }
-    }
-
-    return fn;
   }
 
   // Generate code for types file
@@ -143,11 +60,11 @@ class Generator {
         const dataType = member.val.split('.')[0];
         tsInterfaceGenerator.addField(
           member.key,
-          this.inferJSDataType(dataType)
+          InferJSDataType(dataType)
         );
         zodInterfaceGenerator.addField(
           member.key,
-          this.createLeoSchemaName(dataType)
+          GetLeoSchemaName(dataType)
         );
       });
 
@@ -158,13 +75,13 @@ class Generator {
       );
 
       // Write type definition for Leo/ ZodObject
-      const leoSchemaName = this.createLeoSchemaName(customType.name);
+      const leoSchemaName = GetLeoSchemaName(customType.name);
       code = code.concat(zodInterfaceGenerator.generate(leoSchemaName), '\n');
 
       // Generate type alias
       const leoSchemaAlias = `${customType.name}Leo`;
       code = code.concat(
-        this.createLeoSchemaAlias(leoSchemaAlias, customType.name)
+        GetLeoSchemaAlias(leoSchemaAlias, customType.name)
       );
 
       // Cache the customType for later to use it in types/index.ts file
@@ -174,22 +91,15 @@ class Generator {
     return code;
   }
 
-  // Create a converter function name string from dataType
-  // includes custom types too
-  private generateConverterFunctionName(type: string, conversionTo: string) {
-    if (this.refl.isCustomType(type))
-      return conversionTo == 'js' ? `get${type}` : `get${type}Leo`;
-    else if (IsLeoArray(type)) return 'array';
-    else return type;
-  }
-
   private generateConverterFunction(
     customType: StructDefinition,
     conversionTo: string
   ) {
+    // Eg if the input type is Token then
+    // jsType : Token
+    // leoType : TokenLeo
     const jsType = customType.name;
-    const leoType = jsType + 'Leo';
-
+    const leoType = GetLeoTypeNameFromJS(jsType);
     const argName = toCamelCase(customType.name);
 
     // if we are converting to js then the argType must be LEO and return type must be JS
@@ -205,7 +115,7 @@ class Generator {
     customType.members.forEach((member) => {
       const lhs = member.key;
       const inputField = `${argName}.${member.key}`;
-      const rhs = this.generateTypeConversionStatement(
+      const rhs = GenerateTypeConversionStatement(
         member.val,
         inputField,
         conversionTo
@@ -234,7 +144,7 @@ class Generator {
 
   // Generate TS to Leo converter functions
   public generateJSToLeo() {
-    let code = this.createImportStatement();
+    let code = GenerateTSImport(this.generatedTypes, '../types');
     code = code.concat(LEO_FN_IMPORT);
 
     this.refl.customTypes.forEach((customType: StructDefinition) => {
@@ -248,7 +158,7 @@ class Generator {
   // Generate Leo to TS converter functions
   public generateLeoToJS() {
     // Create import statement for custom types
-    let code = this.createImportStatement();
+    let code = GenerateTSImport(this.generatedTypes, '../types');
     code = code.concat(JS_FN_IMPORT);
 
     this.refl.customTypes.forEach((customType: StructDefinition) => {
@@ -257,13 +167,6 @@ class Generator {
     return code;
   }
 
-  // Resolve import return types
-  // Some return types are referenced by import file
-  // Eg: token.leo/token.record
-  private formatLeoDataType(type: string) {
-    if (type.includes('/')) type = type.split('/')[1];
-    return type;
-  }
 
   private generateTransitionFunction(func: FunctionDefinition) {
     const fnGenerator = new TSFunctionGenerator()
@@ -276,17 +179,20 @@ class Generator {
 
     func.inputs.forEach((input) => {
       // Generate argument array
-      const leoType = this.formatLeoDataType(input.val).split('.')[0];
-      const jsType = this.inferJSDataType(leoType);
+      const leoType = FormatLeoDataType(input.val).split('.')[0];
+      const jsType = InferJSDataType(leoType);
+
+      // Create argument for each parameter of function
       const argName = input.key;
       args.push({ name: argName, type: jsType });
 
-      const variableName = `${argName}Leo`;
-      localVariables.push(variableName);
+      // Can be anything but we just define it as something that ends with leo
+      const localVariableName = `${argName}Leo`;
+      localVariables.push(localVariableName);
 
       // We ignore the qualifier while generating conversion function
       // for transition function parameter
-      let fnName = this.generateTypeConversionStatement(
+      let fnName = GenerateTypeConversionStatement(
         leoType,
         argName,
         STRING_LEO
@@ -296,7 +202,7 @@ class Generator {
       if (this.refl.isCustomType(leoType)) fnName = `js2leo.json(${fnName})`;
       if (IsLeoArray(leoType)) fnName = `js2leo.arr2string(${fnName})`;
 
-      const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
+      const conversionCode = `\tconst ${localVariableName} = ${fnName};\n`;
       fnGenerator.addStatement(conversionCode);
     });
 
@@ -305,11 +211,7 @@ class Generator {
     fnGenerator.addStatement(`\n\tconst params = [${params}]\n`);
 
     // Add zkRun statement
-    fnGenerator.addStatement(`\tconst result = await zkRun({
-      config: this.config,
-      transition: '${func.name}',
-      params,
-    });\n`);
+    fnGenerator.addStatement(GenerateZkRunCode(func.name));
 
     fnGenerator.addStatement(
       '\t if(this.config.mode === "execute") return result; \n'
@@ -317,7 +219,7 @@ class Generator {
 
     // Ignore 'future' returntype for now
     const funcOutputs = func.outputs
-      .map((output) => this.formatLeoDataType(output))
+      .map((output) => FormatLeoDataType(output))
       .filter((output) => !output.includes('future'));
 
     if (funcOutputs.length == 0)
@@ -334,7 +236,7 @@ class Generator {
       const type = output.split('.')[0];
       if (IsLeoPrimitiveType(type)) input = `${input} as string`;
 
-      const rhs = this.generateTypeConversionStatement(
+      const rhs = GenerateTypeConversionStatement(
         output,
         input,
         STRING_JS
@@ -343,7 +245,7 @@ class Generator {
 
       returnValues.push({
         name: lhs,
-        type: this.inferJSDataType(type)
+        type: InferJSDataType(type)
       });
     });
 
@@ -368,8 +270,8 @@ class Generator {
       .setIsExported(false);
 
     // Generate argument array
-    const leoType = this.formatLeoDataType(mapping.key).split('.')[0];
-    const jsType = this.inferJSDataType(leoType);
+    const leoType = FormatLeoDataType(mapping.key).split('.')[0];
+    const jsType = InferJSDataType(leoType);
 
     const argName = 'key';
     const fnArg = { name: argName, type: jsType };
@@ -378,7 +280,7 @@ class Generator {
 
     // We ignore the qualifier while generating conversion function
     // for transition function parameter
-    let fnName = this.generateTypeConversionStatement(
+    let fnName = GenerateTypeConversionStatement(
       leoType,
       argName,
       STRING_LEO
@@ -394,25 +296,19 @@ class Generator {
     fnGenerator.addStatement(`\n\tconst params = [${variableName}]\n`);
 
     // Add zkRun statement
-    fnGenerator.addStatement(`\tconst result = await zkGetMapping({
-      config: this.config,
-      transition: '${mapping.name}',
-      params,
-    });\n`);
-
-    const fieldName = 'result';
+    fnGenerator.addStatement(GenerateZkMappingCode(mapping.name));
 
     const strippedType = mapping.value.split('.')[0];
-    const result = this.generateTypeConversionStatement(
+    const result = GenerateTypeConversionStatement(
       mapping.value,
       'result',
       STRING_JS
     );
     fnGenerator.addStatement(`\t return ${result}; \n`);
 
-    const returnType = this.inferJSDataType(strippedType);
+    const returnType = InferJSDataType(strippedType);
     return fnGenerator.generate(
-      mapping.name,
+      GetLeoMappingFuncName(mapping.name),
       [fnArg],
       `Promise<${returnType}>`
     );
@@ -421,11 +317,10 @@ class Generator {
   // Generate transition function body
   public generateContractClass() {
     // Create import statement for custom types
-    let importStatement = "import * as js2leo from './js2leo/common';\n";
-    importStatement = importStatement.concat(
-      "import * as leo2js from './leo2js/common';\n"
-    );
+    let importStatement = GenerateTSImportWithAlias('js2leo', './js2leo/common').
+      concat(GenerateTSImportWithAlias('leo2js', './leo2js/common'));
 
+    // List all the custom types required including that from imports  
     const customTypes = [...this.refl.customTypes];
     if (this.refl.imports) {
       Array.from(this.refl.imports).forEach(([key, val]) =>
@@ -433,78 +328,43 @@ class Generator {
       );
     }
 
+    // Generate import statement for all custom types
     if (customTypes.length > 0) {
       const mapping = customTypes.map((member) => {
         return {
           name: member.name,
-          leoFn: this.generateConverterFunctionName(member.name, STRING_LEO),
-          jsFn: this.generateConverterFunctionName(member.name, STRING_JS)
+          leoFn: GetConverterFunctionName(member.name, STRING_LEO),
+          jsFn: GetConverterFunctionName(member.name, STRING_JS)
         };
       });
 
       importStatement = importStatement.concat(
-        'import {\n',
-        mapping.map((member) => `\t${member.name},`).join('\n'),
-        '\n} from "./types";\n',
-        'import {\n',
-        mapping.map((member) => `\t${member.leoFn},`).join('\n') +
-          "\n} from './js2leo';\n",
-        'import {\n',
-        mapping.map((member) => `\t${member.jsFn},`).join('\n') +
-          "\n} from './leo2js';\n"
-      );
+        GenerateTSImport(mapping.map((member) => `\t${member.name}`), './types'),
+        GenerateTSImport(mapping.map((member) => `\t${member.leoFn}`), './js2leo'),
+        GenerateTSImport(mapping.map((member) => `\t${member.jsFn}`), './leo2js'))
     }
 
     importStatement = importStatement.concat(
-      "import { zkRun, ContractConfig, snarkDeploy, zkGetMapping } from './utils'; \n\n"
-    );
-    importStatement = importStatement.concat(
-      "import networkConfig from '../../aleo-config'; \n\n"
+      GenerateTSImport(['zkRun', 'ContractConfig', 'snarkDeploy', 'zkGetMapping'], './utils'),
+      GenerateTSImport(['BaseContract'], './base-contract'),
     );
 
     const code = importStatement;
     const programName = this.refl.programName;
 
-    const classGenerator = new TSClassGenerator();
+    const classGenerator = new TSClassGenerator().extendsFrom('BaseContract');
 
     // Add constructor
     classGenerator.addMethod(
       `constructor(config: ContractConfig = {}) {
+        super(config);
     this.config = {
+        ...this.config,
         appName: '${programName}',
         contractPath: '${PROGRAM_DIRECTORY}${programName}', 
         fee: '0.01'
     };
-    this.config = {
-      ...this.config,
-      ...config
-    };
-    if (!config.networkName)
-      this.config.networkName = networkConfig.defaultNetwork;
-
-    const networkName = this.config.networkName;
-    if (networkName) {
-      if (!networkConfig?.networks[networkName])
-        throw Error(\`Network config not defined for \${ networkName }.Please add the config in aleo - config.js file in root directory\`)
-
-      this.config = {
-        ...this.config,
-        network: networkConfig.networks[networkName]
-      };
-    }
-
-    if (!this.config.privateKey)
-      this.config.privateKey = networkConfig.networks[networkName].accounts[0];
-    }\n\n`
-    );
-    classGenerator.addMethod(` async deploy(): Promise<any> {
-      const result = await snarkDeploy({
-        config: this.config,
-      });
-  
-      return result;
-    }`);
-    classGenerator.addMember({ key: 'config', val: 'ContractConfig' });
+  }\n`).addMember({ key: 'config', val: 'ContractConfig' });;
 
     this.refl.functions.forEach((func) => {
       if (func.type === 'function') {
@@ -517,7 +377,7 @@ class Generator {
     });
 
     return code.concat(
-      classGenerator.generate(`${capitalize(programName)}Contract`)
+      classGenerator.generate(GetContractClassName(programName))
     );
   }
 }

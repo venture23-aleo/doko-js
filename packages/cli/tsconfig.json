@@ -6,6 +6,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src",],
-  "exclude": ["./template"]
+  "include": ["src"],
+  "exclude": ["template"]
 }
