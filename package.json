@@ -6,6 +6,7 @@
         "install:cli": "pnpm --filter cli build:install"
     },
     "devDependencies": {
+        "@changesets/cli": "^2.27.1",
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^11.1.6",
         "@types/fs-extra": "^11.0.2",
