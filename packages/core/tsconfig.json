@@ -6,6 +6,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src",],
+  "include": ["src", "../cli/template/contract/base-contract.ts"],
   "exclude": []
 }

@@ -1,16 +1,24 @@
-import { KeyVal } from '@/utils/aleo-utils';
+import { KeyVal } from '../utils/aleo-utils';
 import { tabify } from '@aleojs/utils';
 
-export class TSClassGenerator {
+export default class TSClassGenerator {
   methods: string[] = [];
   members: KeyVal<string, string>[] = [];
+  inheritedClasses: string[] = [];
 
-  addMethod(method: string): void {
+  addMethod(method: string) {
     this.methods.push(method);
+    return this;
+  }
+
+  extendsFrom(className: string) {
+    this.inheritedClasses.push(className);
+    return this;
   }
 
   addMember(member: KeyVal<string, string>) {
     this.members.push(member);
+    return this;
   }
 
   generate(className: string) {
@@ -20,8 +28,9 @@ export class TSClassGenerator {
 
     const methodDeclaration = this.methods.join('');
 
+    const inheritStatement = this.inheritedClasses.length > 0 ? `extends ${this.inheritedClasses.join()}` : ''
     return (
-      `export class ${className} {\n` +
+      `export class ${className} ${inheritStatement} {\n` +
       `\n${tabify(memberDeclaration)}` +
       `\n${tabify(methodDeclaration)}\n` +
       '}'

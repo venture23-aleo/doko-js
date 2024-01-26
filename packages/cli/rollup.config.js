@@ -9,7 +9,7 @@ export default {
     entryFileNames: '[name].js'
   },
   plugins: [
-    typescript({declaration: true, outDir: "dist"}),
+    typescript({ declaration: true, outDir: 'dist', exclude: ['template'] }),
     terser({
       format: {
         comments: 'some',

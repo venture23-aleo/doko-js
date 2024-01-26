@@ -59,7 +59,12 @@ export type LeoGroup = z.infer<typeof leoGroupSchema>;
 export const leoRecordSchema = z.string().startsWith('record1');
 export type LeoRecord = z.infer<typeof leoRecordSchema>;
 
-export const leoSignatureSchema = leoStringSchema('signature');
+export const leoSignatureSchema = z
+  .string()
+  .startsWith('sign1')
+  .or(z.string().startsWith('sign1').endsWith('.private'))
+  .or(z.string().startsWith('sign1').endsWith('.public'))
+
 export type LeoSignature = z.infer<typeof leoSignatureSchema>;
 
 export const leoTxSchema = z.object({

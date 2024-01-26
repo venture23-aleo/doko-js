@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-modules
+#!/usr/bin/env -S node --experimental-modules
 
 import { Command } from 'commander';
 import { checkAndInstallRequirements } from '@aleojs/utils';

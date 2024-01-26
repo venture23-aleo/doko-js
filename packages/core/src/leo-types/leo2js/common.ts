@@ -28,19 +28,19 @@ export const fieldToString = (value: string): string => {
 
 export const u8 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'u8'));
-  if (isNaN(parsed)) throw new Error('u8 parsing failed');
+  if (isNaN(parsed)) console.warn('u8 parsing failed');
   return parsed;
 };
 
 export const u16 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'u16'));
-  if (isNaN(parsed)) throw new Error('u16 parsing failed');
+  if (isNaN(parsed)) console.warn('u16 parsing failed');
   return parsed;
 };
 
 export const u32 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'u32'));
-  if (isNaN(parsed)) throw new Error('u32 parsing failed');
+  if (isNaN(parsed)) console.warn('u32 parsing failed');
   return parsed;
 };
 
@@ -51,25 +51,24 @@ export const u64 = (value: string): bigint => {
 
 export const u128 = (value: string): bigint => {
   const parsed = BigInt(replaceValue(value, 'u128'));
-  // if (isNaN(parsed)) throw new Error("u128 parsing failed");
   return parsed;
 };
 
 export const i8 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'i8'));
-  if (isNaN(parsed)) throw new Error('i8 parsing failed');
+  if (isNaN(parsed)) console.warn('i8 parsing failed');
   return parsed;
 };
 
 export const i16 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'i16'));
-  if (isNaN(parsed)) throw new Error('i16 parsing failed');
+  if (isNaN(parsed)) console.warn('i16 parsing failed');
   return parsed;
 };
 
 export const i32 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'i32'));
-  if (isNaN(parsed)) throw new Error('u32 parsing failed');
+  if (isNaN(parsed)) console.warn('u32 parsing failed');
   return parsed;
 };
 
@@ -80,12 +79,11 @@ export const i64 = (value: string): bigint => {
 
 export const i128 = (value: string): bigint => {
   const parsed = BigInt(replaceValue(value, 'u128'));
-  // if (isNaN(parsed)) throw new Error("u128 parsing failed");
   return parsed;
 };
 
 export const signature = (value: string): string => {
-  const parsed = replaceValue(value, 'signature');
+  const parsed = replaceValue(value, 'sign1');
   return parsed;
 };
 
