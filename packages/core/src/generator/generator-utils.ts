@@ -12,7 +12,7 @@ export function InferJSDataType(type: string): string {
 
 export function GenerateTSImport(types: string[], location: string) {
     // Create import statement for custom types
-    return `import {\n ${types.join(',\n')}} from "${location}";\n\n`
+    return `import {\n ${types.join(',\n')}} from "${location}";`
 }
 
 // Generate statement to convert type back and forth
