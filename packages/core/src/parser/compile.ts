@@ -101,7 +101,7 @@ async function parseAleo(
     const inputFile = programFolder + 'build/main.aleo';
 
     const aleoReflection = await generateReflection(inputFile);
-    if (imports) aleoReflection.imports = imports;
+    //if (imports) aleoReflection.imports = imports;
 
     // Parse .env for private key
     const envFile = programFolder + '/.env';

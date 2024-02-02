@@ -283,7 +283,7 @@ class Generator {
     const jsType = InferJSDataType(leoType);
 
     const argName = 'key';
-    const fnArg = { name: argName, type: jsType };
+    const fnArg = [{ name: argName, type: jsType }];
 
     const variableName = `${argName}Leo`;
 
@@ -313,16 +313,24 @@ class Generator {
       'result',
       STRING_JS
     );
-    fnGenerator.addStatement(`\t return ${result}; \n`);
+
+    fnGenerator.addStatement(`
+    if (result != null)
+      return ${result};
+    else {
+      if (defaultValue != undefined) return defaultValue;
+      throw new Error(\`${mapping.name} returned invalid value[input: \${key}, output: \${result}\`);
+    }`);
 
     const returnType = InferJSDataType(leoReturnType);
+    fnArg.push({ name: 'defaultValue?', type: returnType });
     if (this.refl.isCustomType(leoReturnType))
       usedTypes.add(returnType);
 
     return fnGenerator.generate(
       GetLeoMappingFuncName(mapping.name),
-      [fnArg],
-      `Promise<${returnType}>`
+      fnArg,
+      `Promise < ${returnType}> `
     );
   }
 
@@ -335,15 +343,14 @@ class Generator {
     classGenerator
       .addMethod(
         `constructor(config: ContractConfig = {}) {
-        super(config);
-        this.config = {
-          ...this.config,
-          appName: '${programName} ',
-          contractPath: '${PROGRAM_DIRECTORY}${programName}',
-          fee: '0.01'
-        };
-      }\n`
-      )
+          super(config);
+          this.config = {
+            ...this.config,
+            appName: '${programName}',
+            contractPath: '${PROGRAM_DIRECTORY}${programName}',
+            fee: '0.01'
+          };
+      } \n`)
       .addMember({ key: 'config', val: 'ContractConfig' });
 
     const usedTypesSet = new Set<string>();
