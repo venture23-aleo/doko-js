@@ -363,7 +363,7 @@ class Generator {
         contractPath: '${PROGRAM_DIRECTORY}${programName}', 
         fee: '0.01'
     };
-  }\n`).addMember({ key: 'config', val: 'ContractConfig' });;
+  }\n`);
 
     this.refl.functions.forEach((func) => {
       if (func.type === 'function') {
