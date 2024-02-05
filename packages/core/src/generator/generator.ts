@@ -339,20 +339,17 @@ class Generator {
     const programName = this.refl.programName;
     const classGenerator = new TSClassGenerator().extendsFrom('BaseContract');
 
-    // Add constructor
-    classGenerator
-      .addMethod(
-        `constructor(config: ContractConfig = {}) {
-          super(config);
-          this.config = {
-            ...this.config,
-            appName: '${programName}',
-            contractPath: '${PROGRAM_DIRECTORY}${programName}',
-            fee: '0.01'
-          };
-      } \n`)
-
     const usedTypesSet = new Set<string>();
+    classGenerator.addMethod(
+      `constructor(config: ContractConfig = {}) {
+        super(config);
+    this.config = {
+        ...this.config,
+        appName: '${programName}',
+        contractPath: '${PROGRAM_DIRECTORY}${programName}', 
+        fee: '0.01'
+    };
+  }\n`);
 
     this.refl.functions.forEach((func) => {
       if (func.type === 'function') {
