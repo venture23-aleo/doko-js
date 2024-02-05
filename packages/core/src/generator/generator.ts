@@ -351,7 +351,6 @@ class Generator {
             fee: '0.01'
           };
       } \n`)
-      .addMember({ key: 'config', val: 'ContractConfig' });
 
     const usedTypesSet = new Set<string>();
 
