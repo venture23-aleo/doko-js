@@ -30,7 +30,7 @@ export default class TSClassGenerator {
 
     const inheritStatement = this.inheritedClasses.length > 0 ? `extends ${this.inheritedClasses.join()}` : ''
     return (
-      `export class ${className} ${inheritStatement} {\n` +
+      `export class ${className} ${inheritStatement} {` +
       `\n${tabify(memberDeclaration)}` +
       `\n${tabify(methodDeclaration)}\n` +
       '}'
