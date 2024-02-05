@@ -4,7 +4,7 @@ import { capitalize } from "@aleojs/utils";
 // Creates leo schema name from type
 // Eg. if schema for struct Token{} is to be generated
 // it generate it as `leoTokenSchema'
-export function GetLeoSchemaName(typeName: string) {
+export function GenerateLeoSchemaName(typeName: string) {
     if (IsLeoArray(typeName)) {
         const [type, size] = GetLeoArrTypeAndSize(typeName);
         const strippedSize = size.match(/\d+/);
@@ -14,8 +14,8 @@ export function GetLeoSchemaName(typeName: string) {
 }
 
 // It just declares alias for a given custom type and alias
-export function GetLeoSchemaAlias(leoSchemaAlias: string, customType: string) {
-    const leoSchemaName = GetLeoSchemaName(customType);
+export function GenerateLeoSchemaAliasDeclaration(leoSchemaAlias: string, customType: string) {
+    const leoSchemaName = GenerateLeoSchemaName(customType);
     return (
         `export type ${leoSchemaAlias} = z.infer<typeof ${leoSchemaName}>;` +
         '\n\n'

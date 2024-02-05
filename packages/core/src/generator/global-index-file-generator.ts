@@ -20,7 +20,7 @@ class GlobalIndexFileGenerator {
   private createExportStatement(importTypes: string) {
     return `export {${importTypes}};`;
   }
-
+  /*
   update(generator: Generator, filename: string) {
     if (generator.generatedTypes.length > 0) {
       const types = generator.generatedTypes.join(', ');
@@ -76,6 +76,7 @@ class GlobalIndexFileGenerator {
       )
     ]);
   }
+  */
 }
 
 export { GlobalIndexFileGenerator };

@@ -20,7 +20,7 @@ import { GlobalIndexFileGenerator } from '@/generator/global-index-file-generato
 
 // Global Variables
 const ImportFileCaches = new Map<string, AleoReflection>();
-const GlobalIndexGenerator = new GlobalIndexFileGenerator();
+///const GlobalIndexGenerator = new GlobalIndexFileGenerator();
 
 function convertEnvToKeyVal(envData: string): Map<string, string> {
   envData = envData.trim();
@@ -101,7 +101,7 @@ async function parseAleo(
     const inputFile = programFolder + 'build/main.aleo';
 
     const aleoReflection = await generateReflection(inputFile);
-    if (imports) aleoReflection.imports = imports;
+    //if (imports) aleoReflection.imports = imports;
 
     // Parse .env for private key
     const envFile = programFolder + '/.env';
@@ -133,7 +133,7 @@ async function parseAleo(
     const originalFilename = `${programName}.aleo`;
     ImportFileCaches.set(originalFilename, aleoReflection);
 
-    GlobalIndexGenerator.update(generator, programName);
+    //GlobalIndexGenerator.update(generator, programName);
     return aleoReflection;
   } catch (error) {
     throw error;
@@ -144,7 +144,7 @@ async function resolveImportDependencies(importFolder: string) {
   const importFiles = getFilenamesInDirectory(importFolder);
 
   const filesToParse = importFiles.filter(
-    (filename) => !ImportFileCaches.has(filename)
+    (filename: string) => !ImportFileCaches.has(filename)
   );
   console.log('Unresolved import dependencies: ', filesToParse.join(', '));
 
@@ -164,7 +164,7 @@ async function resolveImportDependencies(importFolder: string) {
 
   // Build imports
   const imports = new Map<string, AleoReflection>();
-  importFiles.forEach((filename) => {
+  importFiles.forEach((filename: string) => {
     imports.set(filename, ImportFileCaches.get(filename)!);
   });
   return imports;
@@ -209,7 +209,7 @@ async function compilePrograms(projectRoot?: string) {
       await parseProgram(programPath + program + '/');
     }
 
-    await GlobalIndexGenerator.generate(outputPath);
+    //await GlobalIndexGenerator.generate(outputPath);
   } catch (error) {
     console.log(error);
   }

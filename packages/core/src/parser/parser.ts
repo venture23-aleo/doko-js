@@ -18,17 +18,18 @@ class AleoReflection {
   functions = new Array<FunctionDefinition>();
   mappings = new Array<MappingDefinition>();
   env?: Map<string, string>;
-  imports? = new Map<string, AleoReflection>();
+  //imports? = new Map<string, AleoReflection>();
 
   isCustomType(type: string): boolean {
     if (this.customTypes.find((customType) => customType.name === type))
       return true;
-
+    /*
     if (!this.imports) return false;
     for (const [key, val] of this.imports) {
       if (val.customTypes.find((customType) => customType.name === type))
         return true;
     }
+    */
     return false;
   }
 }
