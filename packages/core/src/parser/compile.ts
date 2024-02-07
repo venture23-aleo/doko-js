@@ -16,24 +16,9 @@ import {
   GENERATE_FILE_OUT_DIR
 } from '@/generator/string-constants';
 import { FormatCode } from '@/utils/js-formatter';
-import { GlobalIndexFileGenerator } from '@/generator/global-index-file-generator';
 
 // Global Variables
 const ImportFileCaches = new Map<string, AleoReflection>();
-///const GlobalIndexGenerator = new GlobalIndexFileGenerator();
-
-function convertEnvToKeyVal(envData: string): Map<string, string> {
-  envData = envData.trim();
-  const envVariables = envData.split('\n');
-  return new Map<string, string>(
-    envVariables.map((variable) => {
-      const keyVal = variable.split('=');
-      if (keyVal.length !== 2)
-        throw new Error('Invalid Environment declaration: ' + keyVal);
-      return [keyVal[0], keyVal[1]];
-    })
-  );
-}
 
 async function generateReflection(filename: string) {
   // Check if build directory exists
@@ -102,11 +87,6 @@ async function parseAleo(
 
     const aleoReflection = await generateReflection(inputFile);
     //if (imports) aleoReflection.imports = imports;
-
-    // Parse .env for private key
-    const envFile = programFolder + '/.env';
-    const envData = fs.readFileSync(envFile, 'utf-8');
-    aleoReflection.env = convertEnvToKeyVal(envData);
 
     // Create Output Directory
     const outputFolder = pathFromRoot(GENERATE_FILE_OUT_DIR);
