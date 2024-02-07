@@ -2,7 +2,7 @@
     "name": "aleojs",
     "scripts": {
         "build": "pnpm run --r --filter \"./packages/**\" build",
-        "pkg:publish": "pnpm -r publish --access=public",
+        "pkg:publish": "pnpm build && pnpm -r publish --access=public",
         "install:cli": "pnpm --filter cli build:install"
     },
     "devDependencies": {
