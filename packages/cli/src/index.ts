@@ -2,15 +2,13 @@
 
 import { Command } from 'commander';
 import { checkAndInstallRequirements } from '@aleojs/utils';
-import {
-  compilePrograms,
-} from '@aleojs/core';
+import { compilePrograms } from '@aleojs/core';
 import {
   addProgram,
   createProjectStructure,
   initializeGit,
   installNpmPackages
-} from "@/scripts/program-generator"
+} from '@/scripts/program-generator';
 import { runAleoNode } from '@/scripts/leo-node';
 import { buildPrograms } from '@/scripts/compile';
 import { runTest } from '@/scripts/test';
@@ -29,7 +27,7 @@ printProjectName();
 
 const program = new Command();
 
-program.version('0.2.4').description('AleoJS CLI');
+program.version('0.1.3').description('AleoJS CLI');
 
 program
   .command('init <project-name>')
