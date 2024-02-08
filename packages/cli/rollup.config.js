@@ -1,5 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import terser from '@rollup/plugin-terser';
+import json from '@rollup/plugin-json';
 
 export default {
   input: 'src/index.ts',
@@ -10,6 +11,7 @@ export default {
   },
   plugins: [
     typescript({ declaration: true, outDir: 'dist', exclude: ['template'] }),
+    json(),
     terser({
       format: {
         comments: 'some',
