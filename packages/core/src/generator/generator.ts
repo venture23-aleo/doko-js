@@ -226,9 +226,11 @@ class Generator {
     // Add zkRun statement
     fnGenerator.addStatement(GenerateZkRunCode(func.name));
 
+    /*
     fnGenerator.addStatement(
       '\t if(this.config.mode === "execute") return result; \n'
     );
+    */
 
     // Ignore 'future' returntype for now
     const funcOutputs = func.outputs
@@ -258,17 +260,14 @@ class Generator {
       });
     });
 
+    // We return transaction object as last argument
+    returnValues.push({ name: 'result.transaction', type: 'TransactionModel' });
+
     // Format return statement and return type accordingly
-    let returnTypeString = '';
-    if (returnValues.length === 1) {
-      fnGenerator.addStatement(`\t return ${returnValues[0].name};\n`);
-      returnTypeString = `Promise<${returnValues[0].type} | any>`;
-    } else {
-      const variables = returnValues.map((returnValue) => returnValue.name);
-      const types = returnValues.map((returnValues) => returnValues.type);
-      fnGenerator.addStatement(`\t return [${variables.join(', ')}];\n`);
-      returnTypeString = `Promise<[${types.join(', ')}] | any>`;
-    }
+    const variables = returnValues.map((returnValue) => returnValue.name);
+    const types = returnValues.map((returnValues) => returnValues.type);
+    fnGenerator.addStatement(`\t return [${variables.join(', ')}];\n`);
+    const returnTypeString = `Promise<[${types.join(', ')}]>`;
     return fnGenerator.generate(func.name, args, returnTypeString);
   }
 
@@ -384,6 +383,7 @@ class Generator {
         '@aleojs/core'
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
+      GenerateTSImport(['TransactionModel'], '@aleohq/sdk'),
       '\n\n'
     );
     return code.concat(
