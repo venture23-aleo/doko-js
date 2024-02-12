@@ -16,7 +16,8 @@ import {
   leoRecordSchema,
   leoTxSchema,
   leoSignatureSchema,
-  LeoArray
+  LeoArray,
+  LeoAddress
 } from "@aleojs/core";`;
 
 // Converter function for leo and ts

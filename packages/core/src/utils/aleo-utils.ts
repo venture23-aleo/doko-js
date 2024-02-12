@@ -60,7 +60,7 @@ interface MappingDefinition {
 }
 
 const ALEO_TO_JS_TYPE_MAPPING = new Map([
-  ['address', 'string'],
+  ['address', 'LeoAddress'],
   ['boolean', 'boolean'],
   ['field', 'bigint'],
   ['group', 'bigint'],

@@ -17,7 +17,6 @@ class AleoReflection {
   customTypes = new Array<StructDefinition>();
   functions = new Array<FunctionDefinition>();
   mappings = new Array<MappingDefinition>();
-  env?: Map<string, string>;
   //imports? = new Map<string, AleoReflection>();
 
   isCustomType(type: string): boolean {
@@ -32,6 +31,14 @@ class AleoReflection {
     */
     return false;
   }
+
+  isRecordType(type: string): boolean {
+    const found = this.customTypes.find((customType) => customType.name === type)
+    if (found && found.type == 'record') return true;
+    return false;
+  }
+
+
 }
 
 class Parser {
