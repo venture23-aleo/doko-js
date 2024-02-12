@@ -1,5 +1,7 @@
 import { ContractConfig, snarkDeploy } from "@aleojs/core";
 import networkConfig from '../aleo-config'
+import { TransactionModel } from "@aleohq/sdk";
+import { waitTransaction } from "@aleojs/core";
 
 export class BaseContract {
     public config: ContractConfig = {};
@@ -37,5 +39,11 @@ export class BaseContract {
 
         return result;
     }
+
+    async wait(transaction: TransactionModel): Promise<any> {
+        const endpoint = this.config.network.endpoint;
+        return waitTransaction(transaction, endpoint)
+    }
+
 
 }
