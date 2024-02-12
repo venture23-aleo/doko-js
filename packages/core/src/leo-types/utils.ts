@@ -117,7 +117,7 @@ export const leoExecute = async ({
   ].join('{');
   const parsedOutput = JSON.parse(data);
   const outPuts = parsedOutput?.execution?.transitions?.map(
-    (transition: { outputs: any; }) => transition.outputs
+    (transition: { outputs: any }) => transition.outputs
   );
 
   return { data: outPuts };
@@ -130,13 +130,13 @@ const checkDeployment = async (endpoint: string): Promise<boolean> => {
 
     return true;
   } catch (e: any) {
-    console.log(e);
     if (e?.response?.data?.includes('Missing program for ID')) {
       return false;
     }
 
     throw new Error(
-      `Failed to deploy program: ${e?.response?.data ?? 'Error occured while deploying program'
+      `Failed to deploy program: ${
+        e?.response?.data ?? 'Error occured while deploying program'
       }`
     );
   }
@@ -160,9 +160,9 @@ const validateBroadcast = async (
         console.error('Transaction error');
         data.error = true;
       }
+      console.log('Validation complete');
       return data;
     } catch (e: any) {
-      console.log(e.response.data);
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
       console.log('Retrying');
     }
@@ -267,4 +267,4 @@ export const leoGetContractAddress = async (contractName: string) => {
   const { stdout } = await execute(cmd);
   console.log(stdout);
   return stdout;
-}
+};
