@@ -226,49 +226,47 @@ class Generator {
     // Add zkRun statement
     fnGenerator.addStatement(GenerateZkRunCode(func.name));
 
+    /*
     fnGenerator.addStatement(
       '\t if(this.config.mode === "execute") return result; \n'
     );
+    */
 
     // Ignore 'future' returntype for now
     const funcOutputs = func.outputs
       .map((output) => FormatLeoDataType(output))
       .filter((output) => !output.includes('future'));
 
-    if (funcOutputs.length == 0)
-      return fnGenerator.generate(func.name, args, null);
-
     const returnValues: { name: string; type: string }[] = [];
-    const createOutputVariable = (index: number) => `out${index}`;
+    if (funcOutputs.length > 0) {
+      const createOutputVariable = (index: number) => `out${index}`;
 
-    funcOutputs.forEach((output, index) => {
-      const lhs = createOutputVariable(index);
-      let input = `result.data[${index}]`;
+      funcOutputs.forEach((output, index) => {
+        const lhs = createOutputVariable(index);
+        let input = `result.data[${index}]`;
 
-      // cast non-custom datatype to string
-      const type = output.split('.')[0];
-      if (IsLeoPrimitiveType(type)) input = `${input} as string`;
+        // cast non-custom datatype to string
+        const type = output.split('.')[0];
+        if (IsLeoPrimitiveType(type)) input = `${input} as string`;
 
-      const rhs = GenerateTypeConversionStatement(output, input, STRING_JS);
-      fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
+        const isRecordType = this.refl.isRecordType(type);
+        const rhs = isRecordType ? input : GenerateTypeConversionStatement(output, input, STRING_JS);
+        fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
 
-      returnValues.push({
-        name: lhs,
-        type: InferJSDataType(type)
+        returnValues.push({
+          name: lhs,
+          type: isRecordType ? 'LeoRecord' : InferJSDataType(type)
+        });
       });
-    });
+    }
+    // We return transaction object as last argument
+    returnValues.push({ name: 'result.transaction', type: 'TransactionModel' });
 
     // Format return statement and return type accordingly
-    let returnTypeString = '';
-    if (returnValues.length === 1) {
-      fnGenerator.addStatement(`\t return ${returnValues[0].name};\n`);
-      returnTypeString = `Promise<${returnValues[0].type} | any>`;
-    } else {
-      const variables = returnValues.map((returnValue) => returnValue.name);
-      const types = returnValues.map((returnValues) => returnValues.type);
-      fnGenerator.addStatement(`\t return [${variables.join(', ')}];\n`);
-      returnTypeString = `Promise<[${types.join(', ')}] | any>`;
-    }
+    const variables = returnValues.map((returnValue) => returnValue.name);
+    const types = returnValues.map((returnValues) => returnValues.type);
+    fnGenerator.addStatement(`\t return [${variables.join(', ')}];\n`);
+    const returnTypeString = `Promise<[${types.join(', ')}]>`;
     return fnGenerator.generate(func.name, args, returnTypeString);
   }
 
@@ -376,14 +374,16 @@ class Generator {
         [
           'zkRun',
           'ContractConfig',
-          'snarkDeploy',
           'zkGetMapping',
+          'LeoAddress',
+          'LeoRecord',
           'js2leo',
           'leo2js'
         ],
         '@aleojs/core'
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
+      GenerateTSImport(['TransactionModel'], '@aleohq/sdk'),
       '\n\n'
     );
     return code.concat(
