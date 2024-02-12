@@ -31,6 +31,14 @@ class AleoReflection {
     */
     return false;
   }
+
+  isRecordType(type: string): boolean {
+    const found = this.customTypes.find((customType) => customType.name === type)
+    if (found && found.type == 'record') return true;
+    return false;
+  }
+
+
 }
 
 class Parser {

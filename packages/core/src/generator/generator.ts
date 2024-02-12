@@ -237,29 +237,28 @@ class Generator {
       .map((output) => FormatLeoDataType(output))
       .filter((output) => !output.includes('future'));
 
-    if (funcOutputs.length == 0)
-      return fnGenerator.generate(func.name, args, null);
-
     const returnValues: { name: string; type: string }[] = [];
-    const createOutputVariable = (index: number) => `out${index}`;
+    if (funcOutputs.length > 0) {
+      const createOutputVariable = (index: number) => `out${index}`;
 
-    funcOutputs.forEach((output, index) => {
-      const lhs = createOutputVariable(index);
-      let input = `result.data[${index}]`;
+      funcOutputs.forEach((output, index) => {
+        const lhs = createOutputVariable(index);
+        let input = `result.data[${index}]`;
 
-      // cast non-custom datatype to string
-      const type = output.split('.')[0];
-      if (IsLeoPrimitiveType(type)) input = `${input} as string`;
+        // cast non-custom datatype to string
+        const type = output.split('.')[0];
+        if (IsLeoPrimitiveType(type)) input = `${input} as string`;
 
-      const rhs = GenerateTypeConversionStatement(output, input, STRING_JS);
-      fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
+        const isRecordType = this.refl.isRecordType(type);
+        const rhs = isRecordType ? input : GenerateTypeConversionStatement(output, input, STRING_JS);
+        fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
 
-      returnValues.push({
-        name: lhs,
-        type: InferJSDataType(type)
+        returnValues.push({
+          name: lhs,
+          type: isRecordType ? 'LeoRecord' : InferJSDataType(type)
+        });
       });
-    });
-
+    }
     // We return transaction object as last argument
     returnValues.push({ name: 'result.transaction', type: 'TransactionModel' });
 
@@ -375,8 +374,9 @@ class Generator {
         [
           'zkRun',
           'ContractConfig',
-          'snarkDeploy',
           'zkGetMapping',
+          'LeoAddress',
+          'LeoRecord',
           'js2leo',
           'leo2js'
         ],
