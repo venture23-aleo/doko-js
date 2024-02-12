@@ -2,11 +2,12 @@
     "name": "aleojs",
     "scripts": {
         "build": "pnpm run --r --filter \"./packages/**\" build",
-        "pkg:publish": "pnpm -r publish --access=public",
+        "pkg:publish": "pnpm build && pnpm -r publish --access=public",
         "install:cli": "pnpm --filter cli build:install"
     },
     "devDependencies": {
         "@changesets/cli": "^2.27.1",
+        "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^11.1.6",
         "@types/fs-extra": "^11.0.2",
