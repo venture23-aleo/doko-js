@@ -28,7 +28,6 @@
     "@aleohq/sdk": "^0.6.9",
     "@aleojs/utils": "workspace:*",
     "aleo-ciphertext-decryptor": "^0.1.0",
-    "axios": "^1.6.5",
     "js-beautify": "^1.14.11",
     "zod": "^3.22.4"
   }
