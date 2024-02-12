@@ -1,5 +1,13 @@
 # @aleojs/cli
 
+## 0.2.1
+
+### Patch Changes
+
+- Update description in package json
+- Updated dependencies
+  - @aleojs/core@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes

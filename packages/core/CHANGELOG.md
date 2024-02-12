@@ -1,5 +1,11 @@
 # @aleojs/core
 
+## 0.2.1
+
+### Patch Changes
+
+- Update description in package json
+
 ## 0.2.0
 
 ### Minor Changes
