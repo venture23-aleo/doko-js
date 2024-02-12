@@ -274,11 +274,12 @@ export const zkRun = (
 export const zkGetMapping = async (
   params: ExecuteZkLogicParams
 ): Promise<any> => {
+  if (!params) return null;
   if (!params.config.network) {
     throw new Error('Network is not defined');
   }
-
-  const url = `${params.config.network.endpoint}/${params.config.networkName}/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params ? [0] : ''}`;
+  if (!params.params) return null;
+  const url = `${params.config.network.endpoint}/${params.config.networkName}/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params[0]}`;
   console.log(url);
   try {
     const response = await fetch(url);
