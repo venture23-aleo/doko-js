@@ -115,7 +115,8 @@ export const snarkExecute = async ({
   const { stdout } = await execute(cmd);
   const transaction = parseTransactionFromStdout(stdout);
   const res = await broadcastTransaction(transaction, nodeEndPoint);
-  return { data: decryptOutput(transaction, transition, config.appName!, config.privateKey || ''), transaction };
+  const programName = config.appName + '.aleo';
+  return { data: decryptOutput(transaction, transition, programName, config.privateKey || ''), transaction };
 };
 
 const decryptOutput = (transaction: TransactionModel, transitionName: string, programName: string, privateKey: string) => {
@@ -161,7 +162,9 @@ export const leoExecute = async ({
 
   const { stdout } = await execute(cmd);
   const { transaction } = parseCmdOutput(stdout);
-  const decrypedData = decryptOutput(transaction!, transition, config.appName!, config.privateKey || '');
+
+  const programName = config.appName + '.aleo';
+  const decrypedData = decryptOutput(transaction!, transition, programName, config.privateKey || '');
   return {
     data: decrypedData,
     transaction

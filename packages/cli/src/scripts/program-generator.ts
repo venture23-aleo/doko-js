@@ -21,7 +21,7 @@ async function replaceProgramName(
     const regex = new RegExp(oldName, 'g');
     console.log(fileContent);
     fileContent = fileContent.replace(regex, newProgramName);
-    console.log(fileContent);
+
     // Write the modified content back to the file
     await fse.writeFile(filePath, fileContent, 'utf8');
 
