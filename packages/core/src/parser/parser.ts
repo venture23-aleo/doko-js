@@ -17,7 +17,6 @@ class AleoReflection {
   customTypes = new Array<StructDefinition>();
   functions = new Array<FunctionDefinition>();
   mappings = new Array<MappingDefinition>();
-  env?: Map<string, string>;
   //imports? = new Map<string, AleoReflection>();
 
   isCustomType(type: string): boolean {

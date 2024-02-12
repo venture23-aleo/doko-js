@@ -30,6 +30,19 @@ async function getFileImports(filePath: string) {
   return matches;
 }
 
+function replacePrivateKeyInFile(envFile: string, privateKey: string) {
+  const envData = fs.readFileSync(envFile, 'utf-8').trim();
+
+  let envVariables = envData.split('\n');
+  envVariables = envVariables.map(variable => {
+    let [key] = variable.split('=');
+    if (key === 'PRIVATE_KEY')
+      return key + '=' + privateKey;
+    else return variable;
+  });
+  fs.writeFileSync(envFile, envVariables.join('\n'));
+}
+
 async function createGraph(
   programs: Array<string>,
   programPath: string
@@ -109,6 +122,7 @@ async function buildProgram(programName: string) {
   const leoShellCommand = new Shell(createLeoCommand);
   await leoShellCommand.asyncExec();
 
+  // Update import dependencies on program.json
   const fileImports = await getFileImports(
     `${projectRoot}/programs/${programName}.leo`
   );
@@ -124,13 +138,23 @@ async function buildProgram(programName: string) {
     fs.writeFileSync(configFilePath, JSON.stringify(configs));
   }
 
+  // Update private key on environment
+  const aleoConfig = await getAleoConfig();
+  const defaultNetwork = aleoConfig['defaultNetwork'];
+  if (defaultNetwork) {
+    const networkConfig = aleoConfig.networks[defaultNetwork];
+    if (networkConfig?.accounts && networkConfig.accounts.length > 0) {
+      const privateKey = networkConfig.accounts[0];
+      replacePrivateKeyInFile(`${programDir}/.env`, privateKey);
+    }
+  }
+
   const leoRunCommand = `cd "${programDir}" && leo run`;
   const shellCommand = new Shell(leoRunCommand);
   const res = await shellCommand.asyncExec();
 
-  const aleoConfig = await getAleoConfig();
-  if (aleoConfig['mode'] === 'execute') {
-    await cachePrograms(programName, programDir, aleoConfig['defaultNetwork']);
+  if (aleoConfig['mode'] === 'execute' && defaultNetwork) {
+    await cachePrograms(programName, programDir, defaultNetwork);
     console.log(`Program ${programName}.aleo cached to aleo registry`);
   }
 
