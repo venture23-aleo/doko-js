@@ -14,6 +14,11 @@ import { buildPrograms } from '@/scripts/compile';
 import { runTest } from '@/scripts/test';
 import { deploy } from '@/scripts/deploy';
 import { leoExecute } from '@/scripts/execute';
+import { readFileSync } from 'fs';
+
+const pkg = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8')
+);
 
 function printProjectName() {
   console.log('     _    _                _ ____ ');
@@ -27,7 +32,7 @@ printProjectName();
 
 const program = new Command();
 
-program.version('0.1.3').description('AleoJS CLI');
+program.version(pkg.version).description('AleoJS CLI');
 
 program
   .command('init <project-name>')

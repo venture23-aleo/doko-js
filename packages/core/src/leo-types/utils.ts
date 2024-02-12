@@ -1,6 +1,6 @@
+import { get, post } from '@/utils/httpRequests';
 import { Output, TransactionModel } from '@aleohq/sdk';
 import { get_decrypted_value } from 'aleo-ciphertext-decryptor';
-import axios from 'axios';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -21,9 +21,9 @@ export interface ContractConfig {
 }
 
 export interface ZkExecutionOutput {
-  data: any,
-  transaction?: TransactionModel
-};
+  data: any;
+  transaction?: TransactionModel;
+}
 
 export const execute = promisify(exec);
 
@@ -36,7 +36,7 @@ export const parseRecordString = (
 };
 
 const parseCmdOutput = (cmdOutput: string): ZkExecutionOutput => {
-  let res: ZkExecutionOutput = {
+  const res: ZkExecutionOutput = {
     data: null
   };
 
@@ -49,20 +49,24 @@ const parseCmdOutput = (cmdOutput: string): ZkExecutionOutput => {
     if (!strAfterOutput) {
       const stringBlock = cmdOutput.split('\n\n').slice(3);
       stringBlock.pop();
-      if (stringBlock.length > 0)
-        res.transaction = JSON.parse(stringBlock[0]);
+      if (stringBlock.length > 0) res.transaction = JSON.parse(stringBlock[0]);
       return res;
-    };
+    }
   }
 
   // this separates the string after the output into three logical blocks
   // 1. Outputs, 2. Transactions(if present), 3. Leo execute/run block
-  let stringBlock = strAfterOutput.split('\n\n').filter((str) => str.trim().length > 0);
+  const stringBlock = strAfterOutput
+    .split('\n\n')
+    .filter((str) => str.trim().length > 0);
   // Remove the last line as this is just the status result of execution command
   stringBlock.pop();
 
   // Remove unnecessary character
-  const outputs = stringBlock.shift()?.split('•').filter(line => line.trim().length > 0);
+  const outputs = stringBlock
+    .shift()
+    ?.split('•')
+    .filter((line) => line.trim().length > 0);
   res.data = outputs?.map((output) => parseRecordString(output));
 
   // Parse transaction block if it is present
@@ -85,17 +89,25 @@ const withReceipt = (stdout: string, nodeEndPoint: string) => {
 };
 */
 
-const broadcastTransaction = async (transaction: TransactionModel, endpoint: string) => {
+const broadcastTransaction = async (
+  transaction: TransactionModel,
+  endpoint: string
+) => {
   try {
-    return axios.post(`${endpoint}/testnet3/transaction/broadcast`, transaction);
+    return await post(`${endpoint}/testnet3/transaction/broadcast`, {
+      body: JSON.stringify(transaction),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 const parseTransactionFromStdout = (stdout: string) => {
   return JSON.parse(stdout.match(/\{([^)]+)\}/)![0]);
-}
+};
 
 export const snarkExecute = async ({
   config,
@@ -115,38 +127,59 @@ export const snarkExecute = async ({
   const { stdout } = await execute(cmd);
   const transaction = parseTransactionFromStdout(stdout);
   const res = await broadcastTransaction(transaction, nodeEndPoint);
-  return { data: decryptOutput(transaction, transition, config.appName!, config.privateKey || ''), transaction };
+  const programName = config.appName + '.aleo';
+  return {
+    data: decryptOutput(
+      transaction,
+      transition,
+      programName,
+      config.privateKey || ''
+    ),
+    transaction
+  };
 };
 
-const decryptOutput = (transaction: TransactionModel, transitionName: string, programName: string, privateKey: string) => {
+const decryptOutput = (
+  transaction: TransactionModel,
+  transitionName: string,
+  programName: string,
+  privateKey: string
+) => {
   if (!transaction.execution.transitions) return;
-  const transitions = transaction.execution.transitions.filter(transition => transition.function == transitionName);
+  const transitions = transaction.execution.transitions.filter(
+    (transition) => transition.function == transitionName
+  );
   if (transitions.length === 0) return;
 
-  const transition = transitions.filter(transition => transition.program == programName);
+  const transition = transitions.filter(
+    (transition) => transition.program == programName
+  );
   if (transition.length == 0) return;
 
   const offset = transition[0].inputs ? transition[0].inputs.length : 0;
   if (transition[0].outputs) {
-    const outputs = transition[0].outputs.map((output: Output, index: number) => {
-      let val = output.value;
-      if (output.type == 'private') {
-        val = get_decrypted_value(output.value,
-          programName,
-          transitionName,
-          offset + index,
-          privateKey,
-          transition[0].tpk);
+    const outputs = transition[0].outputs.map(
+      (output: Output, index: number) => {
+        let val = output.value;
+        if (output.type == 'private') {
+          val = get_decrypted_value(
+            output.value,
+            programName,
+            transitionName,
+            offset + index,
+            privateKey,
+            transition[0].tpk
+          );
+        } else if (output.type == 'record') {
+          val = output.value;
+        }
+        return parseRecordString(val);
       }
-      else if (output.type == 'record') {
-        val = output.value;
-      }
-      return parseRecordString(val);
-    });
+    );
     return outputs;
   }
   return null;
-}
+};
 
 export const leoExecute = async ({
   config,
@@ -161,7 +194,14 @@ export const leoExecute = async ({
 
   const { stdout } = await execute(cmd);
   const { transaction } = parseCmdOutput(stdout);
-  const decrypedData = decryptOutput(transaction!, transition, config.appName!, config.privateKey || '');
+
+  const programName = config.appName + '.aleo';
+  const decrypedData = decryptOutput(
+    transaction!,
+    transition,
+    programName,
+    config.privateKey || ''
+  );
   return {
     data: decrypedData,
     transaction
@@ -171,16 +211,20 @@ export const leoExecute = async ({
 const checkDeployment = async (endpoint: string): Promise<boolean> => {
   try {
     console.log(`Checking deployment: ${endpoint}`);
-    await axios.get(endpoint);
+    const response = await get(endpoint);
+    await response.json();
+
     return true;
   } catch (e: any) {
-    console.log(e);
-    if (e?.response?.data?.includes('Missing program for ID')) {
+    if (e?.message?.includes('Missing program for ID')) {
+      console.log('Deployment not found');
       return false;
     }
+    console.log(e);
 
     throw new Error(
-      `Failed to deploy program: ${e?.response?.data ?? 'Error occured while deploying program'
+      `Failed to deploy program: ${
+        e?.message ?? 'Error occured while deploying program'
       }`
     );
   }
@@ -198,7 +242,8 @@ const validateBroadcast = async (
   console.log(`Validating transaction: ${pollUrl}`);
   while (Date.now() - startTime < timeoutMs) {
     try {
-      const { data } = await axios.get(pollUrl);
+      const response = await get(pollUrl);
+      const data = await response.json();
 
       if (!(data.execution || data.deployment)) {
         console.error('Transaction error');
@@ -206,16 +251,18 @@ const validateBroadcast = async (
       }
       return data;
     } catch (e: any) {
-      console.log(e.response.data);
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
-      console.log('Retrying');
+      console.log('Retrying: ', e.message);
     }
   }
 
   console.log('Timeout');
 };
 
-export const waitTransaction = async (transaction: TransactionModel, endpoint: string) => {
+export const waitTransaction = async (
+  transaction: TransactionModel,
+  endpoint: string
+) => {
   const transactionId = transaction.id;
   if (transactionId) return await validateBroadcast(transactionId, endpoint);
   return null;
@@ -239,6 +286,8 @@ export const snarkDeploy = async ({
   if (isProgramDeployed) {
     throw new Error(`Program ${config.appName} is already deployed`);
   }
+
+  console.log(`Deploying program ${config.appName}`);
 
   const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
   const { stdout } = await execute(cmd);
@@ -274,11 +323,12 @@ export const zkRun = (
 export const zkGetMapping = async (
   params: ExecuteZkLogicParams
 ): Promise<any> => {
+  if (!params) return null;
   if (!params.config.network) {
     throw new Error('Network is not defined');
   }
-
-  const url = `${params.config.network.endpoint}/${params.config.networkName}/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params ? [0] : ''}`;
+  if (!params.params) return null;
+  const url = `${params.config.network.endpoint}/${params.config.networkName}/program/${params.config.appName}.aleo/mapping/${params.transition}/${params.params[0]}`;
   console.log(url);
   try {
     const response = await fetch(url);
@@ -298,4 +348,4 @@ export const leoGetContractAddress = async (contractName: string) => {
   const { stdout } = await execute(cmd);
   console.log(stdout);
   return stdout;
-}
+};
