@@ -21,12 +21,15 @@ Install Aleo.js globally using npm:
 ```npm install -g @aleojs/cli@latest```
 
 ### From Source
-1. Clone the Aleo.js repository:
+
 ```bash
 # Download the source file
 git clone https://github.com/venture23-zkp/aleojs
 
 cd aleojs
+
+# Install the dependencies
+pnpm install
 
 # Build the project
 npm run build
@@ -34,7 +37,7 @@ npm run build
 # Install aleojs
 npm run install:cli
 ```
-
+> In case pnpm is not set up, follow the [pnpm installation guide](https://pnpm.io/installation)
 
 ## Usage
 To use AleoJS, in your terminal, run:
