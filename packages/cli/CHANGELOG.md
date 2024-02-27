@@ -1,5 +1,11 @@
 # @aleojs/cli
 
+## 0.2.2
+
+### Patch Changes
+
+- 898d6b2: fix: use `leo build` instead of `leo run` during compilation
+
 ## 0.2.1
 
 ### Patch Changes
