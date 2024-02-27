@@ -150,8 +150,8 @@ async function buildProgram(programName: string) {
     }
   }
 
-  const leoRunCommand = `cd "${programDir}" && leo run`;
-  const shellCommand = new Shell(leoRunCommand);
+  const leoBuildCommand = `cd "${programDir}" && leo build`;
+  const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
 
   if (aleoConfig['mode'] === 'execute' && defaultNetwork) {
