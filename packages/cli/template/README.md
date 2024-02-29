@@ -2,7 +2,7 @@
 
 ## Introduction
 
-DokoJS is a powerful and lightweight library designed for seamless interaction with the Aleo blockchain and its diverse ecosystem. Drawing inspiration from the [zk-gaming-toolkit](https://github.com/kryha/zk-gaming-toolkit), Aleo.js fully harnesses existing tools while offering a user-friendly interface for developers keen on building atop the Aleo blockchain.
+DokoJS is a powerful and lightweight library designed for seamless interaction with the Aleo blockchain and its diverse ecosystem. Drawing inspiration from the [zk-gaming-toolkit](https://github.com/kryha/zk-gaming-toolkit), dokojs fully harnesses existing tools while offering a user-friendly interface for developers keen on building atop the Aleo blockchain.
 
 ## Installation
 
@@ -19,7 +19,7 @@ Before beginning, make sure you have the following set up:
 
 ### From NPM
 
-Install Aleo.js globally using npm:
+Install dokojs globally using npm:
 `npm install -g @doko-js/cli@latest`
 
 ### From Source
@@ -233,7 +233,7 @@ npm run test -- sample_program.test.ts
 
 ## Conclusion
 
-This documentation provides a comprehensive guide to installing Aleo.js, starting a project, adding programs, compiling, running tests, and deploying programs. Happy coding with Aleo.js!
+This documentation provides a comprehensive guide to installing dokojs, starting a project, adding programs, compiling, running tests, and deploying programs. Happy coding with dokojs!
 
 ---
 
