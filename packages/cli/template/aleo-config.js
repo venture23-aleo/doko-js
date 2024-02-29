@@ -8,7 +8,10 @@ export default {
   networks: {
     testnet3: {
       endpoint: 'http://localhost:3030',
-      accounts: [process.env.ALEO_PRIVATE_KEY_TESTNET3],
+      accounts: [
+        process.env.ALEO_PRIVATE_KEY_TESTNET3,
+        process.env.ALEO_DEVNET_PRIVATE_KEY2
+      ],
       priorityFee: 0.01
     },
     mainnet: {
