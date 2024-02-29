@@ -1,8 +1,8 @@
-import { ContractConfig, snarkDeploy } from "@aleojs/core";
-import networkConfig from '../aleo-config'
-import { TransactionModel } from "@aleohq/sdk";
-import { waitTransaction } from "@aleojs/core";
-
+// @ts-nocheck
+import { PrivateKey, TransactionModel } from "@aleohq/sdk";
+import { ContractConfig, checkDeployment, snarkDeploy, waitTransaction } from "@aleojs/core";
+import { to_address } from "aleo-program-to-address";
+import networkConfig from "../aleo-config";
 export class BaseContract {
     public config: ContractConfig = {};
 
@@ -10,7 +10,7 @@ export class BaseContract {
         if (config) {
             this.config = {
                 ...this.config,
-                ...config
+                ...config,
             };
         }
 
@@ -20,16 +20,23 @@ export class BaseContract {
         const networkName = this.config.networkName;
         if (networkName) {
             if (!networkConfig?.networks[networkName])
-                throw Error(`Network config not defined for ${networkName}.Please add the config in aleo - config.js file in root directory`)
+                throw Error(
+                    `Network config not defined for ${networkName}.Please add the config in aleo - config.js file in root directory`
+                );
 
             this.config = {
                 ...this.config,
-                network: networkConfig.networks[networkName]
+                network: networkConfig.networks[networkName],
             };
         }
 
         if (!this.config.privateKey && networkName)
             this.config.privateKey = networkConfig.networks[networkName].accounts[0];
+    }
+
+    async isDeployed(): Promise<boolean> {
+        const endpoint = `${this.config.network.endpoint}/testnet3/program/${this.config.appName}.aleo`;
+        return checkDeployment(endpoint);
     }
 
     async deploy(): Promise<any> {
@@ -40,10 +47,50 @@ export class BaseContract {
         return result;
     }
 
-    async wait(transaction: TransactionModel): Promise<any> {
+    async wait(transaction: TransactionModel): Promise<TransactionModel> {
         const endpoint = this.config.network.endpoint;
-        return waitTransaction(transaction, endpoint)
+        const data = await waitTransaction(transaction, endpoint) as TransactionModel;
+        if (!(data.execution || data.deployment)) {
+            throw Error("Something went wrong");
+        }
+        return data;
     }
 
+    address(): string {
+        return to_address(`${this.config.appName}.aleo`);
+    }
+
+    // TODO: handle properly
+    getAccounts(): string[] {
+        const accounts = this.config.network.accounts.map((pvtKey) => {
+            return PrivateKey.from_string(pvtKey).to_address().to_string();
+        });
+        return accounts;
+    }
+
+    getDefaultAccount(): string {
+        return PrivateKey.from_string(this.config.privateKey)
+            .to_address()
+            .to_string();
+    }
+
+    getPrivateKey(address: string) {
+        return this.config.network.accounts.find((pvtKey: string) =>
+            PrivateKey.from_string(pvtKey).to_address().to_string() == address
+        );
+    }
+
+    // TODO: Handle properly
+    connect(account: string) {
+        const accounts = this.config.network.accounts.map((pvtKey) => {
+            return PrivateKey.from_string(pvtKey).to_address().to_string();
+        });
+        const accountIndex = accounts.indexOf(account);
+        if (accountIndex == -1) {
+            throw Error(`Account ${account} not found!`);
+        } else {
+            this.config.privateKey = this.config.network.accounts[accountIndex];
+        }
+    }
 
 }

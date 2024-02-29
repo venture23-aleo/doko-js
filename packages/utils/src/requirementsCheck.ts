@@ -79,23 +79,23 @@ const checkAndInstallRequirements = async () => {
 
   if (needSetup.length > 0) {
     const qq = needSetup.map((v, index) => index + 1 + '.' + v + '\n').join('');
-    const questionString =
+    //if (isWindows()) {
+    console.log('Please install following for initialization \n' + qq);
+    process.exit(0);
+    //}
+    /*
+        const questionString =
       'Need following programs to init. Do you want to continue with installation? \n\n' +
       qq +
       '\n (yes[Y]/no[N]): ';
 
-    if (isWindows()) {
-      console.log('Please install following for initialization \n' + qq);
-      process.exit(0);
-    }
-
     const shouldCloseRl = () => {
       return flag === needSetup.length;
     };
-
+  
     rl.question(questionString, async (_answer) => {
       const answer = _answer.toLowerCase();
-
+  
       if (answer === 'yes' || answer === 'y') {
         if (!isRustInstalled) {
           ++flag;
@@ -104,12 +104,12 @@ const checkAndInstallRequirements = async () => {
             shouldCloseRl()
           );
         }
-
+  
         if (!isSnarkOsInstalled) {
           ++flag;
           await installProgram('cargo install snarkos', shouldCloseRl());
         }
-
+  
         if (!isAleoInstalled) {
           ++flag;
           await installProgram(
@@ -117,7 +117,7 @@ const checkAndInstallRequirements = async () => {
             shouldCloseRl()
           );
         }
-
+  
         if (!isLeoInstalled) {
           ++flag;
           await installProgram('cargo install leo-lang', shouldCloseRl());
@@ -127,6 +127,7 @@ const checkAndInstallRequirements = async () => {
       }
       rl.close();
     });
+    */
   }
 };
 
