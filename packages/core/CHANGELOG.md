@@ -1,5 +1,13 @@
 # @aleojs/core
 
+## 0.2.2
+
+### Patch Changes
+
+- bb618f2: Expose checkdeployment method
+- Updated dependencies [bb618f2]
+  - @aleojs/utils@0.1.4
+
 ## 0.2.1
 
 ### Patch Changes
