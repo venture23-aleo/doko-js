@@ -1,5 +1,20 @@
 # @aleojs/cli
 
+## 0.3.0
+
+### Minor Changes
+
+- bb618f2: - template: Update config to include default private key from env
+  - update transaction return type to TransactionModal
+  - update token test to include evaluate and execute mode tests
+
+### Patch Changes
+
+- Updated dependencies [bb618f2]
+- Updated dependencies [bb618f2]
+  - @aleojs/core@0.2.2
+  - @aleojs/utils@0.1.4
+
 ## 0.2.2
 
 ### Patch Changes
