@@ -1,4 +1,4 @@
-import { parseRecordString } from '@dokojs/core';
+import { parseRecordString } from '@doko-js/core';
 import { PrivateKey } from '@aleohq/sdk';
 
 import { TokenContract } from '../artifacts/js/token';
@@ -8,8 +8,9 @@ import { gettoken } from '../artifacts/js/leo2js/token';
 const TIMEOUT = 200_000;
 const amount = BigInt(2);
 
+// Available modes are evaluate | execute (Check README.md for further description)
+const mode = 'evaluate';
 // Contract class initialization
-const mode = 'execute';
 const contract = new TokenContract({ mode });
 
 // This maps the accounts defined inside networks in aleo-config.js and return array of address of respective private keys
@@ -61,7 +62,7 @@ test(
   async () => {
     const [result, tx] = await contract.mint_private(admin, amount);
 
-    // tx is undefined in evaluate mode, so we undefine it
+    // tx is undefined in evaluate mode
     // This method waits for the transction to be broadcasted in execute mode
     if (tx) await contract.wait(tx);
 

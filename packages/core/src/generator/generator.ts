@@ -29,7 +29,7 @@ import {
   JS_FN_IMPORT
 } from '@/generator/string-constants';
 
-import { toCamelCase } from '@dokojs/utils';
+import { toCamelCase } from '@doko-js/utils';
 import TSClassGenerator from '@/generator/ts-class-generator';
 import {
   GenerateLeoSchemaAliasDeclaration,
@@ -380,7 +380,7 @@ class Generator {
           'js2leo',
           'leo2js'
         ],
-        '@dokojs/core'
+        '@doko-js/core'
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
       GenerateTSImport(['TransactionModel'], '@aleohq/sdk'),

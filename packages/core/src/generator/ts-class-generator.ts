@@ -1,5 +1,5 @@
 import { KeyVal } from '../utils/aleo-utils';
-import { tabify } from '@dokojs/utils';
+import { tabify } from '@doko-js/utils';
 
 export default class TSClassGenerator {
   methods: string[] = [];

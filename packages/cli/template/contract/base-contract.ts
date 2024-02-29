@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { PrivateKey, TransactionModel } from "@aleohq/sdk";
-import { ContractConfig, checkDeployment, snarkDeploy, waitTransaction } from "@dokojs/core";
+import { ContractConfig, checkDeployment, snarkDeploy, waitTransaction } from "@doko-js/core";
 import { to_address } from "aleo-program-to-address";
 import networkConfig from "../aleo-config";
 export class BaseContract {

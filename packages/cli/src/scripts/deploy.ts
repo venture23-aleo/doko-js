@@ -1,7 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 
-import {Shell, getAleoConfig, getProjectRoot} from '@dokojs/utils';
+import {Shell, getAleoConfig, getProjectRoot} from '@doko-js/utils';
 
 function createProgramPath(programName: string) {
   const projectRoot = getProjectRoot();

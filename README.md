@@ -20,16 +20,16 @@ Before beginning, make sure you have the following set up:
 ### From NPM
 
 Install Aleo.js globally using npm:
-`npm install -g @dokojs/cli@latest`
+`npm install -g @doko-js/cli@latest`
 
 ### From Source
 
 > In case pnpm is not set up, follow the [pnpm installation guide](https://pnpm.io/installation)
 ```bash
 # Download the source file
-git clone https://github.com/venture23-zkp/dokojs
+git clone https://github.com/venture23-aleo/doko-js
 
-cd dokojs
+cd doko-js
 
 # Install the dependencies
 pnpm install
@@ -46,23 +46,24 @@ npm run install:cli
 To use DokoJS, in your terminal, run:
 
 ```bash
-dokojs-cli-dev
+dokojs
 ```
 
 The expected output is as following:
 
-```bash _    _                _ ____
-    / \  | | ___  ___     | / ___|
-   / _ \ | |/ _ \/ _ \ _  | \___ \
-  / ___ \| |  __/ (_) | |_| |___) |
- /_/   \_\_|\___|\___/ \___/|____/
-Usage: dokojs-cli-dev [options] [command]
+```bash
+  ____        _             _ ____  
+ |  _ \  ___ | | _____     | / ___| 
+ | | | |/ _ \| |/ / _ \ _  | \___ \ 
+ | |_| | (_) |   | (_) | |_| |___) |
+ |____/ \___/|_|\_\___/ \___/|____/ 
+Usage: dokojs [options] [command]
 
 DokoJS CLI
 
 Options:
-  -h, --help                       display help for command
   -V, --version                    output the version number
+  -h, --help                       display help for command
 
 Commands:
   init [options] <project-name>    Initialize your DokoJS project
@@ -82,7 +83,7 @@ Commands:
 Initialize a new project by giving the name of the project.
 
 ```
-dokojs-cli-dev init <PROJECT_NAME>
+dokojs init <PROJECT_NAME>
 ```
 
 Let's create a new project called `token`.
@@ -162,14 +163,14 @@ We have two modes of execution supported:
 To add a new program create a new file inside the `programs/` directory.
 To modify the existing file, simply modify the existing file or run command 
 ```
-dokojs-cli-dev add [PROGRAM_NAME]
+dokojs add [PROGRAM_NAME]
 ```
 ### Compliation
 
 To compile the project, run:
 
 ```
-dokojs-cli-dev compile
+dokojs compile
 ```
 
 This will create the `artifacts` folder. The artifacts folder has the two main directories:
@@ -241,7 +242,7 @@ This documentation provides a comprehensive guide to installing Aleo.js, startin
 Create a test file (e.g., token.test.ts) inside the test directory. An example test file is provided below:
 
 ```js
-import { parseRecordString } from '@dokojs/core';
+import { parseRecordString } from '@doko-js/core';
 import { PrivateKey } from '@aleohq/sdk';
 
 import { TokenContract } from '../artifacts/js/token';
@@ -304,7 +305,7 @@ test(
   async () => {
     const [result, tx] = await contract.mint_private(admin, amount);
 
-    // tx is undefined in evaluate mode, so we undefine it
+    // tx is undefined in evaluate mode
     // This method waits for the transction to be broadcasted in execute mode
     if (tx) await contract.wait(tx);
 

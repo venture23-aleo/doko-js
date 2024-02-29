@@ -1,7 +1,7 @@
 import path from 'path';
 
 import { Generator } from '@/generator/generator';
-import { writeToFile } from '@dokojs/utils';
+import { writeToFile } from '@doko-js/utils';
 import { FormatCode } from '@/utils/js-formatter';
 
 class GlobalIndexFileGenerator {

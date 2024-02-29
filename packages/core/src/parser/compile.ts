@@ -10,7 +10,7 @@ import {
   getProjectRoot,
   pathFromRoot,
   writeToFile
-} from '@dokojs/utils';
+} from '@doko-js/utils';
 import {
   PROGRAM_DIRECTORY,
   GENERATE_FILE_OUT_DIR

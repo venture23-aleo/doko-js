@@ -1,8 +1,8 @@
 #!/usr/bin/env -S node --experimental-modules
 
 import { Command } from 'commander';
-import { checkAndInstallRequirements } from '@dokojs/utils';
-import { compilePrograms } from '@dokojs/core';
+import { checkAndInstallRequirements } from '@doko-js/utils';
+import { compilePrograms } from '@doko-js/core';
 import {
   addProgram,
   createProjectStructure,
@@ -21,18 +21,11 @@ const pkg = JSON.parse(
 );
 
 function printProjectName() {
-  console.log('     _    _                _ ____ ');
-  console.log('    / \\  | | ___  ___     | / ___| ');
-  console.log('   / _ \\ | |/ _ \\/ _ \\ _  | \\___ \\ ');
-  console.log('  / ___ \\| |  __/ (_) | |_| |___) |');
-  console.log(' /_/   \\_\\_|\\___|\\___/ \\___/|____/ ');
-  /*
-  ____        _             _ ____  
- |  _ \  ___ | | _____     | / ___| 
- | | | |/ _ \| |/ / _ \ _  | \___ \ 
- | |_| | (_) |   | (_) | |_| |___) |
- |____/ \___/|_|\_\___/ \___/|____/ 
-  */
+  console.log('  ____        _             _ ____  ');
+  console.log(' |  _ \\  ___ | | _____     | / ___| ');
+  console.log(' | | | |/ _ \\| |/ / _ \\ _  | \\___ \\ ');
+  console.log(' | |_| | (_) |   | (_) | |_| |___) |');
+  console.log(' |____/ \\___/|_|\\_\\___/ \\___/|____/ ');
 }
 
 printProjectName();

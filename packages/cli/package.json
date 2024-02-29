@@ -1,7 +1,7 @@
 {
-  "name": "@dokojs/cli",
-  "version": "0.2.1",
+  "name": "@doko-js/cli",
   "description": "DokoJS CLI tool",
+  "version": "0.0.1",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/venture23-zkp/aleojs.git"
+    "url": "git+https://github.com/venture23-aleo/doko-js.git"
   },
   "keywords": [
     "doko",
@@ -24,17 +24,17 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/venture23-zkp/aleojs/issues"
+    "url": "https://github.com/venture23-aleo/doko-js/issues"
   },
-  "homepage": "https://github.com/venture23-zkp/aleojs#readme",
+  "homepage": "https://github.com/venture23-aleo/doko-js#readme",
   "dependencies": {
-    "@dokojs/core": "workspace:*",
-    "@dokojs/utils": "workspace:*",
+    "@doko-js/core": "workspace:*",
+    "@doko-js/utils": "workspace:*",
     "commander": "^11.0.0",
     "fs-extra": "^11.1.1"
   },
   "bin": {
-    "dokojs-cli-dev": "dist/index.js"
+    "dokojs": "dist/index.js"
   },
   "types": "./dist/index.d.ts"
 }

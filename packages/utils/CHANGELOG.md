@@ -1,7 +1,5 @@
-# @aleojs/utils
+# @doko-js/utils
 
-## 0.1.0
+## 0.0.1
 
-### Minor Changes
-
-- Minor updates & code cleanup
+- Initial release

@@ -1,7 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 
-import { getProjectRoot, toSnakeCase, Shell } from '@dokojs/utils';
+import { getProjectRoot, toSnakeCase, Shell } from '@doko-js/utils';
 
 import { fileURLToPath } from 'url';
 
@@ -115,7 +115,13 @@ async function installNpmPackages(path: string | undefined) {
     'babel-jest',
     '@babel/preset-env'
   ];
-  const dependencies = ['zod', 'dotenv', '@dokojs/core', '@dokojs/utils', 'aleo-program-to-address'];
+  const dependencies = [
+    'zod',
+    'dotenv',
+    'aleo-program-to-address',
+    '@doko-js/core',
+    '@doko-js/utils'
+  ];
   const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
     ' '
   )} && npm install ${dependencies.join(' ')}`;
