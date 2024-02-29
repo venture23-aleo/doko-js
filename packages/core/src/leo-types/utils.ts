@@ -25,7 +25,10 @@ export interface ZkExecutionOutput {
   transaction?: TransactionModel;
 }
 
-export const execute = promisify(exec);
+const _execute = promisify(exec);
+export const execute = (cmd: string) => {
+  return _execute(cmd, { maxBuffer: undefined });
+}
 
 export const parseRecordString = (
   recordString: string
@@ -208,7 +211,7 @@ export const leoExecute = async ({
   };
 };
 
-const checkDeployment = async (endpoint: string): Promise<boolean> => {
+export const checkDeployment = async (endpoint: string): Promise<boolean> => {
   try {
     console.log(`Checking deployment: ${endpoint}`);
     const response = await get(endpoint);
@@ -223,8 +226,7 @@ const checkDeployment = async (endpoint: string): Promise<boolean> => {
     console.log(e);
 
     throw new Error(
-      `Failed to deploy program: ${
-        e?.message ?? 'Error occured while deploying program'
+      `Failed to deploy program: ${e?.message ?? 'Error occured while deploying program'
       }`
     );
   }
