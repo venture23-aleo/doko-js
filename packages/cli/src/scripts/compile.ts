@@ -8,7 +8,7 @@ import {
   getProjectRoot,
   toSnakeCase,
   Shell
-} from '@aleojs/utils';
+} from '@dokojs/utils';
 import { Node, sort } from '@/utils/graph';
 
 const GENERATE_FILE_OUT_DIR = 'artifacts';

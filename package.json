@@ -1,5 +1,5 @@
 {
-    "name": "aleojs",
+    "name": "dokojs",
     "scripts": {
         "build": "pnpm run --r --filter \"./packages/**\" build",
         "pkg:publish": "pnpm build && pnpm -r publish --access=public",

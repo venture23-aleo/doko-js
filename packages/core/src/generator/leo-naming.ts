@@ -1,5 +1,5 @@
 import { IsLeoArray, GetLeoArrTypeAndSize, IsLeoPrimitiveType } from "@/utils/aleo-utils";
-import { capitalize } from "@aleojs/utils";
+import { capitalize } from "@dokojs/utils";
 
 // Creates leo schema name from type
 // Eg. if schema for struct Token{} is to be generated

@@ -1,5 +1,5 @@
 import { KeyVal } from '../utils/aleo-utils';
-import { tabify } from '@aleojs/utils';
+import { tabify } from '@dokojs/utils';
 
 export default class TSClassGenerator {
   methods: string[] = [];

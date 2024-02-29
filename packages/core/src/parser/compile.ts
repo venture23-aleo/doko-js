@@ -10,7 +10,7 @@ import {
   getProjectRoot,
   pathFromRoot,
   writeToFile
-} from '@aleojs/utils';
+} from '@dokojs/utils';
 import {
   PROGRAM_DIRECTORY,
   GENERATE_FILE_OUT_DIR

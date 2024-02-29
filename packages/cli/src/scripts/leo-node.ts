@@ -1,7 +1,7 @@
 import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
-import { getAleoConfig } from '@aleojs/utils';
+import { getAleoConfig } from '@dokojs/utils';
 
 const rl = readline.createInterface({
   input: process.stdin,

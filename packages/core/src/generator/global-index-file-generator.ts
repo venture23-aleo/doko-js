@@ -1,7 +1,7 @@
 import path from 'path';
 
 import { Generator } from '@/generator/generator';
-import { writeToFile } from '@aleojs/utils';
+import { writeToFile } from '@dokojs/utils';
 import { FormatCode } from '@/utils/js-formatter';
 
 class GlobalIndexFileGenerator {

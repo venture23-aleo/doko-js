@@ -1,7 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 
-import { getProjectRoot, toSnakeCase, Shell } from '@aleojs/utils';
+import { getProjectRoot, toSnakeCase, Shell } from '@dokojs/utils';
 
 import { fileURLToPath } from 'url';
 
@@ -115,7 +115,7 @@ async function installNpmPackages(path: string | undefined) {
     'babel-jest',
     '@babel/preset-env'
   ];
-  const dependencies = ['zod', 'dotenv', '@aleojs/core', '@aleojs/utils', 'aleo-program-to-address'];
+  const dependencies = ['zod', 'dotenv', '@dokojs/core', '@dokojs/utils', 'aleo-program-to-address'];
   const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
     ' '
   )} && npm install ${dependencies.join(' ')}`;

@@ -1,8 +1,8 @@
 #!/usr/bin/env -S node --experimental-modules
 
 import { Command } from 'commander';
-import { checkAndInstallRequirements } from '@aleojs/utils';
-import { compilePrograms } from '@aleojs/core';
+import { checkAndInstallRequirements } from '@dokojs/utils';
+import { compilePrograms } from '@dokojs/core';
 import {
   addProgram,
   createProjectStructure,
@@ -26,20 +26,27 @@ function printProjectName() {
   console.log('   / _ \\ | |/ _ \\/ _ \\ _  | \\___ \\ ');
   console.log('  / ___ \\| |  __/ (_) | |_| |___) |');
   console.log(' /_/   \\_\\_|\\___|\\___/ \\___/|____/ ');
+  /*
+  ____        _             _ ____  
+ |  _ \  ___ | | _____     | / ___| 
+ | | | |/ _ \| |/ / _ \ _  | \___ \ 
+ | |_| | (_) |   | (_) | |_| |___) |
+ |____/ \___/|_|\_\___/ \___/|____/ 
+  */
 }
 
 printProjectName();
 
 const program = new Command();
 
-program.version(pkg.version).description('AleoJS CLI');
+program.version(pkg.version).description('DokoJS CLI');
 
 program
   .command('init <project-name>')
-  .description('Initialize your AleoJS project')
+  .description('Initialize your DokoJS project')
   .option('-p --program <name>', 'Initialize and add new program')
   .action(async (projectName, options: any) => {
-    console.log('Initializing AleoJS project...');
+    console.log('Initializing DokoJS project...');
     console.log('\n');
     const programName = options.program || 'sample_program';
 
@@ -70,9 +77,9 @@ program
 
 program
   .command('compile')
-  .description('Compile your AleoJS project')
+  .description('Compile your DokoJS project')
   .action(async () => {
-    console.log('Compiling AleoJS project...');
+    console.log('Compiling DokoJS project...');
     // Add your compilation logic here
     await buildPrograms();
     // For ts files
@@ -106,10 +113,10 @@ program
 
 program
   .command('start node')
-  .description('Run your AleoJS project')
+  .description('Run your DokoJS project')
   .option('-n --network <network-name>', 'Network name')
   .action(async (_, options) => {
-    console.log('Running AleoJS project...');
+    console.log('Running DokoJS project...');
     console.log(options);
     const networkName = options.network;
 

@@ -1,4 +1,4 @@
-import { parseRecordString } from '@aleojs/core';
+import { parseRecordString } from '@dokojs/core';
 import { PrivateKey } from '@aleohq/sdk';
 
 import { TokenContract } from '../artifacts/js/token';

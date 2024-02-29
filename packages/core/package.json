@@ -1,7 +1,7 @@
 {
-  "name": "@aleojs/core",
+  "name": "@dokojs/core",
   "version": "0.2.1",
-  "description": "Core packages for Aleojs",
+  "description": "Core packages for DokoJS",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -14,9 +14,9 @@
     "url": "git+https://github.com/venture23-zkp/aleojs.git"
   },
   "keywords": [
-    "aleo",
-    "aleojs",
-    "aleo-cli"
+    "doko",
+    "dokojs",
+    "doko-cli"
   ],
   "author": "",
   "license": "ISC",
@@ -26,7 +26,7 @@
   "homepage": "https://github.com/venture23-zkp/aleojs#readme",
   "dependencies": {
     "@aleohq/sdk": "^0.6.9",
-    "@aleojs/utils": "workspace:*",
+    "@dokojs/utils": "workspace:*",
     "aleo-ciphertext-decryptor": "^0.1.0",
     "js-beautify": "^1.14.11",
     "zod": "^3.22.4"

@@ -1,8 +1,8 @@
-# AleoJS Developer Guide
+# DokoJS Developer Guide
 
 ## Introduction
 
-AleoJS is a powerful and lightweight library designed for seamless interaction with the Aleo blockchain and its diverse ecosystem. Drawing inspiration from the [zk-gaming-toolkit](https://github.com/kryha/zk-gaming-toolkit), Aleo.js fully harnesses existing tools while offering a user-friendly interface for developers keen on building atop the Aleo blockchain.
+DokoJS is a powerful and lightweight library designed for seamless interaction with the Aleo blockchain and its diverse ecosystem. Drawing inspiration from the [zk-gaming-toolkit](https://github.com/kryha/zk-gaming-toolkit), Aleo.js fully harnesses existing tools while offering a user-friendly interface for developers keen on building atop the Aleo blockchain.
 
 ## Installation
 
@@ -20,16 +20,16 @@ Before beginning, make sure you have the following set up:
 ### From NPM
 
 Install Aleo.js globally using npm:
-`npm install -g @aleojs/cli@latest`
+`npm install -g @dokojs/cli@latest`
 
 ### From Source
 
 > In case pnpm is not set up, follow the [pnpm installation guide](https://pnpm.io/installation)
 ```bash
 # Download the source file
-git clone https://github.com/venture23-zkp/aleojs
+git clone https://github.com/venture23-zkp/dokojs
 
-cd aleojs
+cd dokojs
 
 # Install the dependencies
 pnpm install
@@ -37,16 +37,16 @@ pnpm install
 # Build the project
 npm run build
 
-# Install aleojs
+# Install dokojs
 npm run install:cli
 ```
 
 ## Usage
 
-To use AleoJS, in your terminal, run:
+To use DokoJS, in your terminal, run:
 
 ```bash
-aleojs-cli-dev
+dokojs-cli-dev
 ```
 
 The expected output is as following:
@@ -56,21 +56,21 @@ The expected output is as following:
    / _ \ | |/ _ \/ _ \ _  | \___ \
   / ___ \| |  __/ (_) | |_| |___) |
  /_/   \_\_|\___|\___/ \___/|____/
-Usage: aleojs-cli-dev [options] [command]
+Usage: dokojs-cli-dev [options] [command]
 
-AleoJS CLI
+DokoJS CLI
 
 Options:
   -h, --help                       display help for command
   -V, --version                    output the version number
 
 Commands:
-  init [options] <project-name>    Initialize your AleoJS project
+  init [options] <project-name>    Initialize your DokoJS project
   add <program-name>               Add a new component or resource
-  compile                          Compile your AleoJS project
+  compile                          Compile your DokoJS project
   unflatten                        Create leo build for programs
   autogen                          Generate ts types for contracts - use only after the build has been generated
-  start [options] <node>           Run your AleoJS project
+  start [options] <node>           Run your DokoJS project
   run [options] <file>             Run file
   deploy [options] <program-name>  Deploy program
   execute <file-path>              Execute script
@@ -82,14 +82,14 @@ Commands:
 Initialize a new project by giving the name of the project.
 
 ```
-aleojs-cli-dev init <PROJECT_NAME>
+dokojs-cli-dev init <PROJECT_NAME>
 ```
 
 Let's create a new project called `token`.
 
 > This will internally install the dependencies for the project.
 
-After project initialization, AleoJS generates the following directory structure:
+After project initialization, DokoJS generates the following directory structure:
 
 ```
 ├── contract
@@ -162,14 +162,14 @@ We have two modes of execution supported:
 To add a new program create a new file inside the `programs/` directory.
 To modify the existing file, simply modify the existing file or run command 
 ```
-aleojs-cli-dev add [PROGRAM_NAME]
+dokojs-cli-dev add [PROGRAM_NAME]
 ```
 ### Compliation
 
 To compile the project, run:
 
 ```
-aleojs-cli-dev compile
+dokojs-cli-dev compile
 ```
 
 This will create the `artifacts` folder. The artifacts folder has the two main directories:
@@ -241,7 +241,7 @@ This documentation provides a comprehensive guide to installing Aleo.js, startin
 Create a test file (e.g., token.test.ts) inside the test directory. An example test file is provided below:
 
 ```js
-import { parseRecordString } from '@aleojs/core';
+import { parseRecordString } from '@dokojs/core';
 import { PrivateKey } from '@aleohq/sdk';
 
 import { TokenContract } from '../artifacts/js/token';
