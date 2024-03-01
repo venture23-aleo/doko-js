@@ -104,23 +104,24 @@ program
     process.exit(0);
   });
 
-program
-  .command('start node')
-  .description('Run your DokoJS project')
-  .option('-n --network <network-name>', 'Network name')
-  .action(async (_, options) => {
-    console.log('Running DokoJS project...');
-    console.log(options);
-    const networkName = options.network;
+// @TODO: Add this when implementing leo node
+// program
+//   .command('start node')
+//   .description('Run your DokoJS project')
+//   .option('-n --network <network-name>', 'Network name')
+//   .action(async (_, options) => {
+//     console.log('Running DokoJS project...');
+//     console.log(options);
+//     const networkName = options.network;
 
-    if (networkName) {
-      console.log('Run aleo node');
-      await runAleoNode(networkName);
-    }
+//     if (networkName) {
+//       console.log('Run aleo node');
+//       await runAleoNode(networkName);
+//     }
 
-    console.log('No network');
-    // Add your run logic here
-  });
+//     console.log('No network');
+//     // Add your run logic here
+//   });
 
 program
   .command('run <file>')

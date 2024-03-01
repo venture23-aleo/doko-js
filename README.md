@@ -71,7 +71,6 @@ Commands:
   compile                          Compile your DokoJS project
   unflatten                        Create leo build for programs
   autogen                          Generate ts types for contracts - use only after the build has been generated
-  start [options] <node>           Run your DokoJS project
   run [options] <file>             Run file
   deploy [options] <program-name>  Deploy program
   execute <file-path>              Execute script
