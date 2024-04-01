@@ -17,7 +17,8 @@ import {
   leoTxSchema,
   leoSignatureSchema,
   LeoArray,
-  LeoAddress
+  LeoAddress,
+  ExternalRecord
 } from "@doko-js/core";`;
 
 // Converter function for leo and ts

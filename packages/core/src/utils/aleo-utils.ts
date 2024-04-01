@@ -59,6 +59,17 @@ interface MappingDefinition {
   value: DataType;
 }
 
+class ExternalRecord<P extends string, R extends string> {
+  public readonly programName: P;
+  public readonly recordName: R;
+
+  constructor(type: `${P}.aleo/${R}`) {
+    const parts = type.split('.aleo/');
+    this.programName = parts[0] as P;
+    this.recordName = parts[1] as R;
+  }
+}
+
 const ALEO_TO_JS_TYPE_MAPPING = new Map([
   ['address', 'LeoAddress'],
   ['boolean', 'boolean'],
@@ -87,6 +98,10 @@ const IsLeoArray = (type: string) => {
   return type.match(/\[(.*?)\]/g) !== null;
 };
 
+const IsLeoExternalRecord = (type: string) => {
+  return type.includes('.aleo/');
+};
+
 const GetLeoArrTypeAndSize = (arrDef: string) => {
   const arrComponents = arrDef.substring(1, arrDef.length - 1).split(' ');
   if (arrComponents.length !== 2)
@@ -99,6 +114,12 @@ const ConvertToJSType = (type: string) => {
     const [arrType, arrSize] = GetLeoArrTypeAndSize(type);
     const jsType = ALEO_TO_JS_TYPE_MAPPING.get(arrType);
     return `Array<${jsType}>`;
+  }
+  if (IsLeoExternalRecord(type)) {
+    const typeParts = type.split('.aleo/');
+    const programName = typeParts[0];
+    const recordName = typeParts[1];
+    return `ExternalRecord<'${programName}', '${recordName}'>`;
   }
   return ALEO_TO_JS_TYPE_MAPPING.get(type);
 };
@@ -118,5 +139,7 @@ export {
   IsLeoArray,
   GetLeoArrTypeAndSize,
   IsLeoPrimitiveType,
+  IsLeoExternalRecord,
+  ExternalRecord,
   KEYWORDS
 };

@@ -1,3 +1,5 @@
+import { ExternalRecord } from '@/utils';
+
 const PRIVATE = '.private';
 const PUBLIC = '.public';
 
