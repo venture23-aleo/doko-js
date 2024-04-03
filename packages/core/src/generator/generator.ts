@@ -281,6 +281,42 @@ class Generator {
     return code;
   }
 
+  private generateDecryptFunction(customType: StructDefinition) {
+    // Eg if the input type is Token then
+    // jsType : Token
+    // leoType : TokenLeo
+    const jsType = customType.name;
+    const argName = toCamelCase(customType.name);
+
+    const fnGenerator = new TSFunctionGenerator();
+
+    // Add declaration statement
+    fnGenerator.addStatement(
+      `\tconst encodedRecord: string = typeof ${argName} === 'string'? ${argName}: ${argName}.value;\n`
+    );
+    fnGenerator.addStatement(
+      '\tconst decodedRecord: string = PrivateKey.from_string(privateKey).to_view_key().decrypt(encodedRecord);\n'
+    );
+    fnGenerator.addStatement(
+      `\tconst result: ${jsType} = get${jsType}(parseRecordString(decodedRecord));\n`
+    );
+
+    // Add return statement
+    fnGenerator.addStatement('\n\treturn result;\n');
+
+    const fnName = 'decrypt' + jsType;
+    const code = fnGenerator.generate(
+      fnName,
+      [
+        { name: argName, type: `tx.RecordOutput<${jsType}> | string` },
+        { name: 'privateKey', type: 'string' }
+      ],
+      jsType
+    );
+
+    return code;
+  }
+
   // Generate TS to Leo converter functions
   public generateJSToLeo() {
     const generatedTypes: string[] = [];
@@ -317,7 +353,12 @@ class Generator {
     code = code.concat(JS_FN_IMPORT, '\n\n');
 
     this.refl.customTypes.forEach((customType: StructDefinition) => {
-      code = code.concat(this.generateConverterFunction(customType, STRING_JS));
+      code = code.concat(
+        this.generateConverterFunction(customType, STRING_JS),
+        ...(customType.type === 'record'
+          ? ['\n', this.generateDecryptFunction(customType)]
+          : [])
+      );
     });
     return code;
   }
