@@ -14,7 +14,10 @@ export type FutureOutput = {
   value: string;
 };
 
+const typesaftyGuard = Symbol('typesafety-guard');
+
 export type RecordOutput<T extends BaseRecord = BaseRecord> = {
+  [typesaftyGuard]: T; // Type sagety guard prop. Used to force typescript to raise an error on invalid T prop in decrypt functions
   type: 'record';
   id: string;
   checksum: string;
