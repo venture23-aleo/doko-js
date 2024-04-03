@@ -38,7 +38,9 @@ import {
   GetConverterFunctionName,
   GetLeoTypeNameFromJS,
   GetLeoMappingFuncName,
-  GetContractClassName
+  GetContractClassName,
+  GetExternalRecordAlias,
+  GetProgramTransitionsTypeName
 } from './leo-naming';
 import {
   FormatLeoDataType,
@@ -48,8 +50,10 @@ import {
   GenerateZkRunCode,
   GenerateZkMappingCode,
   InferExternalRecordInputDataType,
-  GenerateExternalRecordConversionStatement
+  GenerateExternalRecordConversionStatement,
+  GenerateAsteriskTSImport
 } from './generator-utils';
+import { OutputArg, TSReceiptTypeGenerator } from './ts-receipt-type-generator';
 
 class Generator {
   private refl: AleoReflection;
@@ -97,6 +101,91 @@ class Generator {
     return code;
   }
 
+  private resolveOutputType(output: string): OutputArg {
+    if (output.endsWith('record')) {
+      const recordName = output.substring(0, output.length - '.record'.length);
+      if (this.refl.isRecordType(recordName)) {
+        return { recordType: `records.${recordName}` };
+      } else {
+        return 'external_record';
+      }
+    }
+    if (output.endsWith('.private')) {
+      return 'private';
+    }
+    if (output.endsWith('.future')) {
+      return 'future';
+    }
+    return 'public';
+  }
+
+  private generateExternalTransitionsImport(
+    externalCalls: FunctionDefinition['calls']
+  ) {
+    const groupped: Map<string, Array<string>> = new Map();
+    externalCalls.forEach((call) => {
+      const prevCalls = new Set(groupped.get(call.program) || []);
+      prevCalls.add(call.functionName);
+      groupped.set(call.program, Array.from(prevCalls));
+    });
+
+    return Array.from(groupped.entries())
+      .map((entry) =>
+        GenerateTSImport(
+          entry[1].map((transitionName) =>
+            GetProgramTransitionsTypeName(entry[0], transitionName)
+          ),
+          `./${entry[0]}`
+        )
+      )
+      .join('\n');
+  }
+
+  public generateTransitions() {
+    // Import primitive schema type for Leo (leo-types.ts)
+
+    let code =
+      GenerateTSImport(['tx'], '@doko-js/core') +
+      '\n' +
+      (this.refl.customTypes.length > 0
+        ? GenerateAsteriskTSImport(
+            `../types/${this.refl.programName}`,
+            'records'
+          ) + '\n'
+        : '') +
+      this.generateExternalTransitionsImport(
+        this.refl.functions.flatMap((fn) => fn.calls)
+      ) +
+      '\n\n';
+
+    this.refl.functions
+      .filter((fn) => fn.type === 'function')
+      .forEach((fn) => {
+        const tsReceiptTypeGenerator = new TSReceiptTypeGenerator();
+
+        fn.calls.forEach((externalCall) => {
+          tsReceiptTypeGenerator.addTransitionRef(
+            externalCall.program,
+            externalCall.functionName
+          );
+        });
+
+        tsReceiptTypeGenerator.addTransition(
+          this.refl.programName,
+          fn.name,
+          fn.outputs.map((output) => this.resolveOutputType(output))
+        );
+
+        code = code.concat(
+          tsReceiptTypeGenerator.generate(
+            GetProgramTransitionsTypeName(this.refl.programName, fn.name)
+          )
+        );
+      });
+
+    return code;
+  }
+
   private generateExternalRecordImports(): string {
     const externalRecords = new Set(
       this.refl.functions.flatMap((f) => {
@@ -137,7 +226,9 @@ class Generator {
         GenerateTSImport(
           entry[1],
           entry[0],
-          entry[1].map((type) => `${entry[0].split('/')[2]}_${type}`)
+          entry[1].map((type) =>
+            GetExternalRecordAlias(entry[0].split('/')[2], type)
+          )
         )
       )
       .join('\n');
@@ -340,7 +431,10 @@ class Generator {
       });
     }
     // We return transaction object as last argument
-    returnValues.push({ name: 'result.transaction', type: 'TransactionModel' });
+    returnValues.push({
+      name: 'result.transaction',
+      type: `TransactionModel & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}`
+    });
 
     // Format return statement and return type accordingly
     const variables = returnValues.map((returnValue) => returnValue.name);
@@ -481,6 +575,7 @@ class Generator {
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
       GenerateTSImport(['TransactionModel'], '@aleohq/sdk'),
+      GenerateAsteriskTSImport(`./transitions/${programName}`, 'receipt'),
       '\n\n'
     );
     return code.concat(

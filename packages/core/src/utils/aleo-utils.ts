@@ -28,6 +28,8 @@ const KEYWORDS: Record<string, string> = {
 
 const KeyWordSet = new Set<string>(Object.values(KEYWORDS));
 
+const CALL_OPERATOR = 'call';
+
 interface TokenInfo {
   type: TokenType;
   // Only useful for data type for now
@@ -50,6 +52,7 @@ interface FunctionDefinition {
   name: string;
   type: string;
   inputs: Array<KeyVal<Identifier, DataType>>;
+  calls: Array<{ program: string; functionName: string }>;
   outputs: Array<DataType>;
 }
 
@@ -99,7 +102,7 @@ const IsLeoArray = (type: string) => {
 };
 
 const IsLeoExternalRecord = (type: string) => {
-  return type.includes('.aleo/');
+  return type.includes('.aleo/') && !type.includes('.future');
 };
 
 const GetLeoArrTypeAndSize = (arrDef: string) => {
@@ -124,6 +127,13 @@ const ConvertToJSType = (type: string) => {
   return ALEO_TO_JS_TYPE_MAPPING.get(type);
 };
 
+function trimAleoPostfix(text: string) {
+  if (text.endsWith('.aleo')) {
+    return text.substring(0, text.length - '.aleo'.length);
+  }
+  return text;
+}
+
 export {
   TokenInfo,
   TokenType,
@@ -140,6 +150,8 @@ export {
   GetLeoArrTypeAndSize,
   IsLeoPrimitiveType,
   IsLeoExternalRecord,
+  trimAleoPostfix,
   ExternalRecord,
-  KEYWORDS
+  KEYWORDS,
+  CALL_OPERATOR
 };

@@ -1,3 +1,4 @@
+import { tx } from '@/outputs';
 import { get, post } from '@/utils/httpRequests';
 import { Output, TransactionModel } from '@aleohq/sdk';
 import { get_decrypted_value } from 'aleo-ciphertext-decryptor';
@@ -22,13 +23,13 @@ export interface ContractConfig {
 
 export interface ZkExecutionOutput {
   data: any;
-  transaction?: TransactionModel;
+  transaction?: TransactionModel & tx.Receipt;
 }
 
 const _execute = promisify(exec);
 export const execute = (cmd: string) => {
   return _execute(cmd, { maxBuffer: undefined });
-}
+};
 
 export const parseRecordString = (
   recordString: string
@@ -143,7 +144,7 @@ export const snarkExecute = async ({
 };
 
 const decryptOutput = (
-  transaction: TransactionModel,
+  transaction: TransactionModel & tx.Receipt,
   transitionName: string,
   programName: string,
   privateKey: string
@@ -226,7 +227,8 @@ export const checkDeployment = async (endpoint: string): Promise<boolean> => {
     console.log(e);
 
     throw new Error(
-      `Failed to deploy program: ${e?.message ?? 'Error occured while deploying program'
+      `Failed to deploy program: ${
+        e?.message ?? 'Error occured while deploying program'
       }`
     );
   }
@@ -251,7 +253,7 @@ const validateBroadcast = async (
         console.error('Transaction error');
         data.error = true;
       }
-      return data;
+      return data as tx.Receipt & { error: true | undefined };
     } catch (e: any) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
       console.log('Retrying: ', e.message);

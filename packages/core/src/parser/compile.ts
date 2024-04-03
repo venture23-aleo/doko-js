@@ -107,6 +107,10 @@ async function parseAleo(
         `${outputFolder}${outputFile}`,
         FormatCode(generator.generateContractClass())
       );
+      await writeToFile(
+        `${outputFolder}transitions/${outputFile}`,
+        FormatCode(generator.generateTransitions())
+      );
     }
 
     // Update cache
@@ -183,8 +187,7 @@ async function compilePrograms(projectRoot?: string) {
 
     for (const program of folders) {
       const originalName = `${program}.aleo`;
-      if (ImportFileCaches.has(originalName))
-        continue;
+      if (ImportFileCaches.has(originalName)) continue;
 
       await parseProgram(programPath + program + '/');
     }

@@ -20,6 +20,10 @@ export function InferJSDataType(type: string): string {
   return type;
 }
 
+export function GenerateAsteriskTSImport(location: string, alias: string) {
+  return `import * as ${alias} from "${location}";`;
+}
+
 export function GenerateTSImport(
   types: string[],
   location: string,

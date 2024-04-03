@@ -7,7 +7,8 @@ import {
   DataType,
   KEYWORDS,
   TokenType,
-  MappingDefinition
+  MappingDefinition,
+  CALL_OPERATOR
 } from '@/utils/aleo-utils';
 
 import { Tokenizer } from '@/parser/tokenizer';
@@ -33,12 +34,12 @@ class AleoReflection {
   }
 
   isRecordType(type: string): boolean {
-    const found = this.customTypes.find((customType) => customType.name === type)
+    const found = this.customTypes.find(
+      (customType) => customType.name === type
+    );
     if (found && found.type == 'record') return true;
     return false;
   }
-
-
 }
 
 class Parser {
@@ -113,6 +114,7 @@ class Parser {
     const fnName = this.tokenizer.readToken().value;
     const inputs = new Array<KeyVal<Identifier, DataType>>();
     const outputs: DataType[] = [];
+    const calls: FunctionDefinition['calls'] = [];
 
     // Eat the left parenthesis
     this.tokenizer.readToken();
@@ -129,15 +131,28 @@ class Parser {
       // Parse declaration
       inputs.push(this.parseExpression());
     }
-    return { name: fnName, type: token.value, inputs, outputs };
+    return { name: fnName, type: token.value, inputs, outputs, calls };
   }
 
-  private parseFunction(token: TokenInfo): FunctionDefinition {
+  private parseFunction(
+    token: TokenInfo,
+    currentProgramName: string
+  ): FunctionDefinition {
     const functionDef = this.parseFunctionPrototype(token);
 
     while (this.tokenizer.tryReadToken().value !== '}') {
       // Eat the whole function body
       const tk = this.tokenizer.readToken();
+      if (tk.value === CALL_OPERATOR) {
+        const calledFunction = this.tokenizer.readToken().value;
+        const parts = calledFunction.split('.aleo/');
+        if (!parts[0].startsWith(currentProgramName)) {
+          functionDef.calls.push({
+            program: parts[0],
+            functionName: parts[1]
+          });
+        }
+      }
       if (tk.value === KEYWORDS.OUTPUT) {
         functionDef.outputs.push(this.parseExpression().val);
       }
@@ -191,7 +206,9 @@ class Parser {
             token.value === KEYWORDS.FINALIZE ||
             token.value === KEYWORDS.CLOSURE
           )
-            aleoReflection.functions.push(this.parseFunction(token));
+            aleoReflection.functions.push(
+              this.parseFunction(token, aleoReflection.programName)
+            );
           else if (token.value === KEYWORDS.MAPPING)
             aleoReflection.mappings.push(this.parseMapping(token));
           else if (token.value === KEYWORDS.PROGRAM) {
