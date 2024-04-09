@@ -146,7 +146,7 @@ class Parser {
       if (tk.value === CALL_OPERATOR) {
         const calledFunction = this.tokenizer.readToken().value;
         const parts = calledFunction.split('.aleo/');
-        if (parts[0] !== currentProgramName) {
+        if (parts.length === 2 && parts[0] !== currentProgramName) {
           functionDef.calls.push({
             program: parts[0],
             functionName: parts[1]
