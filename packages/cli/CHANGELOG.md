@@ -1,5 +1,14 @@
 # @doko-js/cli
 
+## 0.0.3
+
+### Patch Changes
+
+- 9349c6d: - fix: deploy cli command issue
+  - update: type for transaction modal
+- Updated dependencies [9349c6d]
+  - @doko-js/core@0.1.0
+
 ## 0.0.2
 
 ### Patch Changes
