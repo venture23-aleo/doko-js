@@ -11,7 +11,8 @@ import {
   StructDefinition,
   IsLeoPrimitiveType,
   IsLeoArray,
-  MappingDefinition
+  MappingDefinition,
+  IsLeoExternalRecord
 } from '@/utils/aleo-utils';
 import { TSInterfaceGenerator } from '@/generator/ts-interface-generator';
 import { ZodObjectGenerator } from '@/generator/zod-object-generator';
@@ -37,7 +38,9 @@ import {
   GetConverterFunctionName,
   GetLeoTypeNameFromJS,
   GetLeoMappingFuncName,
-  GetContractClassName
+  GetContractClassName,
+  GetExternalRecordAlias,
+  GetProgramTransitionsTypeName
 } from './leo-naming';
 import {
   FormatLeoDataType,
@@ -45,8 +48,12 @@ import {
   InferJSDataType,
   GenerateTypeConversionStatement,
   GenerateZkRunCode,
-  GenerateZkMappingCode
+  GenerateZkMappingCode,
+  InferExternalRecordInputDataType,
+  GenerateExternalRecordConversionStatement,
+  GenerateAsteriskTSImport
 } from './generator-utils';
+import { OutputArg, TSReceiptTypeGenerator } from './ts-receipt-type-generator';
 
 class Generator {
   private refl: AleoReflection;
@@ -68,7 +75,10 @@ class Generator {
         // Strip any scope qualifier (private, public)
         const dataType = member.val.split('.')[0];
         tsInterfaceGenerator.addField(member.key, InferJSDataType(dataType));
-        zodInterfaceGenerator.addField(member.key, GenerateLeoSchemaName(dataType));
+        zodInterfaceGenerator.addField(
+          member.key,
+          GenerateLeoSchemaName(dataType)
+        );
       });
 
       // Write type definition for JS
@@ -83,10 +93,145 @@ class Generator {
 
       // Generate type alias
       const leoSchemaAlias = `${customType.name}Leo`;
-      code = code.concat(GenerateLeoSchemaAliasDeclaration(leoSchemaAlias, customType.name));
+      code = code.concat(
+        GenerateLeoSchemaAliasDeclaration(leoSchemaAlias, customType.name)
+      );
     });
 
     return code;
+  }
+
+  private resolveOutputType(output: string): OutputArg {
+    if (output.endsWith('record')) {
+      const recordName = output.substring(0, output.length - '.record'.length);
+      if (this.refl.isRecordType(recordName)) {
+        return { recordType: `records.${recordName}` };
+      } else {
+        return 'external_record';
+      }
+    }
+    if (output.endsWith('.private')) {
+      return 'private';
+    }
+    if (output.endsWith('.future')) {
+      return 'future';
+    }
+    return 'public';
+  }
+
+  private generateExternalTransitionsImport(
+    externalCalls: FunctionDefinition['calls']
+  ) {
+    const groupped: Map<string, Array<string>> = new Map();
+    externalCalls.forEach((call) => {
+      const prevCalls = new Set(groupped.get(call.program) || []);
+      prevCalls.add(call.functionName);
+      groupped.set(call.program, Array.from(prevCalls));
+    });
+
+    return Array.from(groupped.entries())
+      .map((entry) =>
+        GenerateTSImport(
+          entry[1].map((transitionName) =>
+            GetProgramTransitionsTypeName(entry[0], transitionName)
+          ),
+          `./${entry[0]}`
+        )
+      )
+      .join('\n');
+  }
+
+  public generateTransitions() {
+    // Import primitive schema type for Leo (leo-types.ts)
+
+    let code =
+      GenerateTSImport(['tx'], '@doko-js/core') +
+      '\n' +
+      (this.refl.customTypes.length > 0
+        ? GenerateAsteriskTSImport(
+            `../types/${this.refl.programName}`,
+            'records'
+          ) + '\n'
+        : '') +
+      this.generateExternalTransitionsImport(
+        this.refl.functions.flatMap((fn) => fn.calls)
+      ) +
+      '\n\n';
+
+    this.refl.functions
+      .filter((fn) => fn.type === 'function')
+      .forEach((fn) => {
+        const tsReceiptTypeGenerator = new TSReceiptTypeGenerator();
+
+        fn.calls.forEach((externalCall) => {
+          tsReceiptTypeGenerator.addTransitionRef(
+            externalCall.program,
+            externalCall.functionName
+          );
+        });
+
+        tsReceiptTypeGenerator.addTransition(
+          this.refl.programName,
+          fn.name,
+          fn.outputs.map((output) => this.resolveOutputType(output))
+        );
+
+        code = code.concat(
+          tsReceiptTypeGenerator.generate(
+            GetProgramTransitionsTypeName(this.refl.programName, fn.name)
+          )
+        );
+      });
+
+    return code;
+  }
+
+  private generateExternalRecordImports(): string {
+    const externalRecords = new Set(
+      this.refl.functions.flatMap((f) => {
+        return f.inputs
+          .map((i) => i.val)
+          .filter((i) => !i.endsWith('future'))
+          .filter((input) => IsLeoExternalRecord(input));
+      })
+    );
+
+    const imports = Array.from(externalRecords).flatMap<{
+      type: string;
+      from: string;
+    }>((externalRecord) => {
+      const parts = externalRecord.split('.aleo/');
+      const programName = parts[0];
+      const recordName = parts[1].replace('.record', '');
+
+      return [
+        { type: recordName, from: `./types/${programName}` },
+        {
+          type: GetConverterFunctionName(recordName, 'leo'),
+          from: `./js2leo/${programName}`
+        }
+      ];
+    });
+
+    const grouppedImports: Map<string, Array<string>> = new Map();
+
+    imports.forEach(({ type, from }) => {
+      const arr = grouppedImports.get(from) || [];
+      arr.push(type);
+      grouppedImports.set(from, arr);
+    });
+
+    return Array.from(grouppedImports.entries())
+      .map((entry) =>
+        GenerateTSImport(
+          entry[1],
+          entry[0],
+          entry[1].map((type) =>
+            GetExternalRecordAlias(entry[0].split('/')[2], type)
+          )
+        )
+      )
+      .join('\n');
   }
 
   private generateConverterFunction(
@@ -136,11 +281,47 @@ class Generator {
     return code;
   }
 
+  private generateDecryptFunction(customType: StructDefinition) {
+    // Eg if the input type is Token then
+    // jsType : Token
+    // leoType : TokenLeo
+    const jsType = customType.name;
+    const argName = toCamelCase(customType.name);
+
+    const fnGenerator = new TSFunctionGenerator();
+
+    // Add declaration statement
+    fnGenerator.addStatement(
+      `\tconst encodedRecord: string = typeof ${argName} === 'string'? ${argName}: ${argName}.value;\n`
+    );
+    fnGenerator.addStatement(
+      '\tconst decodedRecord: string = PrivateKey.from_string(privateKey).to_view_key().decrypt(encodedRecord);\n'
+    );
+    fnGenerator.addStatement(
+      `\tconst result: ${jsType} = get${jsType}(parseRecordString(decodedRecord));\n`
+    );
+
+    // Add return statement
+    fnGenerator.addStatement('\n\treturn result;\n');
+
+    const fnName = 'decrypt' + jsType;
+    const code = fnGenerator.generate(
+      fnName,
+      [
+        { name: argName, type: `tx.RecordOutput<${jsType}> | string` },
+        { name: 'privateKey', type: 'string' }
+      ],
+      jsType
+    );
+
+    return code;
+  }
+
   // Generate TS to Leo converter functions
   public generateJSToLeo() {
     const generatedTypes: string[] = [];
-    this.refl.customTypes.forEach(type => {
-      generatedTypes.push(type.name, `${type.name}Leo`)
+    this.refl.customTypes.forEach((type) => {
+      generatedTypes.push(type.name, `${type.name}Leo`);
     });
 
     let code = GenerateTSImport(
@@ -161,8 +342,8 @@ class Generator {
   public generateLeoToJS() {
     // Create import statement for custom types
     const generatedTypes: string[] = [];
-    this.refl.customTypes.forEach(type => {
-      generatedTypes.push(type.name, `${type.name}Leo`)
+    this.refl.customTypes.forEach((type) => {
+      generatedTypes.push(type.name, `${type.name}Leo`);
     });
 
     let code = GenerateTSImport(
@@ -172,12 +353,20 @@ class Generator {
     code = code.concat(JS_FN_IMPORT, '\n\n');
 
     this.refl.customTypes.forEach((customType: StructDefinition) => {
-      code = code.concat(this.generateConverterFunction(customType, STRING_JS));
+      code = code.concat(
+        this.generateConverterFunction(customType, STRING_JS),
+        ...(customType.type === 'record'
+          ? ['\n', this.generateDecryptFunction(customType)]
+          : [])
+      );
     });
     return code;
   }
 
-  private generateTransitionFunction(func: FunctionDefinition, outUsedTypes: Set<string>) {
+  private generateTransitionFunction(
+    func: FunctionDefinition,
+    outUsedTypes: Set<string>
+  ) {
     const fnGenerator = new TSFunctionGenerator()
       .setIsAsync(true)
       .setIsClassMethod(true)
@@ -188,8 +377,11 @@ class Generator {
 
     func.inputs.forEach((input) => {
       // Generate argument array
+      const isExternalRecord = IsLeoExternalRecord(input.val);
       const leoType = FormatLeoDataType(input.val).split('.')[0];
-      const jsType = InferJSDataType(leoType);
+      const jsType = isExternalRecord
+        ? InferExternalRecordInputDataType(input.val)
+        : InferJSDataType(leoType);
 
       // Create argument for each parameter of function
       const argName = input.key;
@@ -201,11 +393,13 @@ class Generator {
 
       // We ignore the qualifier while generating conversion function
       // for transition function parameter
-      let fnName = GenerateTypeConversionStatement(
-        leoType,
-        argName,
-        STRING_LEO
-      );
+      let fnName = isExternalRecord
+        ? GenerateExternalRecordConversionStatement(
+            input.val,
+            argName,
+            STRING_LEO
+          )
+        : GenerateTypeConversionStatement(leoType, argName, STRING_LEO);
 
       // For custom type that produce object it must be converted to string
       if (this.refl.isCustomType(leoType)) {
@@ -233,34 +427,55 @@ class Generator {
     */
 
     // Ignore 'future' returntype for now
-    const funcOutputs = func.outputs
-      .map((output) => FormatLeoDataType(output))
-      .filter((output) => !output.includes('future'));
+    const funcOutputs = func.outputs.filter(
+      (output) => !output.includes('future')
+    );
 
     const returnValues: { name: string; type: string }[] = [];
     if (funcOutputs.length > 0) {
       const createOutputVariable = (index: number) => `out${index}`;
 
       funcOutputs.forEach((output, index) => {
+        const formattedOutput = FormatLeoDataType(output);
         const lhs = createOutputVariable(index);
         let input = `result.data[${index}]`;
 
         // cast non-custom datatype to string
-        const type = output.split('.')[0];
+        const type = formattedOutput.split('.')[0];
         if (IsLeoPrimitiveType(type)) input = `${input} as string`;
 
         const isRecordType = this.refl.isRecordType(type);
-        const rhs = isRecordType ? input : GenerateTypeConversionStatement(output, input, STRING_JS);
+        const isExternalRecord =
+          output.includes('.aleo/') && output.includes('.record');
+        const externaleRecordParts = output
+          .replace('.record', '')
+          .split('.aleo/');
+        const rhs = isExternalRecord
+          ? GenerateExternalRecordConversionStatement(output, input, STRING_JS)
+          : isRecordType
+            ? input
+            : GenerateTypeConversionStatement(
+                formattedOutput,
+                input,
+                STRING_JS
+              );
         fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
 
         returnValues.push({
           name: lhs,
-          type: isRecordType ? 'LeoRecord' : InferJSDataType(type)
+          type: isExternalRecord
+            ? `ExternalRecord<'${externaleRecordParts[0]}', '${externaleRecordParts[1]}'>`
+            : isRecordType
+              ? 'LeoRecord'
+              : InferJSDataType(type)
         });
       });
     }
     // We return transaction object as last argument
-    returnValues.push({ name: 'result.transaction', type: 'TransactionModel' });
+    returnValues.push({
+      name: 'result.transaction',
+      type: `TransactionModel & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}`
+    });
 
     // Format return statement and return type accordingly
     const variables = returnValues.map((returnValue) => returnValue.name);
@@ -270,7 +485,10 @@ class Generator {
     return fnGenerator.generate(func.name, args, returnTypeString);
   }
 
-  private generateMappingFunction(mapping: MappingDefinition, usedTypes: Set<string>) {
+  private generateMappingFunction(
+    mapping: MappingDefinition,
+    usedTypes: Set<string>
+  ) {
     const fnGenerator = new TSFunctionGenerator()
       .setIsAsync(true)
       .setIsClassMethod(true)
@@ -291,10 +509,10 @@ class Generator {
 
     // For custom type that produce object it must be converted to string
     if (this.refl.isCustomType(leoType)) {
-      fnName = `js2leo.json(${fnName})`
+      fnName = `js2leo.json(${fnName})`;
       // @NOTE can we use custom type as key for mapping?
       usedTypes.add(jsType);
-    };
+    }
 
     const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
     fnGenerator.addStatement(conversionCode);
@@ -322,8 +540,7 @@ class Generator {
 
     const returnType = InferJSDataType(leoReturnType);
     fnArg.push({ name: 'defaultValue?', type: returnType });
-    if (this.refl.isCustomType(leoReturnType))
-      usedTypes.add(returnType);
+    if (this.refl.isCustomType(leoReturnType)) usedTypes.add(returnType);
 
     return fnGenerator.generate(
       GetLeoMappingFuncName(mapping.name),
@@ -347,27 +564,41 @@ class Generator {
         contractPath: '${PROGRAM_DIRECTORY}${programName}', 
         fee: '0.01'
     };
-  }\n`);
+  }\n`
+    );
 
     this.refl.functions.forEach((func) => {
       if (func.type === 'function') {
-        classGenerator.addMethod(this.generateTransitionFunction(func, usedTypesSet));
+        classGenerator.addMethod(
+          this.generateTransitionFunction(func, usedTypesSet)
+        );
       }
     });
     this.refl.mappings.forEach((mapping) => {
-      classGenerator.addMethod(this.generateMappingFunction(mapping, usedTypesSet));
+      classGenerator.addMethod(
+        this.generateMappingFunction(mapping, usedTypesSet)
+      );
     });
 
     const usedTypes = Array.from(usedTypesSet);
     let code = '';
     if (usedTypes.length > 0) {
       code = code.concat(GenerateTSImport(usedTypes, `./types/${programName}`));
-      let usedFunctions = usedTypes.map((type) => GetConverterFunctionName(type, STRING_LEO));
-      code = code.concat(GenerateTSImport(usedFunctions, `./js2leo/${programName}`));
+      let usedFunctions = usedTypes.map((type) =>
+        GetConverterFunctionName(type, STRING_LEO)
+      );
+      code = code.concat(
+        GenerateTSImport(usedFunctions, `./js2leo/${programName}`)
+      );
 
-      usedFunctions = usedTypes.map((type) => GetConverterFunctionName(type, STRING_JS));
-      code = code.concat(GenerateTSImport(usedFunctions, `./leo2js/${programName}`));
+      usedFunctions = usedTypes.map((type) =>
+        GetConverterFunctionName(type, STRING_JS)
+      );
+      code = code.concat(
+        GenerateTSImport(usedFunctions, `./leo2js/${programName}`)
+      );
     }
+    code = code.concat(this.generateExternalRecordImports(), '\n');
 
     code = code.concat(
       GenerateTSImport(
@@ -378,12 +609,14 @@ class Generator {
           'LeoAddress',
           'LeoRecord',
           'js2leo',
-          'leo2js'
+          'leo2js',
+          'ExternalRecord'
         ],
         '@doko-js/core'
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
       GenerateTSImport(['TransactionModel'], '@aleohq/sdk'),
+      GenerateAsteriskTSImport(`./transitions/${programName}`, 'receipt'),
       '\n\n'
     );
     return code.concat(

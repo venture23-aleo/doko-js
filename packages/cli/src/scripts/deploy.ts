@@ -1,7 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 
-import {Shell, getAleoConfig, getProjectRoot} from '@doko-js/utils';
+import { Shell, getAleoConfig, getProjectRoot } from '@doko-js/utils';
 
 function createProgramPath(programName: string) {
   const projectRoot = getProjectRoot();
@@ -45,8 +45,9 @@ async function deploy(
   }
   const config = await getAleoConfig();
   const appName = programName;
-  const privateKey = config.accounts[privateKeyIndex];
-  const nodeEndPoint = config[network].node;
+  const networkConfig = config.networks[network];
+  const privateKey = networkConfig.accounts[privateKeyIndex];
+  const nodeEndPoint = networkConfig.endpoint;
   const deployPath = getBuildPath(programName);
   const priorityFee = 0;
   const command = `snarkos developer deploy "${appName}.aleo" --private-key "${privateKey}" --query ${nodeEndPoint} --path ${deployPath} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast" --priority-fee ${priorityFee}`;
