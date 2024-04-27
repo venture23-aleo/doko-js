@@ -149,9 +149,9 @@ class Generator {
       '\n' +
       (this.refl.customTypes.length > 0
         ? GenerateAsteriskTSImport(
-            `../types/${this.refl.programName}`,
-            'records'
-          ) + '\n'
+          `../types/${this.refl.programName}`,
+          'records'
+        ) + '\n'
         : '') +
       this.generateExternalTransitionsImport(
         this.refl.functions.flatMap((fn) => fn.calls)
@@ -298,7 +298,7 @@ class Generator {
       '\tconst decodedRecord: string = PrivateKey.from_string(privateKey).to_view_key().decrypt(encodedRecord);\n'
     );
     fnGenerator.addStatement(
-      `\tconst result: ${jsType} = get${jsType}(parseRecordString(decodedRecord));\n`
+      `\tconst result: ${jsType} = get${jsType}(parseJSONLikeString(decodedRecord));\n`
     );
 
     // Add return statement
@@ -395,10 +395,10 @@ class Generator {
       // for transition function parameter
       let fnName = isExternalRecord
         ? GenerateExternalRecordConversionStatement(
-            input.val,
-            argName,
-            STRING_LEO
-          )
+          input.val,
+          argName,
+          STRING_LEO
+        )
         : GenerateTypeConversionStatement(leoType, argName, STRING_LEO);
 
       // For custom type that produce object it must be converted to string
@@ -455,10 +455,10 @@ class Generator {
           : isRecordType
             ? input
             : GenerateTypeConversionStatement(
-                formattedOutput,
-                input,
-                STRING_JS
-              );
+              formattedOutput,
+              input,
+              STRING_JS
+            );
         fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
 
         returnValues.push({
@@ -552,11 +552,13 @@ class Generator {
   // Generate transition function body
   public generateContractClass() {
     const programName = this.refl.programName;
-    const classGenerator = new TSClassGenerator().extendsFrom('BaseContract');
+    const classGenerator = new TSClassGenerator()
+      .extendsFrom('BaseContract')
+      .addMember({ key: 'context', val: 'ExecutionContext' });
 
     const usedTypesSet = new Set<string>();
     classGenerator.addMethod(
-      `constructor(config: ContractConfig = {}) {
+      `constructor(config: ContractConfig = {mode: ExecutionMode.LeoRun}) {
         super(config);
     this.config = {
         ...this.config,
@@ -564,6 +566,7 @@ class Generator {
         contractPath: '${PROGRAM_DIRECTORY}${programName}', 
         fee: '0.01'
     };
+    this.context = CreateExecutionContext(this.config);
   }\n`
     );
 
@@ -603,14 +606,16 @@ class Generator {
     code = code.concat(
       GenerateTSImport(
         [
-          'zkRun',
           'ContractConfig',
           'zkGetMapping',
           'LeoAddress',
           'LeoRecord',
           'js2leo',
           'leo2js',
-          'ExternalRecord'
+          'ExternalRecord',
+          'ExecutionMode',
+          'ExecutionContext',
+          'CreateExecutionContext',
         ],
         '@doko-js/core'
       ),

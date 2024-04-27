@@ -8,9 +8,9 @@ import {
 } from '@doko-js/core';
 import { to_address } from 'aleo-program-to-address';
 import networkConfig from '../aleo-config';
+
 export class BaseContract {
   public config: ContractConfig = {};
-
   constructor(config: ContractConfig) {
     if (config) {
       this.config = {
