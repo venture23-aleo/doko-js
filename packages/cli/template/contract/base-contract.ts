@@ -2,6 +2,7 @@
 import { PrivateKey, TransactionModel } from '@aleohq/sdk';
 import {
   ContractConfig,
+  ExecutionMode,
   checkDeployment,
   snarkDeploy,
   waitTransaction
@@ -55,6 +56,7 @@ export class BaseContract {
   async wait<T extends TransactionModel = TransactionModel>(
     transaction: T
   ): Promise<T> {
+    if (this.config.mode === ExecutionMode.LeoRun || this.config.mode === ExecutionMode.LeoExecute) return transaction;
     const endpoint = this.config.network.endpoint;
     const data = (await waitTransaction(transaction, endpoint)) as T;
     if (!(data.execution || data.deployment)) {

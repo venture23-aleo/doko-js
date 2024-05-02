@@ -26,7 +26,7 @@ function parseRecordtoToken(
   privateKey?: string
 ): token {
   // Records are encrypted in execute mode so we need to decrypt them
-  if (mode === ExecutionMode.SnarkExecute) {
+  if (mode === ExecutionMode.SnarkExecute || mode === ExecutionMode.LeoExecute) {
     if (!privateKey)
       throw new Error('Private key is required for execute mode');
     const record = gettoken(
