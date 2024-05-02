@@ -1,4 +1,5 @@
 import { isDefined } from "./execution-helper";
+import { LeoExecuteContext } from "./leo-execute";
 import { LeoRunContext } from "./leo-run";
 import { ContractConfig, ExecutionContext, ExecutionMode } from "./types";
 
@@ -8,6 +9,7 @@ export function CreateExecutionContext(config: ContractConfig): ExecutionContext
         case ExecutionMode.LeoRun:
             return new LeoRunContext(config);
         case ExecutionMode.LeoExecute:
+            return new LeoExecuteContext(config);
         case ExecutionMode.SnarkExecute:
             break;
     }
