@@ -2,7 +2,7 @@ import { get, post } from "@/utils/httpRequests";
 import { ContractConfig } from "./types";
 import { TransactionModel } from "@aleohq/sdk";
 import { execute } from "./execution-helper";
-import { StdoutResponseParser } from "./output-parser";
+import { SnarkStdoutResponseParser, StdoutResponseParser } from "./output-parser";
 import { tx } from "../outputs";
 
 // Convert json like string to json
@@ -59,7 +59,7 @@ export const checkDeployment = async (endpoint: string): Promise<boolean> => {
   }
 };
 
-const broadcastTransaction = async (
+export const broadcastTransaction = async (
   transaction: TransactionModel,
   endpoint: string
 ) => {
@@ -75,7 +75,7 @@ const broadcastTransaction = async (
   }
 };
 
-export const snarkDeploy = async (config : ContractConfig): Promise<TransactionModel> => {
+export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promise<TransactionModel> => {
   const nodeEndPoint = config['network']?.endpoint;
 
   if (!nodeEndPoint) {
@@ -96,7 +96,7 @@ export const snarkDeploy = async (config : ContractConfig): Promise<TransactionM
 
   const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
   const { stdout } = await execute(cmd);
-  const result = new StdoutResponseParser().parse(stdout);
+  const result = new SnarkStdoutResponseParser().parse(stdout);
   // @TODO check it later
   await broadcastTransaction(result.transaction as TransactionModel, nodeEndPoint);
   return result.transaction as TransactionModel;

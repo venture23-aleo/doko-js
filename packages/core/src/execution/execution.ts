@@ -1,6 +1,7 @@
 import { isDefined } from "./execution-helper";
 import { LeoExecuteContext } from "./leo-execute";
 import { LeoRunContext } from "./leo-run";
+import { SnarkExecuteContext } from "./snark-execute";
 import { ContractConfig, ExecutionContext, ExecutionMode } from "./types";
 
 export function CreateExecutionContext(config: ContractConfig): ExecutionContext {
@@ -11,7 +12,8 @@ export function CreateExecutionContext(config: ContractConfig): ExecutionContext
         case ExecutionMode.LeoExecute:
             return new LeoExecuteContext(config);
         case ExecutionMode.SnarkExecute:
-            break;
+            return new SnarkExecuteContext(config);
+
     }
     throw new Error('Unsupported Execution Mode');
 }
