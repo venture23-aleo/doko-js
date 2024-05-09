@@ -37,7 +37,7 @@ function parseRecordtoToken(
     return record;
   }
   const record = gettoken(
-    parseJSONLikeString(JSON.stringify(recordString)) as tokenLeo
+    parseJSONLikeString(recordString) as tokenLeo
   );
   return record;
 }

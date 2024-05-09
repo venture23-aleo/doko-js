@@ -453,7 +453,7 @@ class Generator {
         const rhs = isExternalRecord
           ? GenerateExternalRecordConversionStatement(output, input, STRING_JS)
           : isRecordType
-            ? input
+            ? `(this.config.mode===ExecutionMode.LeoRun) ? JSON.stringify(${input}) : ${input}`
             : GenerateTypeConversionStatement(
               formattedOutput,
               input,
