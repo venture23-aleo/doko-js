@@ -114,13 +114,6 @@ export function FormatLeoDataType(type: string) {
 }
 
 export function GenerateZkRunCode(transitionName: string) {
-  /*
-  return `\tconst result = await zkRun({
-        config: this.config,
-        transition: '${transitionName}',
-        params,
-      });\n`;
-      */
   return `const result = await this.context.execute('${transitionName}', params);`;
 }
 
