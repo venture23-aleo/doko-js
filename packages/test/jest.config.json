@@ -6,6 +6,5 @@
   "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
 
   "preset": "ts-jest/presets/default-esm",
-  "setupFilesAfterEnv": ["./test.config.js"],
-  "globalSetup": "./setup.ts"
+  "setupFilesAfterEnv": ["./test.config.js"]
 }
