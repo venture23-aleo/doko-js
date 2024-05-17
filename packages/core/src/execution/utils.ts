@@ -61,10 +61,11 @@ export const checkDeployment = async (endpoint: string): Promise<boolean> => {
 
 export const broadcastTransaction = async (
   transaction: TransactionModel,
-  endpoint: string
+  endpoint: string,
+  networkName: string
 ) => {
   try {
-    return await post(`${endpoint}/testnet3/transaction/broadcast`, {
+    return await post(`${endpoint}/${networkName}/transaction/broadcast`, {
       body: JSON.stringify(transaction),
       headers: {
         'Content-Type': 'application/json'
@@ -85,7 +86,7 @@ export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promi
   const priorityFee = config.priorityFee || 0;
 
   const isProgramDeployed = await checkDeployment(
-    `${nodeEndPoint}/testnet3/program/${config.appName}.aleo`
+    `${nodeEndPoint}/${config.networkName}/program/${config.appName}.aleo`
   );
 
   if (isProgramDeployed) {
@@ -94,19 +95,20 @@ export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promi
 
   console.log(`Deploying program ${config.appName}`);
 
-  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --network ${config.networkMode} --query ${nodeEndPoint} --dry-run`;
   const { stdout } = await execute(cmd);
   const result = new SnarkStdoutResponseParser().parse(stdout);
   // @TODO check it later
-  await broadcastTransaction(result.transaction as TransactionModel, nodeEndPoint);
+  await broadcastTransaction(result.transaction as TransactionModel, nodeEndPoint, config.networkName!);
   return result.transaction as TransactionModel;
 };
 
 const validateBroadcast = async (
   transactionId: string,
-  nodeEndpoint: string
+  nodeEndpoint: string,
+  networkName: string
 ) => {
-  const pollUrl = `${nodeEndpoint}/testnet3/transaction/${transactionId}`;
+  const pollUrl = `${nodeEndpoint}/${networkName}/transaction/${transactionId}`;
   const timeoutMs = 60_000;
   const pollInterval = 1000; // 1 second
   const startTime = Date.now();
@@ -133,10 +135,11 @@ const validateBroadcast = async (
 
 export const waitTransaction = async (
   transaction: TransactionModel,
-  endpoint: string
+  endpoint: string,
+  networkName: string
 ) => {
   const transactionId = transaction.id;
-  if (transactionId) return await validateBroadcast(transactionId, endpoint);
+  if (transactionId) return await validateBroadcast(transactionId, endpoint, networkName);
   return null;
 };
 
