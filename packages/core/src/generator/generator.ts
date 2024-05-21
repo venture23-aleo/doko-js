@@ -438,7 +438,7 @@ class Generator {
       funcOutputs.forEach((output, index) => {
         const formattedOutput = FormatLeoDataType(output);
         const lhs = createOutputVariable(index);
-        let input = `result.data[${index}]`;
+        let input = `result.outputs[${index}]`;
 
         // cast non-custom datatype to string
         const type = formattedOutput.split('.')[0];
@@ -460,7 +460,9 @@ class Generator {
                 STRING_JS
               );
         fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
-
+        if (this.refl.isCustomType(type)) {
+          outUsedTypes.add(InferJSDataType(type));
+        }
         returnValues.push({
           name: lhs,
           type: isExternalRecord
@@ -473,8 +475,8 @@ class Generator {
     }
     // We return transaction object as last argument
     returnValues.push({
-      name: 'result.transaction',
-      type: `TransactionModel & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}`
+      name: 'result',
+      type: `TransactionResponse & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}`
     });
 
     // Format return statement and return type accordingly
@@ -556,14 +558,13 @@ class Generator {
 
     const usedTypesSet = new Set<string>();
     classGenerator.addMethod(
-      `constructor(config: ContractConfig = {}) {
-        super(config);
-    this.config = {
-        ...this.config,
-        appName: '${programName}',
-        contractPath: '${PROGRAM_DIRECTORY}${programName}', 
-        fee: '0.01'
-    };
+      `constructor(config: Partial<ContractConfig> = {}) {
+        super({
+          ...config,
+          appName: '${programName}',
+          contractPath: '${PROGRAM_DIRECTORY}${programName}', 
+          fee: '0.01'
+      });
   }\n`
     );
 
@@ -603,19 +604,18 @@ class Generator {
     code = code.concat(
       GenerateTSImport(
         [
-          'zkRun',
           'ContractConfig',
           'zkGetMapping',
           'LeoAddress',
           'LeoRecord',
           'js2leo',
           'leo2js',
-          'ExternalRecord'
+          'ExternalRecord',
+          'TransactionResponse'
         ],
         '@doko-js/core'
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
-      GenerateTSImport(['TransactionModel'], '@aleohq/sdk'),
       GenerateAsteriskTSImport(`./transitions/${programName}`, 'receipt'),
       '\n\n'
     );
