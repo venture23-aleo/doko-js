@@ -32,7 +32,7 @@ const parseTransactionFromStdout = (stdout: string) => {
   return JSON.parse(stdout.match(/\{([^)]+)\}/)![0]);
 };
 
-const checkDeployment = async (endpoint: string): Promise<boolean> => {
+export const checkDeployment = async (endpoint: string): Promise<boolean> => {
   try {
     console.log(`Checking deployment: ${endpoint}`);
     const response = await get(endpoint);

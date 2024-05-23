@@ -3,6 +3,7 @@ import { PrivateKey, TransactionModel } from '@aleohq/sdk';
 import {
   ContractConfig,
   snarkDeploy,
+  checkDeployment,
   CreateExecutionContext  
 } from '@doko-js/core';
 import { to_address } from 'aleo-program-to-address';
@@ -39,6 +40,11 @@ export class BaseContract {
       this.config.privateKey = networkConfig.networks[networkName].accounts[0];
 
     this.ctx = CreateExecutionContext(this.config);
+  }
+
+  async isDeployed(): Promise<boolean> {
+    const endpoint = `${this.config.network.endpoint}/testnet3/program/${this.config.appName}.aleo`;
+    return checkDeployment(endpoint);
   }
 
   async deploy(): Promise<any> {
