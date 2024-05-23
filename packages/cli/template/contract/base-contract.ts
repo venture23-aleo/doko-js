@@ -48,4 +48,42 @@ export class BaseContract {
 
     return result;
   }
+
+  address(): string {
+    return to_address(`${this.config.appName}.aleo`);
+  }
+
+  // TODO: handle properly
+  getAccounts(): string[] {
+    const accounts = this.config.network.accounts.map((pvtKey) => {
+      return PrivateKey.from_string(pvtKey).to_address().to_string();
+    });
+    return accounts;
+  }
+
+  getDefaultAccount(): string {
+    return PrivateKey.from_string(this.config.privateKey)
+      .to_address()
+      .to_string();
+  }
+
+  getPrivateKey(address: string) {
+    return this.config.network.accounts.find(
+      (pvtKey: string) =>
+        PrivateKey.from_string(pvtKey).to_address().to_string() == address
+    );
+  }
+
+  // TODO: Handle properly
+  connect(account: string) {
+    const accounts = this.config.network.accounts.map((pvtKey) => {
+      return PrivateKey.from_string(pvtKey).to_address().to_string();
+    });
+    const accountIndex = accounts.indexOf(account);
+    if (accountIndex == -1) {
+      throw Error(`Account ${account} not found!`);
+    } else {
+      this.config.privateKey = this.config.network.accounts[accountIndex];
+    }
+  }
 }
