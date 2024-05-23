@@ -4,7 +4,8 @@ import {
   ContractConfig,
   snarkDeploy,
   checkDeployment,
-  CreateExecutionContext  
+  CreateExecutionContext,  
+  TransactionResponse
 } from '@doko-js/core';
 import { to_address } from 'aleo-program-to-address';
 import networkConfig from '../aleo-config';
@@ -45,6 +46,16 @@ export class BaseContract {
   async isDeployed(): Promise<boolean> {
     const endpoint = `${this.config.network.endpoint}/testnet3/program/${this.config.appName}.aleo`;
     return checkDeployment(endpoint);
+  }
+
+/** 
+  * @deprecated Use transaction receipt to wait.
+*/  
+
+  async wait<T extends TransactionResponse = TransactionResponse>(
+    transaction: T
+  ): Promise<T> {
+    return transaction.wait();
   }
 
   async deploy(): Promise<any> {
