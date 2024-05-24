@@ -11,11 +11,13 @@ export class SnarkExecuteContext implements ExecutionContext {
     async execute(transitionName: string, params: string[]): Promise<ExecutionOutput> {
         const formattedParams = formatArgs(params);
         const nodeEndPoint = this.config['network']?.endpoint;
+        if (!nodeEndPoint) throw new Error('Network endpoint is not defined')
         const cmd = `cd ${this.config.contractPath} && snarkos developer execute ${this.config.appName}.aleo ${transitionName} ${formattedParams} --private-key ${this.config.privateKey} --query ${nodeEndPoint} --dry-run`;
         console.log(cmd);
         const { stdout } = await execute(cmd);
         console.log(stdout);
         const { transaction } = this.parser.parse(stdout);
+        if (!transaction) throw new Error('Failed to execute transaction');
         await broadcastTransaction(transaction!, nodeEndPoint!);
         const programName = this.config.appName + '.aleo';
         const decrypedData = decryptOutput(
