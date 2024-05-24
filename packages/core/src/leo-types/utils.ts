@@ -1,30 +1,10 @@
+/*
 import { tx } from '@/outputs';
 import { get, post } from '@/utils/httpRequests';
 import { Output, TransactionModel } from '@aleohq/sdk';
 import { get_decrypted_value } from 'aleo-ciphertext-decryptor';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-
-interface NetworkConfig {
-  endpoint: string;
-}
-
-export interface ContractConfig {
-  privateKey?: string;
-  viewKey?: string;
-  appName?: string;
-  contractPath?: string;
-  fee?: string;
-  network?: NetworkConfig;
-  networkName?: string;
-  mode?: string;
-  priorityFee?: number;
-}
-
-export interface ZkExecutionOutput {
-  data: any;
-  transaction?: TransactionModel & tx.Receipt;
-}
 
 const _execute = promisify(exec);
 export const execute = (cmd: string) => {
@@ -92,7 +72,7 @@ const withReceipt = (stdout: string, nodeEndPoint: string) => {
     return { wait: () => waitTransaction(stdout, nodeEndPoint), result: stdout };
 };
 */
-
+/*
 const broadcastTransaction = async (
   transaction: TransactionModel,
   endpoint: string
@@ -196,6 +176,7 @@ export const leoExecute = async ({
   // snarkos developer execute sample_program.aleo main  "1u32" "2u32" --private-key APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --query "http://localhost:3030" --broadcast "http://localhost:3030/testnet3/transaction/broadcast"
   // const cmd = `cd ${config.contractPath} && snarkos developer execute  ${config.appName}.aleo ${transition} ${stringedParams} --private-key ${config.privateKey} --query ${nodeEndPoint} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast"`;
   const cmd = `cd ${config.contractPath} && leo execute ${transition} ${stringedParams}`; /* --private-key ${config.privateKey} --query ${nodeEndPoint} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast"`;*/
+  /*
   console.log(cmd);
 
   const { stdout } = await execute(cmd);
@@ -355,3 +336,4 @@ export const leoGetContractAddress = async (contractName: string) => {
   console.log(stdout);
   return stdout;
 };
+*/
