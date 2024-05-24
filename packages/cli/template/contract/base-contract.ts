@@ -2,15 +2,16 @@
 import { PrivateKey, TransactionModel } from '@aleohq/sdk';
 import {
   ContractConfig,
+  ExecutionMode,
   checkDeployment,
   snarkDeploy,
   waitTransaction
 } from '@doko-js/core';
 import { to_address } from 'aleo-program-to-address';
 import networkConfig from '../aleo-config';
+
 export class BaseContract {
   public config: ContractConfig = {};
-
   constructor(config: ContractConfig) {
     if (config) {
       this.config = {
@@ -55,6 +56,7 @@ export class BaseContract {
   async wait<T extends TransactionModel = TransactionModel>(
     transaction: T
   ): Promise<T> {
+    if (this.config.mode === ExecutionMode.LeoRun || this.config.mode === ExecutionMode.LeoExecute) return transaction;
     const endpoint = this.config.network.endpoint;
     const data = (await waitTransaction(transaction, endpoint)) as T;
     if (!(data.execution || data.deployment)) {
