@@ -26,8 +26,9 @@ export interface ContractConfig {
     networkName?: string;
     mode?: ExecutionMode;
     priorityFee?: number;
+    networkMode?: number;
 }
 
 export interface ExecutionContext {
-    execute(transitionName: string, params: string[]) : Promise<ExecutionOutput>;
+    execute(transitionName: string, params: string[]): Promise<ExecutionOutput>;
 }

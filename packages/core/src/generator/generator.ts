@@ -563,7 +563,8 @@ class Generator {
     this.config = {
         ...this.config,
         appName: '${programName}',
-        contractPath: '${PROGRAM_DIRECTORY}${programName}', 
+        contractPath: '${PROGRAM_DIRECTORY}${programName}',
+        networkMode: this.config.networkName === 'testnet' ? 1 : 0, 
         fee: '0.01'
     };
     this.context = CreateExecutionContext(this.config);
