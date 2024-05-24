@@ -2,4 +2,5 @@ dist
 node_modules
 *.tgz
 example
+packages/test/artifacts
 testing
