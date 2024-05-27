@@ -4,6 +4,8 @@ import { TransactionModel } from "@aleohq/sdk";
 import { execute } from "./execution-helper";
 import { SnarkStdoutResponseParser, StdoutResponseParser } from "./output-parser";
 import { tx } from "../outputs";
+import { SnarkDeployResponse } from "@/leo-types/transaction";
+import { TransactionResponse } from "dist";
 
 // Convert json like string to json
 export function parseJSONLikeString(
@@ -76,7 +78,7 @@ export const broadcastTransaction = async (
   }
 };
 
-export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promise<TransactionModel> => {
+export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promise<TransactionResponse> => {
   const nodeEndPoint = config['network']?.endpoint;
 
   if (!nodeEndPoint) {
@@ -100,7 +102,7 @@ export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promi
   const result = new SnarkStdoutResponseParser().parse(stdout);
   // @TODO check it later
   await broadcastTransaction(result.transaction as TransactionModel, nodeEndPoint, config.networkName!);
-  return result.transaction as TransactionModel;
+  return new SnarkDeployResponse(result.transaction as TransactionModel, config);
 };
 
 // export const validateBroadcast = async (

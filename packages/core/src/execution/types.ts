@@ -23,13 +23,13 @@ export interface BaseConfig {
     network: NetworkConfig;
     networkName: string;
     privateKey: string;
+    networkMode : number;
 }
 
 export interface ContractConfig extends BaseConfig {
     fee?: string;
     mode?: ExecutionMode;
     priorityFee?: number;
-    networkMode? : number;
 }
 
 export interface ExecutionContext {
