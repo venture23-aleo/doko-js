@@ -6,7 +6,7 @@ export default {
   mode: 'execute',
   mainnet: {},
   networks: {
-    testnet3: {
+    testnet: {
       endpoint: 'http://localhost:3030',
       accounts: [
         process.env.ALEO_PRIVATE_KEY_TESTNET3,
@@ -20,5 +20,5 @@ export default {
       priorityFee: 0.001
     }
   },
-  defaultNetwork: 'testnet3'
+  defaultNetwork: 'testnet'
 };
