@@ -40,7 +40,7 @@ export class BaseContract {
   }
 
   async isDeployed(): Promise<boolean> {
-    const endpoint = `${this.config.network.endpoint}/testnet3/program/${this.config.appName}.aleo`;
+    const endpoint = `${this.config.network.endpoint}/${this.config.networkName}/program/${this.config.appName}.aleo`;
     return checkDeployment(endpoint);
   }
 
@@ -56,7 +56,7 @@ export class BaseContract {
     transaction: T
   ): Promise<T> {
     const endpoint = this.config.network.endpoint;
-    const data = (await waitTransaction(transaction, endpoint)) as T;
+    const data = (await waitTransaction(transaction, endpoint, this.config.networkName)) as T;
     if (!(data.execution || data.deployment)) {
       throw Error('Something went wrong');
     }
