@@ -146,10 +146,10 @@ export class SnarkExecuteResponse extends LeoExecuteResponse {
     async blockHeight(){
         const transactionId = this.tx0?.id;
         const nodeEndpoint = this.transactionParams.network.endpoint;
-        let pollUrl = `${nodeEndpoint}/testnet3/find/blockHash/${transactionId}`;
+        let pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/find/blockHash/${transactionId}`;
         const response = await get(pollUrl);
         const blockHash = await response.json();
-        pollUrl = `${nodeEndpoint}/testnet3/height/${blockHash}`;
+        pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/height/${blockHash}`;
         const response1 = await get(pollUrl);
         const blockHeight = await response1.json();
         return blockHeight;
@@ -180,10 +180,10 @@ export class SnarkDeployResponse implements TransactionResponse {
     async blockHeight(){
         const transactionId = this.tx0?.id;
         const nodeEndpoint = this.transactionParams.network.endpoint;
-        let pollUrl = `${nodeEndpoint}/testnet3/find/blockHash/${transactionId}`;
+        let pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/find/blockHash/${transactionId}`;
         const response = await get(pollUrl);
         const blockHash = await response.json();
-        pollUrl = `${nodeEndpoint}/testnet3/height/${blockHash}`;
+        pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/height/${blockHash}`;
         const response1 = await get(pollUrl);
         const blockHeight = await response1.json();
         return blockHeight;
