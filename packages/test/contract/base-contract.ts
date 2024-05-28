@@ -22,6 +22,9 @@ export class BaseContract {
     if (!this.config.networkName)
       this.config.networkName = networkConfig.defaultNetwork;
 
+    if (!this.config.networkMode)
+      this.config.networkMode = this.config.networkName === 'mainnet' ? 0 : 1;
+
     const networkName = this.config.networkName;
     if (networkName) {
       if (!networkConfig?.networks[networkName])
