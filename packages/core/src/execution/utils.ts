@@ -4,8 +4,7 @@ import { TransactionModel } from "@aleohq/sdk";
 import { execute } from "./execution-helper";
 import { SnarkStdoutResponseParser, StdoutResponseParser } from "./output-parser";
 import { tx } from "../outputs";
-import { SnarkDeployResponse } from "@/leo-types/transaction";
-import { TransactionResponse } from "dist";
+import { SnarkDeployResponse, TransactionResponse } from "@/leo-types/transaction";
 
 // Convert json like string to json
 export function parseJSONLikeString(
