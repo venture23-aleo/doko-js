@@ -96,7 +96,8 @@ export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promi
 
   console.log(`Deploying program ${config.appName}`);
 
-  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --network ${config.networkMode} --query ${nodeEndPoint} --dry-run`;
+  // const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --network ${config.networkMode} --query ${nodeEndPoint} --dry-run`;
+  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
   const { stdout } = await execute(cmd);
   const result = new SnarkStdoutResponseParser().parse(stdout);
   // @TODO check it later
