@@ -18,6 +18,7 @@ export interface TransactionResponse {
     // returns the transaction object that is obtained from the endpoint
     wait: () => Promise<TransactionModel | null>
     // @TODO add block() function to get the blockHeight at which transaction is included
+    blockHeight : () => Promise <String | null>
 }
 
 export class LeoRunResponse implements TransactionResponse {
@@ -29,6 +30,10 @@ export class LeoRunResponse implements TransactionResponse {
     }
 
     async wait(): Promise<TransactionModel | null> {
+        return null;
+    }
+
+    async blockHeight(){
         return null;
     }
 }
@@ -46,6 +51,9 @@ export class LeoExecuteResponse implements TransactionResponse {
     }
 
     async wait(): Promise<TransactionModel | null> {
+        return null;
+    }
+    async blockHeight(){
         return null;
     }
 }
@@ -68,6 +76,18 @@ export class SnarkExecuteResponse extends LeoExecuteResponse {
             return await validateBroadcast(transactionId, endpoint, this.transactionParams.networkName);
         else return null;
     }
+
+    async blockHeight(){
+        const transactionId = this.tx0?.id;
+        const nodeEndpoint = this.transactionParams.network.endpoint;
+        let pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/find/blockHash/${transactionId}`;
+        const response = await get(pollUrl);
+        const blockHash = await response.json();
+        pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/height/${blockHash}`;
+        const response1 = await get(pollUrl);
+        const blockHeight = await response1.json();
+        return blockHeight;
+    }
 }
 
 export class SnarkDeployResponse implements TransactionResponse {
@@ -89,5 +109,17 @@ export class SnarkDeployResponse implements TransactionResponse {
         if (transactionId)
             return await validateBroadcast(transactionId, endpoint, this.transactionParams.networkName);
         else return null;
+    }
+
+    async blockHeight(){
+        const transactionId = this.tx0?.id;
+        const nodeEndpoint = this.transactionParams.network.endpoint;
+        let pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/find/blockHash/${transactionId}`;
+        const response = await get(pollUrl);
+        const blockHash = await response.json();
+        pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/height/${blockHash}`;
+        const response1 = await get(pollUrl);
+        const blockHeight = await response1.json();
+        return blockHeight;
     }
 }
