@@ -1,15 +1,15 @@
-import { ExecutionMode, parseJSONLikeString } from '@doko-js/core';
+import { parseRecordString } from '@doko-js/core';
 import { PrivateKey } from '@aleohq/sdk';
 
-import { TokenContract } from '../artifacts/js/token';
-import { token, tokenLeo } from '../artifacts/js/types/token';
-import { gettoken } from '../artifacts/js/leo2js/token';
+import { TokenContract } from './artifacts/js/token';
+import { token, tokenLeo } from './artifacts/js/types/token';
+import { gettoken } from './artifacts/js/leo2js/token';
 
 const TIMEOUT = 200_000;
 const amount = BigInt(2);
 
 // Available modes are evaluate | execute (Check README.md for further description)
-const mode = ExecutionMode.LeoRun;
+const mode = 'evaluate';
 // Contract class initialization
 const contract = new TokenContract({ mode });
 
@@ -22,22 +22,22 @@ const adminPrivateKey = contract.getPrivateKey(admin);
 // Custom function to parse token record data
 function parseRecordtoToken(
   recordString: string,
-  mode: ExecutionMode,
+  mode?: 'execute' | 'evaluate',
   privateKey?: string
 ): token {
   // Records are encrypted in execute mode so we need to decrypt them
-  if (mode === ExecutionMode.SnarkExecute || mode === ExecutionMode.LeoExecute) {
+  if (mode && mode === 'execute') {
     if (!privateKey)
       throw new Error('Private key is required for execute mode');
     const record = gettoken(
-      parseJSONLikeString(
+      parseRecordString(
         PrivateKey.from_string(privateKey).to_view_key().decrypt(recordString)
       ) as tokenLeo
     );
     return record;
   }
   const record = gettoken(
-    parseJSONLikeString(recordString) as tokenLeo
+    parseRecordString(JSON.stringify(recordString)) as tokenLeo
   );
   return record;
 }
@@ -45,7 +45,7 @@ function parseRecordtoToken(
 // This gets executed before the tests start
 beforeAll(async () => {
   // We need to deploy contract before running tests in execute mode
-  if (contract.config.mode === ExecutionMode.SnarkExecute) {
+  if (contract.config.mode === 'execute') {
     // This checks for program code on chain to validate that the program is deployed
     const deployed = await contract.isDeployed();
 

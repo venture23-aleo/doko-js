@@ -114,20 +114,15 @@ export function FormatLeoDataType(type: string) {
 }
 
 export function GenerateZkRunCode(transitionName: string) {
-  /* return `\tconst result = await zkRun({
-        config: this.config,
-        transition: '${transitionName}',
-        params,
-      });\n`;
-  */
+
     return `const result = await this.ctx.execute('${transitionName}', params);`
 
 }
 
 export function GenerateZkMappingCode(mappingName: string) {
-  return `\tconst result = await zkGetMapping({
-        config: this.config,
-        transition: '${mappingName}',
-        params,
-      });\n`;
+  return `\tconst result = await zkGetMapping(
+        this.config,
+        '${mappingName}',
+        params[0],
+      );\n`;
 }

@@ -1,24 +1,17 @@
-import { AleoExecutionOutput } from "./transaction-model"
+import { ExecutionOutput } from "./types";
+import { parseJSONLikeString } from "./utils";
 
-export interface TransactionResponseParser {
-    parse(output: string): AleoExecutionOutput;
+export interface ExecutionOutputParser {
+    parse(data: string): ExecutionOutput;
 }
 
-export function parseRecordString(
-    recordString: string
-): Record<string, unknown> {
-    const json = recordString.replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
-    const correctJson = json;
-    return JSON.parse(correctJson);
-};
+export class StdoutResponseParser implements ExecutionOutputParser {
 
-
-export class StdoutResponseParser implements TransactionResponseParser {
-
-    parse(cmdOutput: string): AleoExecutionOutput {
+    parse(cmdOutput: string): ExecutionOutput {
         // Try splitting as if it is multiple output
-        const result: AleoExecutionOutput = {
-            data: []
+        const result: ExecutionOutput = {
+            data: [],
+            transaction: undefined
         };
 
         let strAfterOutput = cmdOutput.split('Outputs')[1];
@@ -30,7 +23,7 @@ export class StdoutResponseParser implements TransactionResponseParser {
                 const stringBlock = cmdOutput.split('\n\n').slice(3);
                 stringBlock.pop();
                 if (stringBlock.length > 0) result.transaction = JSON.parse(stringBlock[0]);
-                return result;
+                return { data: result };
             }
         }
 
@@ -49,7 +42,7 @@ export class StdoutResponseParser implements TransactionResponseParser {
             .filter((line) => line.trim().length > 0);
 
         if (outputs && outputs.length > 0)
-            result.data = outputs.map((output) => parseRecordString(output));
+            result.data = outputs.map((output) => parseJSONLikeString(output));
 
         // Parse transaction block if it is present
         if (stringBlock.length > 0)
@@ -61,11 +54,14 @@ export class StdoutResponseParser implements TransactionResponseParser {
 }
 
 
-export class SnarkStdoutResponseParser implements TransactionResponseParser {
-    parse(output: string): AleoExecutionOutput {
+export class SnarkStdoutResponseParser implements ExecutionOutputParser {
+    parse(output: string): ExecutionOutput {
         return {
             data: [],
             transaction: JSON.parse(output.match(/\{([^)]+)\}/)![0])
         }
     }
 }
+
+
+

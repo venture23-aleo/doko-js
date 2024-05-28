@@ -1,0 +1,10 @@
+{
+  "transform": {
+    "^.+\\.(t|j)sx?$": ["ts-jest", { "useESM": true }]
+  },
+  "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+  "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
+
+  "preset": "ts-jest/presets/default-esm",
+  "setupFilesAfterEnv": ["./test.config.js"]
+}
