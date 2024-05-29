@@ -20,21 +20,21 @@ export function isDefined(v: any) {
 }
 
 export function decryptOutput(
-    transaction: TransactionModel & tx.Receipt,
+    transaction: TransactionModel,
     transitionName: string,
     programName: string,
     privateKey: string
 ) {
-    if (!transaction.execution.transitions) return;
+    if (!transaction.execution.transitions) return [];
     const transitions = transaction.execution.transitions.filter(
         (transition) => transition.function == transitionName
     );
-    if (transitions.length === 0) return;
+    if (transitions.length === 0) return [];
 
     const transition = transitions.filter(
         (transition) => transition.program == programName
     );
-    if (transition.length == 0) return;
+    if (transition.length == 0) return [];
 
     const offset = transition[0].inputs ? transition[0].inputs.length : 0;
     if (transition[0].outputs) {
@@ -60,5 +60,5 @@ export function decryptOutput(
         );
         return outputs;
     }
-    return null;
+    return [];
 };

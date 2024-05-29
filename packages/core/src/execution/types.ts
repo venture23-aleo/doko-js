@@ -1,5 +1,6 @@
 import { TransactionModel } from "@aleohq/sdk";
 import { tx } from '@/outputs';
+import { TransactionResponse } from "@/leo-types/transaction/transaction-response";
 
 export enum ExecutionMode {
     LeoRun,
@@ -16,19 +17,26 @@ export interface ExecutionOutput {
     transaction?: TransactionModel & tx.Receipt;
 }
 
-export interface ContractConfig {
-    privateKey?: string;
-    viewKey?: string;
-    appName?: string;
-    contractPath?: string;
+export interface BaseConfig {
+    contractPath: string;
+    appName: string;
+    network: NetworkConfig;
+    networkName: string;
+    privateKey: string;
+    networkMode : number;
+}
+
+export interface ContractConfig extends BaseConfig {
     fee?: string;
-    network?: NetworkConfig;
-    networkName?: string;
     mode?: ExecutionMode;
     priorityFee?: number;
-    networkMode?: number;
 }
 
 export interface ExecutionContext {
-    execute(transitionName: string, params: string[]): Promise<ExecutionOutput>;
+    execute(transitionName: string, params: string[]): Promise<TransactionResponse>;
 }
+
+export interface TransactionParams extends BaseConfig {
+}
+
+export type LeoTransactionParams = Omit<TransactionParams, 'network' | 'networkName'>

@@ -114,7 +114,9 @@ export function FormatLeoDataType(type: string) {
 }
 
 export function GenerateZkRunCode(transitionName: string) {
-  return `const result = await this.context.execute('${transitionName}', params);`;
+
+    return `const result = await this.ctx.execute('${transitionName}', params);`
+
 }
 
 export function GenerateZkMappingCode(mappingName: string) {

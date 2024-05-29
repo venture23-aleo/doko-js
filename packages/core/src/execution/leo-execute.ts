@@ -1,30 +1,22 @@
-import { ContractConfig } from "./types";
+import { ContractConfig, TransactionParams } from "./types";
 import { ExecutionContext, ExecutionOutput } from "./types";
 import { ExecutionOutputParser, StdoutResponseParser } from "./output-parser";
 import { formatArgs, execute, decryptOutput } from "./execution-helper";
+import { LeoExecuteResponse, TransactionResponse } from "@/leo-types/transaction/transaction-response";
+
 
 export class LeoExecuteContext implements ExecutionContext {
-    constructor(private config: ContractConfig, private parser: ExecutionOutputParser = new StdoutResponseParser()) {
+    constructor(public params: TransactionParams, public parser: StdoutResponseParser = new StdoutResponseParser()) {
     }
 
-    async execute(transitionName: string, params: string[]): Promise<ExecutionOutput> {
-        const formattedParams = formatArgs(params);
-        const cmd = `cd ${this.config.contractPath} && leo execute ${transitionName} ${formattedParams}`;
-        console.log(cmd);
-        const { stdout } = await execute(cmd);
-        console.log(stdout);
-        const { transaction } = this.parser.parse(stdout);
-        const programName = this.config.appName + '.aleo';
-        const decrypedData = decryptOutput(
-            transaction!,
-            transitionName,
-            programName,
-            this.config.privateKey || ''
-        );
-        return {
-            data: decrypedData,
-            transaction
-        };
+    async execute(transitionName: string, args: string[]): Promise<TransactionResponse> {
+        const transitionArgs = formatArgs(args);
+        const command = `cd ${this.params.contractPath} && leo execute ${transitionName} ${transitionArgs}`;
+        const { stdout } = await execute(command);
+        const output = this.parser.parse(stdout);
+        if (output.transaction)
+            return new LeoExecuteResponse(output.transaction, this.params, transitionName);
+        else
+            throw new Error('Invalid transaction object');
     }
 }
-
