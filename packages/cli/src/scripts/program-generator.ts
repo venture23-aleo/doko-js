@@ -117,14 +117,15 @@ async function installNpmPackages(path: string | undefined) {
   ];
   const dependencies = [
     'zod',
-    'dotenv',
+    '@aleohq/sdk',
     'aleo-program-to-address',
+    'dotenv',
     '@doko-js/core',
     '@doko-js/utils'
   ];
   const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
     ' '
-  )} && npm install ${dependencies.join(' ')}`;
+  )} --no-warnings && npm install ${dependencies.join(' ')} --no-warnings`;
 
   const shell = new Shell(command);
   return shell.asyncExec();

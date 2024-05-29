@@ -51,12 +51,17 @@ program
     } catch (e) {
       console.error('Git setup error', e);
     }
-    await installNpmPackages(response?.destination);
-    console.log(
-      `Checkout to ${projectName} directory for accessing the program`
-    );
+    try {
+      await installNpmPackages(response?.destination);
+      console.log(
+        `Checkout to ${projectName} directory for accessing the program`
+      );
+      process.exit(0);
 
-    process.exit(0);
+    }
+    catch (e) {
+
+    }
   });
 
 program
