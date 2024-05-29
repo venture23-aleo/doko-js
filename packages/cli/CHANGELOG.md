@@ -1,5 +1,18 @@
 # @doko-js/cli
 
+## 0.1.0
+
+### Minor Changes
+
+- ac5465e: - Updated network in aleo-config.
+  - Updated template folder with modified base-contract and test files.
+  - Updated dependencies.
+
+### Patch Changes
+
+- Updated dependencies [ac5465e]
+  - @doko-js/core@0.2.0
+
 ## 0.0.3
 
 ### Patch Changes
