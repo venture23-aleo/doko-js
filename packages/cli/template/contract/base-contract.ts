@@ -2,16 +2,19 @@
 import { PrivateKey, TransactionModel } from '@aleohq/sdk';
 import {
   ContractConfig,
-  checkDeployment,
   snarkDeploy,
-  waitTransaction
+  checkDeployment,
+  CreateExecutionContext,  
+  TransactionResponse
 } from '@doko-js/core';
 import { to_address } from 'aleo-program-to-address';
 import networkConfig from '../aleo-config';
+
 export class BaseContract {
   public config: ContractConfig = {};
+  public ctx: ExecutionContext;
 
-  constructor(config: ContractConfig) {
+  constructor(config: Partial<ContractConfig>) {
     if (config) {
       this.config = {
         ...this.config,
@@ -21,7 +24,8 @@ export class BaseContract {
 
     if (!this.config.networkName)
       this.config.networkName = networkConfig.defaultNetwork;
-
+    if (!this.config.networkMode)
+      this.config.networkMode = networkConfig.networkMode;
     const networkName = this.config.networkName;
     if (networkName) {
       if (!networkConfig?.networks[networkName])
@@ -37,11 +41,23 @@ export class BaseContract {
 
     if (!this.config.privateKey && networkName)
       this.config.privateKey = networkConfig.networks[networkName].accounts[0];
+
+    this.ctx = CreateExecutionContext(this.config);
   }
 
   async isDeployed(): Promise<boolean> {
-    const endpoint = `${this.config.network.endpoint}/testnet3/program/${this.config.appName}.aleo`;
+    const endpoint = `${this.config.network.endpoint}/${this.config.networkName}/program/${this.config.appName}.aleo`;
     return checkDeployment(endpoint);
+  }
+
+/** 
+  * @deprecated Use transaction receipt to wait.
+*/  
+
+  async wait<T extends TransactionResponse = TransactionResponse>(
+    transaction: T
+  ): Promise<T> {
+    return transaction.wait();
   }
 
   async deploy(): Promise<any> {
@@ -50,17 +66,6 @@ export class BaseContract {
     });
 
     return result;
-  }
-
-  async wait<T extends TransactionModel = TransactionModel>(
-    transaction: T
-  ): Promise<T> {
-    const endpoint = this.config.network.endpoint;
-    const data = (await waitTransaction(transaction, endpoint)) as T;
-    if (!(data.execution || data.deployment)) {
-      throw Error('Something went wrong');
-    }
-    return data;
   }
 
   address(): string {
