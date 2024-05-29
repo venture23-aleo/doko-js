@@ -1,0 +1,6 @@
+[[package]]
+name = "credits.aleo"
+location = "local"
+path = "/home/ubuntu/doko-js/packages/test/artifacts/leo/types_test/../credits"
+checksum = "1bc6f3b249cad9f29005966995d1102e4eba62bf9b6fc63fbd0c8fccb63adc92"
+dependencies = []
