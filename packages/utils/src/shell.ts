@@ -1,6 +1,7 @@
 import readline from 'readline';
 import { spawn } from 'child_process';
 import os from 'os';
+import { DokoJSLogger } from './logger/logger';
 
 const ERROR_CODES = {
   SNARK_VM_ERROR: 'ECLI0377010'
@@ -21,7 +22,6 @@ export const isMacOS = () => {
 export const isLinux = () => {
   return os.platform() === 'linux';
 };
-
 
 export class Shell {
   private command: string;
@@ -48,17 +48,17 @@ export class Shell {
       });
 
       shellProcess.stdout.on('data', (data) => {
-        console.log(data.toString());
+        DokoJSLogger.info(data.toString());
       });
       shellProcess.stdout.on('error', (err: any) => {
-        console.log(err);
+        DokoJSLogger.error(err);
       });
 
       shellProcess.stderr.on('data', (data) => {
         if (!data.toString().includes(ERROR_CODES.SNARK_VM_ERROR)) {
           rej(data.toString());
         } else {
-          console.warn(`\x1b[31;1;33m${data.toString()}\x1b[0m`);
+          DokoJSLogger.warn(data.toString());
         }
       });
 

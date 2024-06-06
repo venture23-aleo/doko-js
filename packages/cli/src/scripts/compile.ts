@@ -7,7 +7,8 @@ import {
   getFilenamesInDirectory,
   getProjectRoot,
   toSnakeCase,
-  Shell
+  Shell,
+  DokoJSLogger
 } from '@doko-js/utils';
 import { Node, sort } from '@/utils/graph';
 
@@ -34,10 +35,9 @@ function replacePrivateKeyInFile(envFile: string, privateKey: string) {
   const envData = fs.readFileSync(envFile, 'utf-8').trim();
 
   let envVariables = envData.split('\n');
-  envVariables = envVariables.map(variable => {
-    let [key] = variable.split('=');
-    if (key === 'PRIVATE_KEY')
-      return key + '=' + privateKey;
+  envVariables = envVariables.map((variable) => {
+    const [key] = variable.split('=');
+    if (key === 'PRIVATE_KEY') return key + '=' + privateKey;
     else return variable;
   });
   fs.writeFileSync(envFile, envVariables.join('\n'));
@@ -145,7 +145,8 @@ async function buildProgram(programName: string) {
     const networkConfig = aleoConfig.networks[defaultNetwork];
     if (networkConfig?.accounts && networkConfig.accounts.length > 0) {
       const privateKey = networkConfig.accounts[0];
-      if (!privateKey) throw new Error('Invalid private key, check aleo-config.js ...');
+      if (!privateKey)
+        throw new Error('Invalid private key, check aleo-config.js ...');
       replacePrivateKeyInFile(`${programDir}/.env`, privateKey);
     }
   }
@@ -156,31 +157,31 @@ async function buildProgram(programName: string) {
 
   if (aleoConfig['mode'] === 'execute' && defaultNetwork) {
     await cachePrograms(programName, programDir, defaultNetwork);
-    console.log(`Program ${programName}.aleo cached to aleo registry`);
+    DokoJSLogger.debug(`Program ${programName}.aleo cached to aleo registry`);
   }
 
   return res;
 }
 
-async function buildPrograms() {
+async function buildPrograms(): Promise<{ status: string; error?: any }> {
   try {
     const directoryPath = getProjectRoot();
     const programsPath = path.join(directoryPath, 'programs');
     let names = getFilenamesInDirectory(programsPath).sort();
 
     const leoArtifactsPath = path.join(directoryPath, LEO_ARTIFACTS);
-    console.log('Cleaning up old files');
+    DokoJSLogger.debug('Cleaning up old files');
     await fs.rm(leoArtifactsPath, { recursive: true, force: true });
-    console.log('Compiling new files');
+    DokoJSLogger.debug('Compiling new files');
 
     const graph = await createGraph(names, programsPath);
-    if (graph.length === 0) return;
+    if (graph.length === 0) return { status: 'success' };
 
     const sortedNodes = sort(graph);
-    if (!sortedNodes) return;
+    if (!sortedNodes) return { status: 'success' };
 
     names = sortedNodes.map((node) => node.name);
-    console.log(names);
+    DokoJSLogger.debug(names);
 
     try {
       for (const name of names) {
@@ -191,13 +192,15 @@ async function buildPrograms() {
       //  const buildResults = await Promise.all(buildPromises);
       //  return { status: 'success', result: buildResults };
     } catch (e: any) {
-      console.error(`\x1b[31; 1; 31m${e} \x1b[0m`);
+      DokoJSLogger.error(`\x1b[31; 1; 31m${e} \x1b[0m`);
       process.exit(1);
     }
-  } catch (err) {
-    console.error('Error:', err);
 
-    return { status: 'error', err };
+    return { status: 'success' };
+  } catch (error) {
+    DokoJSLogger.error(error);
+
+    return { status: 'error', error };
   }
 }
 

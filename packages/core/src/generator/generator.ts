@@ -149,9 +149,9 @@ class Generator {
       '\n' +
       (this.refl.customTypes.length > 0
         ? GenerateAsteriskTSImport(
-          `../types/${this.refl.programName}`,
-          'records'
-        ) + '\n'
+            `../types/${this.refl.programName}`,
+            'records'
+          ) + '\n'
         : '') +
       this.generateExternalTransitionsImport(
         this.refl.functions.flatMap((fn) => fn.calls)
@@ -395,10 +395,10 @@ class Generator {
       // for transition function parameter
       let fnName = isExternalRecord
         ? GenerateExternalRecordConversionStatement(
-          input.val,
-          argName,
-          STRING_LEO
-        )
+            input.val,
+            argName,
+            STRING_LEO
+          )
         : GenerateTypeConversionStatement(leoType, argName, STRING_LEO);
 
       // For custom type that produce object it must be converted to string
@@ -455,10 +455,10 @@ class Generator {
           : isRecordType
             ? `(this.config.mode===ExecutionMode.LeoRun) ? JSON.stringify(${input}) : ${input}`
             : GenerateTypeConversionStatement(
-              formattedOutput,
-              input,
-              STRING_JS
-            );
+                formattedOutput,
+                input,
+                STRING_JS
+              );
         fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
         if (this.refl.isCustomType(type)) {
           outUsedTypes.add(InferJSDataType(type));
@@ -554,8 +554,7 @@ class Generator {
   // Generate transition function body
   public generateContractClass() {
     const programName = this.refl.programName;
-    const classGenerator = new TSClassGenerator()
-      .extendsFrom('BaseContract')
+    const classGenerator = new TSClassGenerator().extendsFrom('BaseContract');
 
     const usedTypesSet = new Set<string>();
     classGenerator.addMethod(

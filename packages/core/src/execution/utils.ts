@@ -1,10 +1,17 @@
-import { get, post } from "@/utils/httpRequests";
-import { ContractConfig } from "./types";
-import { TransactionModel } from "@aleohq/sdk";
-import { execute } from "./execution-helper";
-import { SnarkStdoutResponseParser, StdoutResponseParser } from "./output-parser";
-import { tx } from "../outputs";
-import { SnarkDeployResponse, TransactionResponse } from "@/leo-types/transaction";
+import { get, post } from '@/utils/httpRequests';
+import { ContractConfig } from './types';
+import { TransactionModel } from '@aleohq/sdk';
+import { execute } from './execution-helper';
+import {
+  SnarkStdoutResponseParser,
+  StdoutResponseParser
+} from './output-parser';
+import { tx } from '../outputs';
+import {
+  SnarkDeployResponse,
+  TransactionResponse
+} from '@/leo-types/transaction';
+import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
 
 // Convert json like string to json
 export function parseJSONLikeString(
@@ -13,7 +20,7 @@ export function parseJSONLikeString(
   const json = recordString.replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
   const correctJson = json;
   return JSON.parse(correctJson);
-};
+}
 
 export const zkGetMapping = async (
   config: ContractConfig,
@@ -22,10 +29,13 @@ export const zkGetMapping = async (
 ): Promise<any> => {
   if (!config) return null;
   if (!config.network) {
-    throw new Error('Network is not defined');
+    throw new DokoJSError(ERRORS.VARS.VALUE_NOT_FOUND_FOR_VAR, {
+      value: 'network'
+    });
   }
   const url = `${config.network.endpoint}/${config.networkName}/program/${config.appName}.aleo/mapping/${mappingName}/${key}`;
-  console.log(url);
+  DokoJSLogger.debug(url);
+
   try {
     const response = await fetch(url);
     let data = await response.json();
@@ -35,28 +45,25 @@ export const zkGetMapping = async (
     data = (data as string).replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
     return JSON.parse(data as string);
   } catch (err) {
-    console.log(err);
+    DokoJSLogger.error(err);
   }
 };
 
 export const checkDeployment = async (endpoint: string): Promise<boolean> => {
   try {
-    console.log(`Checking deployment: ${endpoint}`);
+    DokoJSLogger.info(`Checking deployment: ${endpoint}`);
     const response = await get(endpoint);
     await response.json();
 
     return true;
   } catch (e: any) {
     if (e?.message?.includes('Missing program for ID')) {
-      console.log('Deployment not found');
+      DokoJSLogger.info('Deployment not found');
+
       return false;
     }
-    console.log(e);
 
-    throw new Error(
-      `Failed to deploy program: ${e?.message ?? 'Error occured while deploying program'
-      }`
-    );
+    throw new DokoJSError(ERRORS.NETWORK.DEPLOYMENT_CHECK_FAIL, {}, e);
   }
 };
 
@@ -73,15 +80,21 @@ export const broadcastTransaction = async (
       }
     });
   } catch (err) {
-    console.error(err);
+    DokoJSLogger.error(err);
   }
 };
 
-export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promise<TransactionResponse> => {
+export const snarkDeploy = async ({
+  config
+}: {
+  config: ContractConfig;
+}): Promise<TransactionResponse> => {
   const nodeEndPoint = config['network']?.endpoint;
 
   if (!nodeEndPoint) {
-    throw new Error('networkName missing in contract config for deployment');
+    throw new DokoJSError(ERRORS.VARS.VALUE_NOT_FOUND_FOR_VAR, {
+      value: 'networkName'
+    });
   }
 
   const priorityFee = config.priorityFee || 0;
@@ -91,72 +104,64 @@ export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promi
   );
 
   if (isProgramDeployed) {
-    throw new Error(`Program ${config.appName} is already deployed`);
+    throw new DokoJSError(ERRORS.NETWORK.CONFLICTING_DEPLOYMENT, {
+      programName: config.appName
+    });
   }
 
-  console.log(`Deploying program ${config.appName}`);
+  DokoJSLogger.info(`Deploying program ${config.appName}`);
 
-  // const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --network ${config.networkMode} --query ${nodeEndPoint} --dry-run`;
   const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  DokoJSLogger.debug(cmd);
+
   const { stdout } = await execute(cmd);
   const result = new SnarkStdoutResponseParser().parse(stdout);
   // @TODO check it later
-  await broadcastTransaction(result.transaction as TransactionModel, nodeEndPoint, config.networkName!);
-  return new SnarkDeployResponse(result.transaction as TransactionModel, config);
+  await broadcastTransaction(
+    result.transaction as TransactionModel,
+    nodeEndPoint,
+    config.networkName!
+  );
+  return new SnarkDeployResponse(
+    result.transaction as TransactionModel,
+    config
+  );
 };
 
-// export const validateBroadcast = async (
-//   transactionId: string,
-//   nodeEndpoint: string,
-//   networkName: string
-// ) => {
-//   const pollUrl = `${nodeEndpoint}/${networkName}/transaction/${transactionId}`;
-//   const timeoutMs = 60_000;
-//   const pollInterval = 1000; // 1 second
-//   const startTime = Date.now();
-
-//   console.log(`Validating transaction: ${pollUrl}`);
-//   while (Date.now() - startTime < timeoutMs) {
-//     try {
-//       const response = await get(pollUrl);
-//       const data = await response.json();
-
-//       if (!(data.execution || data.deployment)) {
-//         console.error('Transaction error');
-//         data.error = true;
-//       }
-//       return data as tx.Receipt & { error: true | undefined };
-//     } catch (e: any) {
-//       await new Promise((resolve) => setTimeout(resolve, pollInterval));
-//       console.log('Retrying: ', e.message);
-//     }
-//   }
-
-//   console.log('Timeout');
-// };
-export const validateBroadcast = async (transactionId: string, nodeEndpoint: string, networkName: string): Promise<TransactionModel | null> => {
+export const validateBroadcast = async (
+  transactionId: string,
+  nodeEndpoint: string,
+  networkName: string
+): Promise<TransactionModel | null> => {
   const pollUrl = `${nodeEndpoint}/${networkName}/transaction/${transactionId}`;
   const timeoutMs = 60_000;
   const pollInterval = 1000; // 1 second
   const startTime = Date.now();
 
-  console.log(`Validating transaction: ${pollUrl}`);
+  DokoJSLogger.info(`Validating transaction: ${pollUrl}`);
+  const retryCount = 0;
+
   while (Date.now() - startTime < timeoutMs) {
-      try {
-          const response = await get(pollUrl);
-          const data = await response.json() as TransactionModel & { deployment: any };
-          if (!data.execution && !data.deployment) {
-              console.error('Transaction error');
-          }
-          return data;
-      } catch (e: any) {
-          await new Promise((resolve) => setTimeout(resolve, pollInterval));
-          console.log('Retrying: ', e.message);
+    try {
+      const response = await get(pollUrl);
+      const data = (await response.json()) as TransactionModel & {
+        deployment: any;
+      };
+      if (!data.execution && !data.deployment) {
+        DokoJSLogger.warn('Transaction error');
       }
+
+      return data;
+    } catch (e: any) {
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      DokoJSLogger.log(`Retrying, count: ${retryCount}: `, e.message);
+    }
   }
-  console.log('Timeout');
+
+  DokoJSLogger.info('Broadcast validation timeout');
+
   return null;
-}
+};
 
 export const waitTransaction = async (
   transaction: TransactionModel,
@@ -164,7 +169,7 @@ export const waitTransaction = async (
   networkName: string
 ) => {
   const transactionId = transaction.id;
-  if (transactionId) return await validateBroadcast(transactionId, endpoint, networkName);
+  if (transactionId)
+    return await validateBroadcast(transactionId, endpoint, networkName);
   return null;
 };
-

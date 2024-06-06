@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import readline from 'readline';
 
 import { getUserShell, isWindows } from './shell';
+import { DokoJSLogger } from './logger/logger';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -10,7 +11,7 @@ const rl = readline.createInterface({
 
 const userShell = getUserShell();
 
-console.log('Using shell:', userShell);
+DokoJSLogger.debug(`Using shell: ${userShell}`);
 
 const checkProgramInstallation = (command: string) => {
   return new Promise((resolve, reject) => {
@@ -26,7 +27,7 @@ const checkProgramInstallation = (command: string) => {
 
     shellProcess.on('close', (code) => {
       const program = command.split(' ')[0];
-      console.log(
+      DokoJSLogger.log(
         'Code',
         code,
         ':',
@@ -55,7 +56,7 @@ const installProgram = (command: string, shouldEnd: boolean = true) => {
     });
 
     shellProcess.on('close', (code) => {
-      console.log(`Process exited with code for command ${command}`, code);
+      DokoJSLogger.log(`Process exited with code for command ${command}`, code);
       if (shouldEnd) rl.close();
       res(0);
     });
@@ -80,7 +81,7 @@ const checkAndInstallRequirements = async () => {
   if (needSetup.length > 0) {
     const qq = needSetup.map((v, index) => index + 1 + '.' + v + '\n').join('');
     //if (isWindows()) {
-    console.log('Please install following for initialization \n' + qq);
+    DokoJSLogger.warn('Please install following for initialization \n' + qq);
     process.exit(0);
     //}
     /*

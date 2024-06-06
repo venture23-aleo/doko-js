@@ -1,7 +1,12 @@
 import path from 'path';
 import fse from 'fs-extra';
 
-import { getProjectRoot, toSnakeCase, Shell } from '@doko-js/utils';
+import {
+  getProjectRoot,
+  toSnakeCase,
+  Shell,
+  DokoJSLogger
+} from '@doko-js/utils';
 
 import { fileURLToPath } from 'url';
 
@@ -19,15 +24,17 @@ async function replaceProgramName(
 
     // Replace 'temp_sample_program' with the new program name using a regular expression
     const regex = new RegExp(oldName, 'g');
-    console.log(fileContent);
+    DokoJSLogger.debug(fileContent);
     fileContent = fileContent.replace(regex, newProgramName);
 
     // Write the modified content back to the file
     await fse.writeFile(filePath, fileContent, 'utf8');
 
-    console.log(`Program name replaced with ${newProgramName} in ${filePath}`);
+    DokoJSLogger.debug(
+      `Program name replaced with ${newProgramName} in ${filePath}`
+    );
   } catch (error: any) {
-    console.error(`Error reading or writing the file: ${error.message}`);
+    DokoJSLogger.error(`Error reading or writing the file: ${error.message}`);
   }
 }
 
@@ -70,7 +77,7 @@ async function addProgram(
 
     return 'success';
   } catch (err) {
-    console.error('Error:', err);
+    DokoJSLogger.error(err);
     return 'error';
   }
 }
@@ -90,24 +97,25 @@ async function createProjectStructure(
   try {
     await fse.copy(source, destination);
     destination = destination.replace(/\\(?! )/g, '/');
-    console.log(destination);
-    console.log('Template copied');
+
+    DokoJSLogger.debug(`Template copied to: ${destination}`);
+
     await fse.mkdir(`${destination}/programs`, { recursive: true });
     await fse.rename(`${destination}/env`, `${destination}/.env`);
     await fse.rename(`${destination}/gitignore`, `${destination}/.gitignore`);
-    console.log('Project structure initialized');
+    DokoJSLogger.info('Project structure initialized');
 
     return {
       status: 'success',
       destination
     };
   } catch (err: any) {
-    console.error(err);
+    DokoJSLogger.error(err);
   }
 }
 
 async function installNpmPackages(path: string | undefined) {
-  console.log('Installing repo dependencies ...');
+  DokoJSLogger.info('Installing repo dependencies ...');
   const devDeps = [
     '@types/jest',
     'jest',
@@ -132,7 +140,7 @@ async function installNpmPackages(path: string | undefined) {
 }
 
 async function initializeGit(path: string | undefined) {
-  console.log('Initializing git');
+  DokoJSLogger.info('Initializing git');
   const command = `cd "${path}" && git init -b main`;
 
   const shell = new Shell(command);
