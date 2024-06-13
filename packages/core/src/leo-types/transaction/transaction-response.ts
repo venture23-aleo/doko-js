@@ -1,8 +1,8 @@
-import { get_decrypted_value } from "aleo-ciphertext-decryptor";
+import { get_decrypted_value } from "aleo-ciphertext-decryptor-beta";
 import { Output, TransactionModel } from "@aleohq/sdk";
 
 import { decryptOutput } from "@/execution/execution-helper";
-import {validateBroadcast} from "@/execution";
+import { validateBroadcast } from "@/execution";
 import { TransactionParams } from "@/execution";
 import { get } from "@/utils/httpRequests";
 
@@ -18,7 +18,7 @@ export interface TransactionResponse {
     // returns the transaction object that is obtained from the endpoint
     wait: () => Promise<TransactionModel | null>
     // @TODO add block() function to get the blockHeight at which transaction is included
-    blockHeight : () => Promise <String | null>
+    blockHeight: () => Promise<String | null>
 }
 
 export class LeoRunResponse implements TransactionResponse {
@@ -33,7 +33,7 @@ export class LeoRunResponse implements TransactionResponse {
         return null;
     }
 
-    async blockHeight(){
+    async blockHeight() {
         return null;
     }
 }
@@ -53,7 +53,7 @@ export class LeoExecuteResponse implements TransactionResponse {
     async wait(): Promise<TransactionModel | null> {
         return null;
     }
-    async blockHeight(){
+    async blockHeight() {
         return null;
     }
 }
@@ -77,7 +77,7 @@ export class SnarkExecuteResponse extends LeoExecuteResponse {
         else return null;
     }
 
-    async blockHeight(){
+    async blockHeight() {
         const transactionId = this.tx0?.id;
         const nodeEndpoint = this.transactionParams.network.endpoint;
         let pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/find/blockHash/${transactionId}`;
@@ -111,7 +111,7 @@ export class SnarkDeployResponse implements TransactionResponse {
         else return null;
     }
 
-    async blockHeight(){
+    async blockHeight() {
         const transactionId = this.tx0?.id;
         const nodeEndpoint = this.transactionParams.network.endpoint;
         let pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/find/blockHash/${transactionId}`;

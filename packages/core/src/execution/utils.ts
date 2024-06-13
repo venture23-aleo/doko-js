@@ -96,8 +96,8 @@ export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promi
 
   console.log(`Deploying program ${config.appName}`);
 
-  // const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --network ${config.networkMode} --query ${nodeEndPoint} --dry-run`;
-  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --network ${config.networkMode} --query ${nodeEndPoint} --dry-run`;
+  // const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
   const { stdout } = await execute(cmd);
   const result = new SnarkStdoutResponseParser().parse(stdout);
   // @TODO check it later
@@ -142,17 +142,17 @@ export const validateBroadcast = async (transactionId: string, nodeEndpoint: str
 
   console.log(`Validating transaction: ${pollUrl}`);
   while (Date.now() - startTime < timeoutMs) {
-      try {
-          const response = await get(pollUrl);
-          const data = await response.json() as TransactionModel & { deployment: any };
-          if (!data.execution && !data.deployment) {
-              console.error('Transaction error');
-          }
-          return data;
-      } catch (e: any) {
-          await new Promise((resolve) => setTimeout(resolve, pollInterval));
-          console.log('Retrying: ', e.message);
+    try {
+      const response = await get(pollUrl);
+      const data = await response.json() as TransactionModel & { deployment: any };
+      if (!data.execution && !data.deployment) {
+        console.error('Transaction error');
       }
+      return data;
+    } catch (e: any) {
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      console.log('Retrying: ', e.message);
+    }
   }
   console.log('Timeout');
   return null;
