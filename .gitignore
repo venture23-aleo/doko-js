@@ -4,3 +4,4 @@ node_modules
 example
 packages/test/artifacts
 testing
+test/artifacts

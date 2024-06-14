@@ -1,7 +1,7 @@
 // @TODO replace this with shell
 import { tx } from "@/outputs";
 import { Output, TransactionModel } from "@aleohq/sdk";
-import { get_decrypted_value } from "aleo-ciphertext-decryptor"
+import { get_decrypted_value } from "aleo-ciphertext-decryptor-beta"
 import { exec } from "child_process"
 import { promisify } from "util";
 import { parseJSONLikeString } from "./utils";
