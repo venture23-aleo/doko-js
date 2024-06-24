@@ -1,10 +1,19 @@
-import { get, post } from "@/utils/httpRequests";
-import { ContractConfig } from "./types";
-import { TransactionModel } from "@aleohq/sdk";
-import { execute } from "./execution-helper";
-import { SnarkStdoutResponseParser, StdoutResponseParser } from "./output-parser";
-import { tx } from "../outputs";
-import { SnarkDeployResponse, TransactionResponse } from "@/leo-types/transaction";
+import { get, post } from '@/utils/httpRequests';
+import { ContractConfig } from './types';
+import { TransactionModel } from '@aleohq/sdk';
+import { execute } from './execution-helper';
+import {
+  SnarkStdoutResponseParser,
+  StdoutResponseParser
+} from './output-parser';
+import { tx } from '../outputs';
+import {
+  SnarkDeployResponse,
+  TransactionResponse
+} from '@/leo-types/transaction';
+import fs from 'fs-extra';
+import path, { join } from 'path';
+import { tmpdir } from 'os';
 
 // Convert json like string to json
 export function parseJSONLikeString(
@@ -13,7 +22,7 @@ export function parseJSONLikeString(
   const json = recordString.replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
   const correctJson = json;
   return JSON.parse(correctJson);
-};
+}
 
 export const zkGetMapping = async (
   config: ContractConfig,
@@ -54,7 +63,8 @@ export const checkDeployment = async (endpoint: string): Promise<boolean> => {
     console.log(e);
 
     throw new Error(
-      `Failed to deploy program: ${e?.message ?? 'Error occured while deploying program'
+      `Failed to deploy program: ${
+        e?.message ?? 'Error occured while deploying program'
       }`
     );
   }
@@ -77,7 +87,92 @@ export const broadcastTransaction = async (
   }
 };
 
-export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promise<TransactionResponse> => {
+async function makeProjectForDeploy(
+  programName: string,
+  aleoCode: string,
+  importsDir: string
+): Promise<string> {
+  const projectDir = await fs.mkdtemp(join(tmpdir(), 'dokojs-imports-'));
+  // await fs.mkdirp(projectDir);
+
+  const projectManifest = {
+    program: programName,
+    version: '0.0.0',
+    description: '',
+    license: 'MIT'
+  };
+  await fs.writeFile(
+    join(projectDir, 'program.json'),
+    JSON.stringify(projectManifest)
+  );
+  await fs.writeFile(join(projectDir, 'main.aleo'), aleoCode);
+  await fs.copy(importsDir, join(projectDir, 'imports'), {});
+
+  return projectDir;
+}
+
+async function deployAleo(
+  aleoCode: string,
+  config: ContractConfig,
+  aleoFilesDir: string
+) {
+  const nodeEndPoint = config['network']?.endpoint;
+
+  if (!nodeEndPoint) {
+    throw new Error('networkName missing in contract config for deployment');
+  }
+
+  const isProgramDeployed = await checkDeployment(
+    `${nodeEndPoint}/${config.networkName}/program/${config.appName}.aleo`
+  );
+
+  if (isProgramDeployed) {
+    throw new Error(`Program ${config.appName} is already deployed`);
+  }
+
+  console.log(`Deploying program ${config.appName}`);
+
+  const projectDir = await makeProjectForDeploy(
+    `${config.appName}.aleo`,
+    aleoCode,
+    aleoFilesDir
+  );
+  const priorityFee = config.priorityFee || 0;
+
+  const cmd = `cd ${projectDir} && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  const { stdout } = await execute(cmd);
+  const result = new SnarkStdoutResponseParser().parse(stdout);
+  await broadcastTransaction(
+    result.transaction as TransactionModel,
+    nodeEndPoint,
+    config.networkName!
+  );
+  return new SnarkDeployResponse(
+    result.transaction as TransactionModel,
+    config
+  );
+}
+
+const snarkDeployAleo = async ({
+  config
+}: {
+  config: ContractConfig;
+}): Promise<TransactionResponse> => {
+  const aleoCode = await fs.readFile(`${config.contractPath}.aleo`);
+  const importsDir = path.normalize(path.join(config.contractPath, '..'));
+
+  return deployAleo(aleoCode.toString('utf-8'), config, importsDir);
+};
+
+export const snarkDeploy = async ({
+  config
+}: {
+  config: ContractConfig;
+}): Promise<TransactionResponse> => {
+  if (config.isImportedAleo) {
+    return snarkDeployAleo({ config });
+  }
+
   const nodeEndPoint = config['network']?.endpoint;
 
   if (!nodeEndPoint) {
@@ -101,8 +196,15 @@ export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promi
   const { stdout } = await execute(cmd);
   const result = new SnarkStdoutResponseParser().parse(stdout);
   // @TODO check it later
-  await broadcastTransaction(result.transaction as TransactionModel, nodeEndPoint, config.networkName!);
-  return new SnarkDeployResponse(result.transaction as TransactionModel, config);
+  await broadcastTransaction(
+    result.transaction as TransactionModel,
+    nodeEndPoint,
+    config.networkName!
+  );
+  return new SnarkDeployResponse(
+    result.transaction as TransactionModel,
+    config
+  );
 };
 
 // export const validateBroadcast = async (
@@ -134,7 +236,11 @@ export const snarkDeploy = async ({ config }: { config: ContractConfig }): Promi
 
 //   console.log('Timeout');
 // };
-export const validateBroadcast = async (transactionId: string, nodeEndpoint: string, networkName: string): Promise<TransactionModel | null> => {
+export const validateBroadcast = async (
+  transactionId: string,
+  nodeEndpoint: string,
+  networkName: string
+): Promise<TransactionModel | null> => {
   const pollUrl = `${nodeEndpoint}/${networkName}/transaction/${transactionId}`;
   const timeoutMs = 60_000;
   const pollInterval = 1000; // 1 second
@@ -142,21 +248,23 @@ export const validateBroadcast = async (transactionId: string, nodeEndpoint: str
 
   console.log(`Validating transaction: ${pollUrl}`);
   while (Date.now() - startTime < timeoutMs) {
-      try {
-          const response = await get(pollUrl);
-          const data = await response.json() as TransactionModel & { deployment: any };
-          if (!data.execution && !data.deployment) {
-              console.error('Transaction error');
-          }
-          return data;
-      } catch (e: any) {
-          await new Promise((resolve) => setTimeout(resolve, pollInterval));
-          console.log('Retrying: ', e.message);
+    try {
+      const response = await get(pollUrl);
+      const data = (await response.json()) as TransactionModel & {
+        deployment: any;
+      };
+      if (!data.execution && !data.deployment) {
+        console.error('Transaction error');
       }
+      return data;
+    } catch (e: any) {
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      console.log('Retrying: ', e.message);
+    }
   }
   console.log('Timeout');
   return null;
-}
+};
 
 export const waitTransaction = async (
   transaction: TransactionModel,
@@ -164,7 +272,7 @@ export const waitTransaction = async (
   networkName: string
 ) => {
   const transactionId = transaction.id;
-  if (transactionId) return await validateBroadcast(transactionId, endpoint, networkName);
+  if (transactionId)
+    return await validateBroadcast(transactionId, endpoint, networkName);
   return null;
 };
-
