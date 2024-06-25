@@ -46,3 +46,6 @@ export type LeoTransactionParams = Omit<
   TransactionParams,
   'network' | 'networkName'
 >;
+
+export type SnarkExecuteTransactionParams = TransactionParams &
+  Pick<ContractConfig, 'isImportedAleo'>;

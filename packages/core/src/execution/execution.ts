@@ -19,7 +19,7 @@ export function CreateExecutionContext(
     case ExecutionMode.LeoExecute:
       return new LeoExecuteContext(config);
     case ExecutionMode.SnarkExecute:
-      return new SnarkExecuteContext(config);
+      return new SnarkExecuteContext({ ...config });
   }
   throw new Error('Unsupported Execution Mode');
 }
