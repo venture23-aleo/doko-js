@@ -1,7 +1,7 @@
 #!/usr/bin/env -S node --experimental-modules
 
 import { Command } from 'commander';
-import { checkAndInstallRequirements } from '@doko-js/utils';
+import { DokoJSLogger, checkAndInstallRequirements } from '@doko-js/utils';
 import { compilePrograms } from '@doko-js/core';
 import {
   addProgram,
@@ -19,6 +19,10 @@ import { readFileSync } from 'fs';
 const pkg = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8')
 );
+
+const setLogLevel = (logLevel: string | number) => {
+  DokoJSLogger.setLogLevel(logLevel || DokoJSLogger.LogLevels.INFO);
+};
 
 function printProjectName() {
   console.log('  ____        _             _ ____  ');
@@ -38,9 +42,20 @@ program
   .command('init <project-name>')
   .description('Initialize your DokoJS project')
   .option('-p --program <name>', 'Initialize and add new program')
+  .option(
+    '-v --verbose <logLevel>',
+    `Verbose logs
+     Supported options: (default value is 1)
+     0 | debug - All
+     1 | info - Info, Warn and Errors
+     2 | warn - Warnings and Errors
+     3 | error - Errors
+    `,
+    DokoJSLogger.LogLevels.INFO
+  )
   .action(async (projectName, options: any) => {
-    console.log('Initializing DokoJS project...');
-    console.log('\n');
+    setLogLevel(options.verbose);
+    DokoJSLogger.info('Initializing DokoJS project...\n');
     const programName = options.program || 'sample_program';
 
     await checkAndInstallRequirements();
@@ -49,19 +64,15 @@ program
     try {
       await initializeGit(response?.destination);
     } catch (e) {
-      console.error('Git setup error', e);
+      DokoJSLogger.error(`Git setup error ${e}`);
     }
     try {
       await installNpmPackages(response?.destination);
-      console.log(
+      DokoJSLogger.info(
         `Checkout to ${projectName} directory for accessing the program`
       );
       process.exit(0);
-
-    }
-    catch (e) {
-
-    }
+    } catch (e) {}
   });
 
 program
@@ -76,12 +87,23 @@ program
 program
   .command('compile')
   .description('Compile your DokoJS project')
-  .action(async () => {
-    console.log('Compiling DokoJS project...');
+  .option(
+    '-v --verbose <logLevel>',
+    `Verbose logs
+     Supported options: (default value is 1)
+     0 | debug - All
+     1 | info - Info, Warn and Errors
+     2 | warn - Warnings and Errors
+     3 | error - Errors
+    `,
+    DokoJSLogger.LogLevels.INFO
+  )
+  .action(async (options) => {
+    setLogLevel(options.verbose);
     // Add your compilation logic here
-    await buildPrograms();
+    const { status } = await buildPrograms();
     // For ts files
-    await compilePrograms();
+    if (status !== 'error') await compilePrograms();
 
     process.exit(0);
   });
@@ -89,7 +111,7 @@ program
   .command('unflatten')
   .description('Create leo build for programs')
   .action(async () => {
-    console.log('Building leo programs...');
+    DokoJSLogger.info('Building leo programs...');
     // Add your compilation logic here
     await buildPrograms();
 
@@ -102,7 +124,7 @@ program
     'Generate ts types for contracts - use only after the build has been generated'
   )
   .action(async () => {
-    console.log('Generating JS files...');
+    DokoJSLogger.info('Generating JS files...');
     // Add your compilation logic here
     await compilePrograms();
 
@@ -134,7 +156,7 @@ program
   // .requiredOption('-n --network <network-name>', 'Network name')
   .option('-n --network <network-name>', 'Network name')
   .action(async (file, options) => {
-    console.log('No network');
+    if (!options.NetworkName) DokoJSLogger.warn('No network');
     await runTest(file);
     process.exit(0);
   });

@@ -6,6 +6,7 @@ import {
   IsLeoExternalRecord
 } from '@/utils/aleo-utils';
 import { GetConverterFunctionName } from './leo-naming';
+import { DokoJSError, ERRORS } from '@doko-js/utils';
 
 export function InferJSDataType(type: string): string {
   if (
@@ -15,7 +16,10 @@ export function InferJSDataType(type: string): string {
   ) {
     const tsType = ConvertToJSType(type);
     if (tsType) return tsType;
-    else throw new Error(`Undeclared type encountered: ${type}`);
+    else
+      throw new DokoJSError(ERRORS.ARTIFACTS.UNDECLARED_TYPE, {
+        value: type
+      });
   }
   return type;
 }
@@ -31,7 +35,10 @@ export function GenerateTSImport(
 ) {
   if (aliases) {
     if (aliases.length !== types.length) {
-      throw new Error('Invalid aliases count');
+      throw new DokoJSError(ERRORS.ARTIFACTS.INVALID_ALIAS_COUNT, {
+        expected: types.length,
+        received: aliases.length
+      });
     }
     types = types.map((type, index) =>
       aliases[index] !== null ? `${type} as ${aliases[index]}` : type
@@ -114,9 +121,7 @@ export function FormatLeoDataType(type: string) {
 }
 
 export function GenerateZkRunCode(transitionName: string) {
-
-    return `const result = await this.ctx.execute('${transitionName}', params);`
-
+  return `const result = await this.ctx.execute('${transitionName}', params);`;
 }
 
 export function GenerateZkMappingCode(mappingName: string) {

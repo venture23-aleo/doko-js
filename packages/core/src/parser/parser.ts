@@ -12,6 +12,7 @@ import {
 } from '@/utils/aleo-utils';
 
 import { Tokenizer } from '@/parser/tokenizer';
+import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
 
 class AleoReflection {
   programName = '';
@@ -78,7 +79,7 @@ class Parser {
     this.tokenizer.readToken();
 
     if (fields.length === 0)
-      console.warn(`[Warning] Struct ${structName} is empty.`);
+      DokoJSLogger.warn(`[Warning] Struct ${structName} is empty.`);
 
     return { name: structName, type: token.value, members: fields };
   }
@@ -90,9 +91,9 @@ class Parser {
     // Eat the left parenthesis
     const leftParen = this.tokenizer.readToken();
     if (leftParen.value !== '{')
-      throw new Error(
-        `Error encountered while parsing mapping: ${mappingName}`
-      );
+      throw new DokoJSError(ERRORS.INTERNAL.MAPPING_PARSING_FAILED, {
+        mappingName
+      });
 
     const key = this.parseExpression();
     const value = this.parseExpression();
@@ -100,9 +101,9 @@ class Parser {
     //Eat right parenthesis
     const rightParen = this.tokenizer.readToken();
     if (rightParen.value !== '}')
-      throw new Error(
-        `Error encountered while parsing mapping: ${mappingName}`
-      );
+      throw new DokoJSError(ERRORS.INTERNAL.MAPPING_PARSING_FAILED, {
+        mappingName
+      });
     return {
       name: mappingName,
       key: key.val,
@@ -215,8 +216,11 @@ class Parser {
             const programNameWithExt = this.tokenizer.readToken().value;
             aleoReflection.programName = programNameWithExt.split('.aleo')[0];
           } else if (token.value === KEYWORDS.IMPORT) {
-            console.log('import found:', this.tokenizer.readToken().value);
-          } else console.warn('[Warning] Unparsed keyword: ', token.value);
+            DokoJSLogger.debug(
+              `import found: ${this.tokenizer.readToken().value}`
+            );
+          } else
+            DokoJSLogger.warn(`[Warning] Unparsed keyword:  ${token.value}`);
           break;
       }
     }

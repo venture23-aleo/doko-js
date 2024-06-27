@@ -1,7 +1,12 @@
 import path from 'path';
 import fse from 'fs-extra';
 
-import { Shell, getAleoConfig, getProjectRoot } from '@doko-js/utils';
+import {
+  DokoJSLogger,
+  Shell,
+  getAleoConfig,
+  getProjectRoot
+} from '@doko-js/utils';
 
 function createProgramPath(programName: string) {
   const projectRoot = getProjectRoot();
@@ -40,7 +45,8 @@ async function deploy(
   const isExist = programExists(programName);
 
   if (!isExist) {
-    console.error(`Program file for ${programName} not found`);
+    DokoJSLogger.error(`Program file for ${programName} not found`);
+
     process.exit(1);
   }
   const config = await getAleoConfig();

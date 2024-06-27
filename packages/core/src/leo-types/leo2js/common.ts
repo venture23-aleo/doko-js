@@ -1,4 +1,5 @@
 import { ExternalRecord } from '@/utils';
+import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
 
 const PRIVATE = '.private';
 const PUBLIC = '.public';
@@ -30,19 +31,19 @@ export const fieldToString = (value: string): string => {
 
 export const u8 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'u8'));
-  if (isNaN(parsed)) console.warn('u8 parsing failed');
+  if (isNaN(parsed)) DokoJSLogger.warn('u8 parsing failed');
   return parsed;
 };
 
 export const u16 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'u16'));
-  if (isNaN(parsed)) console.warn('u16 parsing failed');
+  if (isNaN(parsed)) DokoJSLogger.warn('u16 parsing failed');
   return parsed;
 };
 
 export const u32 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'u32'));
-  if (isNaN(parsed)) console.warn('u32 parsing failed');
+  if (isNaN(parsed)) DokoJSLogger.warn('u32 parsing failed');
   return parsed;
 };
 
@@ -58,19 +59,19 @@ export const u128 = (value: string): bigint => {
 
 export const i8 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'i8'));
-  if (isNaN(parsed)) console.warn('i8 parsing failed');
+  if (isNaN(parsed)) DokoJSLogger.warn('i8 parsing failed');
   return parsed;
 };
 
 export const i16 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'i16'));
-  if (isNaN(parsed)) console.warn('i16 parsing failed');
+  if (isNaN(parsed)) DokoJSLogger.warn('i16 parsing failed');
   return parsed;
 };
 
 export const i32 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'i32'));
-  if (isNaN(parsed)) console.warn('u32 parsing failed');
+  if (isNaN(parsed)) DokoJSLogger.warn('u32 parsing failed');
   return parsed;
 };
 
@@ -96,7 +97,9 @@ export const boolean = (value: string): boolean => {
   } else if (parsed === 'false') {
     return false;
   } else {
-    throw new Error('bool parsing failed');
+    throw new DokoJSError(ERRORS.INTERNAL.TYPE_PARSING_FAILED, {
+      type: 'boolean'
+    });
   }
 };
 

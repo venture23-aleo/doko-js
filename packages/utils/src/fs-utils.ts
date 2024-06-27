@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { pathToFileURL } from 'url'
+import { pathToFileURL } from 'url';
 import { isWindows } from './shell';
+import { DokoJSError, DokoJSLogger, ERRORS } from './logger/logger';
 
 function findRootDirectory(startingDir: string) {
   let currentDir = startingDir;
@@ -32,16 +33,14 @@ function getProjectRoot() {
   if (npmRootDir) {
     return npmRootDir;
   } else {
-    console.error('Aleo project initialization not found');
-    process.exit(1);
+    throw new DokoJSError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
   }
 }
 
 async function writeToFile(filename: string, data: string) {
   try {
     const folder = path.dirname(filename);
-    if (!fs.existsSync(folder))
-      fs.mkdirSync(folder, { recursive: true });
+    if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
 
     const fileStream = fs.createWriteStream(filename, 'utf-8');
     fileStream.write(data);
@@ -49,19 +48,23 @@ async function writeToFile(filename: string, data: string) {
     return new Promise((resolve, reject) => {
       fileStream.on('error', reject);
       fileStream.on('finish', () => {
-        console.log('Generated file: ', filename);
+        DokoJSLogger.log('Generated file: ', filename);
       });
       fileStream.on('close', resolve);
     });
   } catch (error) {
-    console.log(error);
+    DokoJSLogger.error(error);
   }
 }
 
+let cachedConfig: any = null;
+
 async function getAleoConfig() {
+  if (cachedConfig) return cachedConfig.default;
   const configPath = path.join(getProjectRoot(), 'aleo-config.js');
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const config = await import(pathToFileURL(configPath).toString());
+  cachedConfig = config;
 
   // const config = require(configPath);
 

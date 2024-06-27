@@ -1,7 +1,7 @@
 import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
-import { getAleoConfig } from '@doko-js/utils';
+import { DokoJSLogger, getAleoConfig } from '@doko-js/utils';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -16,7 +16,7 @@ async function runAleoNode(network: string) {
   const nodeConfig = config[network];
 
   if (!nodeConfig) {
-    console.error(`Config for ${network} not available`);
+    DokoJSLogger.error(`Config for ${network} not available`);
     process.exit(1);
   }
 

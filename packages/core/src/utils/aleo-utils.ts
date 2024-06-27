@@ -1,3 +1,5 @@
+import { DokoJSLogger } from '@doko-js/utils';
+
 enum TokenType {
   UNKNOWN = 0,
   KEYWORD = 3,
@@ -108,7 +110,7 @@ const IsLeoExternalRecord = (type: string) => {
 const GetLeoArrTypeAndSize = (arrDef: string) => {
   const arrComponents = arrDef.substring(1, arrDef.length - 1).split(' ');
   if (arrComponents.length !== 2)
-    console.error('Invalid array definition: ', arrDef);
+    DokoJSLogger.error(`Invalid array definition: ${arrDef}`);
   return arrComponents;
 };
 
