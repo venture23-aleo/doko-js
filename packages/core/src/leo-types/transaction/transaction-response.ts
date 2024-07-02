@@ -47,7 +47,7 @@ export class LeoExecuteResponse implements TransactionResponse {
         this.tx0 = transaction;
 
         const program = transactionParam.appName + '.aleo';
-        this.outputs = decryptOutput(transaction, transitionName, program, transactionParam.privateKey);
+        this.outputs = decryptOutput(transaction, transitionName, program, transactionParam.privateKey, transactionParam.networkMode);
     }
 
     async wait(): Promise<TransactionModel | null> {

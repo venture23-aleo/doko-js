@@ -105,8 +105,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       aleo-ciphertext-decryptor-beta:
-        specifier: ^0.1.4
-        version: 0.1.4
+        specifier: ^0.1.5
+        version: 0.1.5
       js-beautify:
         specifier: ^1.14.11
         version: 1.14.11
@@ -1276,8 +1276,8 @@ packages:
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
 
-  aleo-ciphertext-decryptor-beta@0.1.4:
-    resolution: {integrity: sha512-QFUfk4cF5/IVMtvLlmtrpINI/9bjUPa7chRBa9VwdKrS7xqgWTfBX/3J3bfvCAVcYsdaMzZ9cCt8IfLIIFACVA==}
+  aleo-ciphertext-decryptor-beta@0.1.5:
+    resolution: {integrity: sha512-cdZUkivpl1FH6cBLQAEoZRKVYLmMIkqgiWO3bTHVZn/1stZQpb/rD0SE/vUn/B07MAUjid0Mici6kj6N9Ilppw==}
 
   aleo-program-to-address@0.1.0:
     resolution: {integrity: sha512-/ejsQOihWNB7407EU1IBxOysOMZwPi56c8AOiu93uROeHyqy/LgaZeWkyRiey3jEVZ+WeLmBbhJnD99FXvrLcg==}
@@ -5113,7 +5113,7 @@ snapshots:
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
 
-  aleo-ciphertext-decryptor-beta@0.1.4: {}
+  aleo-ciphertext-decryptor-beta@0.1.5: {}
 
   aleo-program-to-address@0.1.0: {}
 

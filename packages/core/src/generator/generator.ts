@@ -564,12 +564,12 @@ class Generator {
           ...config,
           appName: '${programName}',
           contractPath: '${PROGRAM_DIRECTORY}${programName}',
-          networkMode: config.networkName === 'testnet' ? 1 : 0, 
+          networkMode: config.networkMode, 
           fee: '0.01'
       });
   }\n`
     );
-
+    //           networkMode: config.networkName === 'testnet' ? 1 : 0, 
     this.refl.functions.forEach((func) => {
       if (func.type === 'function') {
         classGenerator.addMethod(
