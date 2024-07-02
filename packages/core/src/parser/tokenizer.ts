@@ -18,7 +18,7 @@ class Tokenizer {
   // declaration. This will help us significantly later on
   private convertIndentToBlock(data: string) {
     // Split by newline and remove empty character
-    const lines = data.split('\n').filter((s) => s != '');
+    const lines = data.split(/\n|\r\n/).filter((s) => s.trim());
 
     const formattedCode: string[] = [];
     let block = false;
