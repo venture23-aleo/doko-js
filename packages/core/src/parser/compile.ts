@@ -13,7 +13,8 @@ import {
 } from '@doko-js/utils';
 import {
   PROGRAM_DIRECTORY,
-  GENERATE_FILE_OUT_DIR
+  GENERATE_FILE_OUT_DIR,
+  IMPORTS_PATH
 } from '@/generator/string-constants';
 import { FormatCode } from '@/utils/js-formatter';
 
@@ -79,11 +80,15 @@ async function parseAleoImport(
 */
 // Read file
 async function parseAleo(
-  programFolder: string,
-  imports: Map<string, AleoReflection> | null
+  input: { programFolder: string } | { programFile: string },
+  imports: Map<string, AleoReflection> | null,
+  isImported: boolean
 ): Promise<AleoReflection> {
   try {
-    const inputFile = programFolder + 'build/main.aleo';
+    const inputFile =
+      'programFolder' in input
+        ? input.programFolder + 'build/main.aleo'
+        : input.programFile;
 
     const aleoReflection = await generateReflection(inputFile);
     //if (imports) aleoReflection.imports = imports;
@@ -95,7 +100,9 @@ async function parseAleo(
     const programName = aleoReflection.programName;
     const outputFile = `${programName}.ts`;
 
-    const generator = new Generator(aleoReflection);
+    const generator = new Generator(aleoReflection, {
+      isImportedAleo: isImported
+    });
     if (aleoReflection.customTypes.length === 0) {
       console.warn(
         `No types generated for program: ${programName}. No custom types[struct/record] declaration found`
@@ -135,13 +142,19 @@ async function resolveImportDependencies(importFolder: string) {
   const importCachesPromise = filesToParse.map(async (filename: string) => {
     // @TODO nested import??
     const projectRoot = getProjectRoot();
+    const importPath = path.join(projectRoot, IMPORTS_PATH, filename);
     const programPath = path.join(
       projectRoot,
       PROGRAM_DIRECTORY,
       filename.split('.aleo')[0],
       '/'
     );
-    await parseAleo(programPath, null);
+
+    if (fs.existsSync(importPath)) {
+      await parseAleo({ programFile: importPath }, null, true);
+    } else if (fs.existsSync(programPath)) {
+      await parseAleo({ programFolder: programPath }, null, false);
+    }
   });
 
   await Promise.all(importCachesPromise);
@@ -165,7 +178,7 @@ async function parseProgram(programFolder: string) {
       console.log('Resolving import dependencies ...');
       imports = await resolveImportDependencies(importFolder);
     }
-    return parseAleo(programFolder, imports);
+    return parseAleo({ programFolder }, imports, false);
   } catch (err) {
     console.log(err);
   }

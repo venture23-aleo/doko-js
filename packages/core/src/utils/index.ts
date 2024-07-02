@@ -1,2 +1,2 @@
-export * from "./aleo-utils"
-export * from "./js-formatter"
+export * from './aleo-utils';
+export * from './js-formatter';
