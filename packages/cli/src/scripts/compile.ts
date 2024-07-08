@@ -37,7 +37,7 @@ function replacePrivateKeyInFile(envFile: string, privateKey: string) {
 
   let envVariables = envData.split('\n');
   envVariables = envVariables.map((variable) => {
-    let [key] = variable.split('=');
+    const [key] = variable.split('=');
     if (key === 'PRIVATE_KEY') return key + '=' + privateKey;
     else return variable;
   });
@@ -120,6 +120,14 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
 
   const registryDirWithNetwork = path.join(registryDir, defaultNetwork);
   const srcFiles = path.join(importsDir, '*.aleo');
+
+  const importDirExists = await fs.exists(importsDir);
+  if (!importDirExists) return;
+
+  const files = fs.readdirSync(importsDir);
+  const importFileExists =
+    files.filter((file) => file.endsWith('.aleo')).length > 0;
+  if (!importFileExists) return;
 
   const cpCommand = `mkdir -p ${registryDirWithNetwork} && cp ${srcFiles} ${registryDirWithNetwork}`;
 
