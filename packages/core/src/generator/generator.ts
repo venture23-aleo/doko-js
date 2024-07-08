@@ -27,7 +27,8 @@ import {
   STRING_LEO,
   PROGRAM_DIRECTORY,
   LEO_FN_IMPORT,
-  JS_FN_IMPORT
+  JS_FN_IMPORT,
+  IMPORTS_PATH
 } from '@/generator/string-constants';
 
 import { toCamelCase } from '@doko-js/utils';
@@ -55,10 +56,17 @@ import {
 } from './generator-utils';
 import { OutputArg, TSReceiptTypeGenerator } from './ts-receipt-type-generator';
 
+type GeneratorParams = {
+  isImportedAleo?: boolean;
+};
+
 class Generator {
   private refl: AleoReflection;
-  constructor(aleoReflection: AleoReflection) {
+  private programParams?: GeneratorParams;
+
+  constructor(aleoReflection: AleoReflection, params?: GeneratorParams) {
     this.refl = aleoReflection;
+    this.programParams = params;
   }
 
   // Generate code for types file
@@ -562,9 +570,10 @@ class Generator {
         super({
           ...config,
           appName: '${programName}',
-          contractPath: '${PROGRAM_DIRECTORY}${programName}',
+          contractPath: '${this.programParams?.isImportedAleo ? IMPORTS_PATH : PROGRAM_DIRECTORY}${programName}',
           networkMode: config.networkName === 'testnet' ? 1 : 0, 
-          fee: '0.01'
+          fee: '0.01',
+          isImportedAleo: ${Boolean(this.programParams?.isImportedAleo)}
       });
   }\n`
     );

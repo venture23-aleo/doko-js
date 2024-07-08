@@ -107,6 +107,9 @@ importers:
       aleo-ciphertext-decryptor:
         specifier: ^0.1.0
         version: 0.1.0
+      fs-extra:
+        specifier: ^11.1.1
+        version: 11.2.0
       js-beautify:
         specifier: ^1.14.11
         version: 1.14.11

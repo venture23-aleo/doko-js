@@ -1,6 +1,11 @@
+export interface NodeImport {
+  source: 'programs' | 'imports';
+  name: string;
+}
+
 export interface Node {
   name: string;
-  inputs: Array<string>;
+  inputs: Array<NodeImport>;
 }
 
 export function sort(graph: Array<Node>) {
@@ -37,10 +42,14 @@ export function sort(graph: Array<Node>) {
 
       const nodePtr = graph[nodeIndex];
       for (const edge of nodePtr.inputs) {
-        const edgeIndex = graph.findIndex((node) => node.name === edge);
+        if (edge.name.endsWith('.aleo')) {
+          continue;
+        }
+
+        const edgeIndex = graph.findIndex((node) => node.name === edge.name);
         if (edgeIndex === -1)
           throw new Error(
-            `import ${edge} for program ${nodePtr.name} is not in 'programs' directory`
+            `import ${edge.name} for program ${nodePtr.name} is not in 'programs' nor 'imports' directories`
           );
         if (visitedNode[edgeIndex] != kVisited) stack.push(edgeIndex);
       }

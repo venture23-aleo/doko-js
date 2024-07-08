@@ -1,22 +1,18 @@
-import { ContractConfig, TransactionParams } from './types';
-import { ExecutionContext, ExecutionOutput } from './types';
-import {
-  ExecutionOutputParser,
-  SnarkStdoutResponseParser
-} from './output-parser';
-import { formatArgs, execute, decryptOutput } from './execution-helper';
-import { broadcastTransaction } from './utils';
 import { TransactionModel } from '@aleohq/sdk';
+import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
+
+import { SnarkExecuteTransactionParams, ExecutionContext } from './types';
+import { SnarkStdoutResponseParser } from './output-parser';
+import { formatArgs, execute } from './execution-helper';
 import { post } from '@/utils/httpRequests';
 import {
   SnarkExecuteResponse,
   TransactionResponse
 } from '@/leo-types/transaction/transaction-response';
-import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
 
 export class SnarkExecuteContext implements ExecutionContext {
   constructor(
-    public params: TransactionParams,
+    public params: SnarkExecuteTransactionParams,
     public parser: SnarkStdoutResponseParser = new SnarkStdoutResponseParser()
   ) {}
 
@@ -49,10 +45,13 @@ export class SnarkExecuteContext implements ExecutionContext {
 
     const programName = this.params.appName + '.aleo';
     const transitionArgs = formatArgs(args);
+    const cdCmd = this.params.isImportedAleo
+      ? ''
+      : `cd ${this.params.contractPath} && `;
     // snarkos developer execute sample_program.aleo main  "1u32" "2u32" --private-key APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --query "http://localhost:3030" --broadcast "http://localhost:3030/testnet3/transaction/broadcast"
     // const cmd = `cd ${config.contractPath} && snarkos developer execute  ${config.appName}.aleo ${transition} ${stringedParams} --private-key ${config.privateKey} --query ${nodeEndPoint} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast"`;
     // const cmd = `cd ${this.params.contractPath} && snarkos developer execute ${programName} ${transitionName} ${transitionArgs} --network ${this.params.networkMode} --private-key ${this.params.privateKey} --query ${nodeEndPoint} --dry-run`;
-    const cmd = `cd ${this.params.contractPath} && snarkos developer execute ${programName} ${transitionName} ${transitionArgs} --private-key ${this.params.privateKey} --query ${nodeEndPoint} --dry-run`;
+    const cmd = `${cdCmd}snarkos developer execute ${programName} ${transitionName} ${transitionArgs} --private-key ${this.params.privateKey} --query ${nodeEndPoint} --dry-run`;
     DokoJSLogger.debug(cmd);
 
     const { stdout } = await execute(cmd);

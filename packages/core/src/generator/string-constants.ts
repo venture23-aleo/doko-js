@@ -32,3 +32,4 @@ export const STRING_LEO: string = 'leo';
 
 export const GENERATE_FILE_OUT_DIR = 'artifacts/js/';
 export const PROGRAM_DIRECTORY = 'artifacts/leo/';
+export const IMPORTS_PATH = 'imports/';

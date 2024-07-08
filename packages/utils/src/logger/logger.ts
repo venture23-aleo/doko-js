@@ -188,7 +188,6 @@ export class DokoJSLogger {
   static currentLogLevel = 'debug';
 
   static setLogLevel(_logLevel: string | number) {
-    console.log(_logLevel);
     let logLevel = this.LogLevels.INFO;
 
     //@ts-expect-error Number required of isNaN
@@ -199,8 +198,8 @@ export class DokoJSLogger {
     if (Object.values(this.LogLevels).includes(logLevel)) {
       this.currentLogLevel = logLevel;
     } else {
-      console.error(
-        `Invalid log level ${logLevel}, resetting to default value. Supported value is one of ${Object.values(this.LogLevels)}`
+      console.warn(
+        `\x1b[31;1;33m Invalid log level ${logLevel}, resetting to default value. Supported value is one of ${Object.values(this.LogLevels)}\x1b[0m`
       );
     }
   }
