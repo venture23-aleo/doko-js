@@ -238,7 +238,9 @@ async function buildProgram(programName: string) {
     }
   }
 
-  const leoBuildCommand = `cd "${programDir}" && leo build --home ${leoHomeDir}`;
+  const networkFlag = defaultNetwork ? `--network ${defaultNetwork}` : '';
+
+  const leoBuildCommand = `cd "${programDir}" && leo build --home ${leoHomeDir} ${networkFlag}`;
   const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
 
