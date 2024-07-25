@@ -7,7 +7,8 @@ import {
   getFilenamesInDirectory,
   getProjectRoot,
   toSnakeCase,
-  Shell
+  Shell,
+  DokoJSLogger
 } from '@doko-js/utils';
 import { Node, NodeImport, sort } from '@/utils/graph';
 import { promisify } from 'util';
@@ -265,13 +266,13 @@ async function buildProgram(programName: string, leoVersion: string) {
       defaultNetwork,
       path.join(registryDir, defaultNetwork)
     );
-    console.log(`Program ${programName}.aleo cached to aleo registry`);
+    DokoJSLogger.debug(`Program ${programName}.aleo cached to aleo registry`);
   }
 
   return res;
 }
 
-async function buildPrograms() {
+async function buildPrograms(): Promise<{ status: string; error?: any }> {
   try {
     const directoryPath = getProjectRoot();
     const programsPath = path.join(directoryPath, 'programs');
@@ -281,18 +282,18 @@ async function buildPrograms() {
     const leoVersion = await getLeoVersion();
 
     const leoArtifactsPath = path.join(directoryPath, LEO_ARTIFACTS);
-    console.log('Cleaning up old files');
+    DokoJSLogger.debug('Cleaning up old files');
     await fs.rm(leoArtifactsPath, { recursive: true, force: true });
-    console.log('Compiling new files');
+    DokoJSLogger.debug('Compiling new files');
 
     const graph = await createGraph(names, programsPath);
-    if (graph.length === 0) return;
+    if (graph.length === 0) return { status: 'success' };
 
     const sortedNodes = sort(graph);
-    if (!sortedNodes) return;
+    if (!sortedNodes) return { status: 'success' };
 
     names = sortedNodes.map((node) => node.name);
-    console.log(names);
+    DokoJSLogger.debug(names);
 
     try {
       for (const name of names) {
@@ -303,13 +304,15 @@ async function buildPrograms() {
       //  const buildResults = await Promise.all(buildPromises);
       //  return { status: 'success', result: buildResults };
     } catch (e: any) {
-      console.error(`\x1b[31; 1; 31m${e} \x1b[0m`);
+      DokoJSLogger.error(`\x1b[31; 1; 31m${e} \x1b[0m`);
       process.exit(1);
     }
-  } catch (err) {
-    console.error('Error:', err);
 
-    return { status: 'error', err };
+    return { status: 'success' };
+  } catch (error) {
+    DokoJSLogger.error(error);
+
+    return { status: 'error', error };
   }
 }
 

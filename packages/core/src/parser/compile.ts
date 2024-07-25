@@ -1,22 +1,23 @@
 import fs from 'fs';
 import path from 'path';
-
-import { Tokenizer } from './tokenizer';
-import { AleoReflection, Parser } from '@/parser/parser';
-
-import { Generator } from '@/generator/generator';
 import {
+  DokoJSLogger,
   getFilenamesInDirectory,
   getProjectRoot,
   pathFromRoot,
   writeToFile
 } from '@doko-js/utils';
+
+import { AleoReflection, Parser } from '@/parser/parser';
+import { Generator } from '@/generator/generator';
 import {
   PROGRAM_DIRECTORY,
   GENERATE_FILE_OUT_DIR,
   IMPORTS_PATH
 } from '@/generator/string-constants';
 import { FormatCode } from '@/utils/js-formatter';
+
+import { Tokenizer } from './tokenizer';
 
 // Global Variables
 const ImportFileCaches = new Map<string, AleoReflection>();
@@ -84,51 +85,47 @@ async function parseAleo(
   imports: Map<string, AleoReflection> | null,
   isImported: boolean
 ): Promise<AleoReflection> {
-  try {
-    const inputFile =
-      'programFolder' in input
-        ? input.programFolder + 'build/main.aleo'
-        : input.programFile;
+  const inputFile =
+    'programFolder' in input
+      ? input.programFolder + 'build/main.aleo'
+      : input.programFile;
 
-    const aleoReflection = await generateReflection(inputFile);
-    //if (imports) aleoReflection.imports = imports;
+  const aleoReflection = await generateReflection(inputFile);
+  //if (imports) aleoReflection.imports = imports;
 
-    // Create Output Directory
-    const outputFolder = pathFromRoot(GENERATE_FILE_OUT_DIR);
-    if (!fs.existsSync(outputFolder)) fs.mkdirSync(outputFolder);
+  // Create Output Directory
+  const outputFolder = pathFromRoot(GENERATE_FILE_OUT_DIR);
+  if (!fs.existsSync(outputFolder)) fs.mkdirSync(outputFolder);
 
-    const programName = aleoReflection.programName;
-    const outputFile = `${programName}.ts`;
+  const programName = aleoReflection.programName;
+  const outputFile = `${programName}.ts`;
 
-    const generator = new Generator(aleoReflection, {
-      isImportedAleo: isImported
-    });
-    if (aleoReflection.customTypes.length === 0) {
-      console.warn(
-        `No types generated for program: ${programName}. No custom types[struct/record] declaration found`
-      );
-    } else await generateTypesFile(outputFolder, outputFile, generator);
+  const generator = new Generator(aleoReflection, {
+    isImportedAleo: isImported
+  });
+  if (aleoReflection.customTypes.length === 0) {
+    DokoJSLogger.warn(
+      `No types generated for program: ${programName}. No custom types[struct/record] declaration found`
+    );
+  } else await generateTypesFile(outputFolder, outputFile, generator);
 
-    if (aleoReflection.functions.length > 0) {
-      await writeToFile(
-        `${outputFolder}${outputFile}`,
-        FormatCode(generator.generateContractClass())
-      );
-      await writeToFile(
-        `${outputFolder}transitions/${outputFile}`,
-        FormatCode(generator.generateTransitions())
-      );
-    }
-
-    // Update cache
-    const originalFilename = `${programName}.aleo`;
-    ImportFileCaches.set(originalFilename, aleoReflection);
-
-    //GlobalIndexGenerator.update(generator, programName);
-    return aleoReflection;
-  } catch (error) {
-    throw error;
+  if (aleoReflection.functions.length > 0) {
+    await writeToFile(
+      `${outputFolder}${outputFile}`,
+      FormatCode(generator.generateContractClass())
+    );
+    await writeToFile(
+      `${outputFolder}transitions/${outputFile}`,
+      FormatCode(generator.generateTransitions())
+    );
   }
+
+  // Update cache
+  const originalFilename = `${programName}.aleo`;
+  ImportFileCaches.set(originalFilename, aleoReflection);
+
+  //GlobalIndexGenerator.update(generator, programName);
+  return aleoReflection;
 }
 
 async function resolveImportDependencies(importFolder: string) {
@@ -137,7 +134,7 @@ async function resolveImportDependencies(importFolder: string) {
   const filesToParse = importFiles.filter(
     (filename: string) => !ImportFileCaches.has(filename)
   );
-  console.log('Unresolved import dependencies: ', filesToParse.join(', '));
+  DokoJSLogger.log('Unresolved import dependencies: ', filesToParse.join(', '));
 
   const importCachesPromise = filesToParse.map(async (filename: string) => {
     // @TODO nested import??
@@ -171,16 +168,16 @@ async function parseProgram(programFolder: string) {
   // Check if build directory exists
   try {
     if (!fs.existsSync(programFolder + 'build')) return;
-    console.log('Parsing program: ', programFolder);
+    DokoJSLogger.log('Parsing program: ', programFolder);
     const importFolder = programFolder + 'build/imports/';
     let imports = null;
     if (fs.existsSync(importFolder)) {
-      console.log('Resolving import dependencies ...');
+      DokoJSLogger.info('Resolving import dependencies ...');
       imports = await resolveImportDependencies(importFolder);
     }
     return parseAleo({ programFolder }, imports, false);
   } catch (err) {
-    console.log(err);
+    DokoJSLogger.error(err);
   }
 }
 
@@ -207,7 +204,7 @@ async function compilePrograms(projectRoot?: string) {
 
     //await GlobalIndexGenerator.generate(outputPath);
   } catch (error) {
-    console.log(error);
+    DokoJSLogger.error(error);
   }
 }
 

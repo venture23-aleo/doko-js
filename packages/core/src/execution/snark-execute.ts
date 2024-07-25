@@ -1,12 +1,9 @@
-import { SnarkExecuteTransactionParams } from './types';
-import { ExecutionContext, ExecutionOutput } from './types';
-import {
-  ExecutionOutputParser,
-  SnarkStdoutResponseParser
-} from './output-parser';
-import { formatArgs, execute, decryptOutput } from './execution-helper';
-import { broadcastTransaction } from './utils';
 import { TransactionModel } from '@aleohq/sdk';
+import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
+
+import { SnarkExecuteTransactionParams, ExecutionContext } from './types';
+import { SnarkStdoutResponseParser } from './output-parser';
+import { formatArgs, execute } from './execution-helper';
 import { post } from '@/utils/httpRequests';
 import {
   SnarkExecuteResponse,
@@ -31,7 +28,7 @@ export class SnarkExecuteContext implements ExecutionContext {
         }
       );
     } catch (err) {
-      console.error(err);
+      DokoJSLogger.error(err);
     }
   }
 
@@ -41,7 +38,9 @@ export class SnarkExecuteContext implements ExecutionContext {
   ): Promise<TransactionResponse> {
     const nodeEndPoint = this.params.network?.endpoint;
     if (!nodeEndPoint) {
-      throw new Error('networkName missing in contract config for deployment');
+      throw new DokoJSError(ERRORS.VARS.VALUE_NOT_FOUND_FOR_VAR, {
+        value: 'networkName'
+      });
     }
 
     const programName = this.params.appName + '.aleo';
@@ -53,13 +52,16 @@ export class SnarkExecuteContext implements ExecutionContext {
     // const cmd = `cd ${config.contractPath} && snarkos developer execute  ${config.appName}.aleo ${transition} ${stringedParams} --private-key ${config.privateKey} --query ${nodeEndPoint} --broadcast "${nodeEndPoint}/testnet3/transaction/broadcast"`;
     // const cmd = `cd ${this.params.contractPath} && snarkos developer execute ${programName} ${transitionName} ${transitionArgs} --network ${this.params.networkMode} --private-key ${this.params.privateKey} --query ${nodeEndPoint} --dry-run`;
     const cmd = `${cdCmd}snarkos developer execute ${programName} ${transitionName} ${transitionArgs} --private-key ${this.params.privateKey} --query ${nodeEndPoint} --dry-run`;
-    console.log(cmd);
+    DokoJSLogger.debug(cmd);
 
     const { stdout } = await execute(cmd);
     const { transaction } = this.parser.parse(stdout);
     if (transaction) {
       await this.broadcast(transaction, nodeEndPoint);
       return new SnarkExecuteResponse(transaction, this.params, transitionName);
-    } else throw new Error('Invalid transaction object');
+    } else
+      throw new DokoJSError(ERRORS.NETWORK.INVALID_TRANSACTION_OBJECT, {
+        transitionName
+      });
   }
 }

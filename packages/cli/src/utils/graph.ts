@@ -41,7 +41,7 @@ export function sort(graph: Array<Node>) {
       visitedNode[nodeIndex] = kVisited;
 
       const nodePtr = graph[nodeIndex];
-      for (let edge of nodePtr.inputs) {
+      for (const edge of nodePtr.inputs) {
         if (edge.name.endsWith('.aleo')) {
           continue;
         }
@@ -56,7 +56,7 @@ export function sort(graph: Array<Node>) {
     }
   }
 
-  let outputs = [];
-  for (let nodeIndex of sortedNode) outputs.push(graph[nodeIndex]);
+  const outputs = [];
+  for (const nodeIndex of sortedNode) outputs.push(graph[nodeIndex]);
   return outputs;
 }

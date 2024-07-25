@@ -1,3 +1,5 @@
+import { ERRORS, DokoJSError } from '@doko-js/utils';
+
 import { isDefined } from './execution-helper';
 import { LeoExecuteContext } from './leo-execute';
 import { LeoRunContext } from './leo-run';
@@ -8,7 +10,7 @@ export function CreateExecutionContext(
   config: ContractConfig
 ): ExecutionContext {
   if (!isDefined(config.mode))
-    throw Error('Execution mode not selected in contract config');
+    throw new DokoJSError(ERRORS.VARS.EXECUTION_MODE_NOT_DEFINED);
   if (config.isImportedAleo && config.mode !== ExecutionMode.SnarkExecute)
     throw Error(
       "Execution of imported code is possible only with 'SnarkExecute' mode"
@@ -21,5 +23,8 @@ export function CreateExecutionContext(
     case ExecutionMode.SnarkExecute:
       return new SnarkExecuteContext({ ...config });
   }
-  throw new Error('Unsupported Execution Mode');
+
+  throw new DokoJSError(ERRORS.VARS.EXECUTION_MODE_NOT_DEFINED, {
+    value: config.mode!
+  });
 }
