@@ -11,6 +11,8 @@ import {
   DokoJSLogger
 } from '@doko-js/utils';
 import { Node, NodeImport, sort } from '@/utils/graph';
+import { promisify } from 'util';
+import { exec } from 'child_process';
 
 const GENERATE_FILE_OUT_DIR = 'artifacts';
 const LEO_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/leo`;
@@ -196,7 +198,15 @@ async function cachePrograms(
   return leoShellCommand.asyncExec();
 }
 
-async function buildProgram(programName: string) {
+async function getLeoVersion(): Promise<string> {
+  const execute = promisify(exec);
+  const cmd = 'leo -V';
+  const { stdout } = await execute(cmd);
+  const searchResult = /leo (?<version>\d+\.\d+\.\d+)/.exec(stdout);
+  return searchResult?.groups?.version || '';
+}
+
+async function buildProgram(programName: string, leoVersion: string) {
   const parsedProgramName = toSnakeCase(programName);
   const projectRoot = getProjectRoot();
   const artifactDir = `${projectRoot}/${LEO_ARTIFACTS}`;
@@ -239,7 +249,12 @@ async function buildProgram(programName: string) {
     }
   }
 
-  const leoBuildCommand = `cd "${programDir}" && leo build --home ${leoHomeDir}`;
+  const networkFlag =
+    defaultNetwork && leoVersion.startsWith('2.')
+      ? `--network ${defaultNetwork}`
+      : '';
+
+  const leoBuildCommand = `cd "${programDir}" && leo build --home ${leoHomeDir} ${networkFlag}`;
   const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
 
@@ -264,6 +279,7 @@ async function buildPrograms(): Promise<{ status: string; error?: any }> {
     const importsPath = path.join(directoryPath, IMPORTS_DIRECTORY);
     let names = getFilenamesInDirectory(programsPath).sort();
     await prepareImportsRegistry(importsPath, ALEO_DEPS_REGISTRY);
+    const leoVersion = await getLeoVersion();
 
     const leoArtifactsPath = path.join(directoryPath, LEO_ARTIFACTS);
     DokoJSLogger.debug('Cleaning up old files');
@@ -282,7 +298,7 @@ async function buildPrograms(): Promise<{ status: string; error?: any }> {
     try {
       for (const name of names) {
         const programName = name.split('.')[0];
-        await buildProgram(programName);
+        await buildProgram(programName, leoVersion);
       }
       //try {
       //  const buildResults = await Promise.all(buildPromises);
