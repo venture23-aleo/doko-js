@@ -191,8 +191,11 @@ export const snarkDeploy = async ({
 
   DokoJSLogger.info(`Deploying program ${config.appName}`);
 
-  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+
+  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --network ${config.networkMode} --query ${nodeEndPoint} --dry-run`;
+  // const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
   DokoJSLogger.debug(cmd);
+
 
   const { stdout } = await execute(cmd);
   const result = new SnarkStdoutResponseParser().parse(stdout);
@@ -224,13 +227,10 @@ export const validateBroadcast = async (
   while (Date.now() - startTime < timeoutMs) {
     try {
       const response = await get(pollUrl);
-      const data = (await response.json()) as TransactionModel & {
-        deployment: any;
-      };
+      const data = await response.json() as TransactionModel & { deployment: any };
       if (!data.execution && !data.deployment) {
-        DokoJSLogger.warn('Transaction error');
+        console.error('Transaction error');
       }
-
       return data;
     } catch (e: any) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));

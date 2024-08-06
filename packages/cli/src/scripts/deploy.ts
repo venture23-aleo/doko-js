@@ -56,7 +56,7 @@ async function deploy(
   const nodeEndPoint = networkConfig.endpoint;
   const deployPath = getBuildPath(programName);
   const priorityFee = 0;
-  const command = `snarkos developer deploy "${appName}.aleo" --private-key "${privateKey}" --query ${nodeEndPoint} --path ${deployPath} --broadcast "${nodeEndPoint}/${config.networkName}/transaction/broadcast" --priority-fee ${priorityFee}`;
+  const command = `snarkos developer deploy "${appName}.aleo" --private-key "${privateKey}" --query ${nodeEndPoint} --network ${config.networkMode} --path ${deployPath} --broadcast "${nodeEndPoint}/${config.networkName}/transaction/broadcast" --priority-fee ${priorityFee}`;
 
   const userShell = new Shell(command);
 

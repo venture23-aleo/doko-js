@@ -4,7 +4,7 @@
     "build": "pnpm run --r --filter \"./packages/**\" build",
     "pkg:publish": "pnpm build && pnpm -r publish --access=public",
     "install:cli": "pnpm --filter cli build:install",
-    "test": "pnpm run --r --filter \"./packages/test\" test"
+    "test": "pnpm run --r --filter \"./test\" test"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
