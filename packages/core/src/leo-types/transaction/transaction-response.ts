@@ -5,7 +5,7 @@ import { decryptOutput } from "@/execution/execution-helper";
 import { validateBroadcast } from "@/execution";
 import { TransactionParams } from "@/execution";
 import { get } from "@/utils/httpRequests";
-
+import { DokoJSError, ERRORS } from '@doko-js/utils';
 export interface TransactionResponse {
     // Transaction object created by calling --dry-run locally
     tx0?: TransactionModel;
@@ -69,7 +69,7 @@ export class SnarkExecuteResponse extends LeoExecuteResponse {
     async wait(): Promise<TransactionModel | null> {
         const endpoint = this.transactionParams.network.endpoint;
         if (!endpoint)
-            throw new Error('Endpoint is not valid');
+            throw new DokoJSError(ERRORS.NETWORK.EMPTY_URL, { value: 'endpoint' });
 
         const transactionId = this.tx0?.id;
         if (transactionId)
@@ -103,7 +103,7 @@ export class SnarkDeployResponse implements TransactionResponse {
     async wait(): Promise<TransactionModel | null> {
         const endpoint = this.transactionParams.network.endpoint;
         if (!endpoint)
-            throw new Error('Endpoint is not valid');
+             throw new DokoJSError(ERRORS.NETWORK.EMPTY_URL, { value: 'endpoint' });
 
         const transactionId = this.tx0?.id;
         if (transactionId)
