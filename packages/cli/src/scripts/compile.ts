@@ -11,8 +11,7 @@ import {
   DokoJSLogger
 } from '@doko-js/utils';
 import { Node, NodeImport, sort } from '@/utils/graph';
-import { promisify } from 'util';
-import { exec } from 'child_process';
+import { LeoCommand, LeoCommandType, UnixCommandBuilder } from '@doko-js/core';
 
 const GENERATE_FILE_OUT_DIR = 'artifacts';
 const LEO_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/leo`;
@@ -199,11 +198,7 @@ async function cachePrograms(
 }
 
 async function getLeoVersion(): Promise<string> {
-  const execute = promisify(exec);
-  const cmd = 'leo -V';
-  const { stdout } = await execute(cmd);
-  const searchResult = /leo (?<version>\d+\.\d+\.\d+)/.exec(stdout);
-  return searchResult?.groups?.version || '';
+  return new LeoCommand().version();
 }
 
 async function buildProgram(programName: string, leoVersion: string) {
@@ -216,9 +211,25 @@ async function buildProgram(programName: string, leoVersion: string) {
   );
   const leoHomeDir = path.normalize(path.join(registryDir, '..'));
 
-  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
-  const leoShellCommand = new Shell(createLeoCommand);
-  await leoShellCommand.asyncExec();
+  await new LeoCommand()
+    .addBaseCommand('mkdir')
+    .addArgs(['-p', artifactDir])
+    .chain('&&')
+    .addBaseCommand('cd')
+    .addArgs([artifactDir])
+    .chain('&&')
+    .executeCmd(LeoCommandType.New, [parsedProgramName], true);
+
+  new UnixCommandBuilder()
+    .addBaseCommand('rm')
+    .addArgs([`${programDir}/src/main.leo`])
+    .chain('&&')
+    .addBaseCommand('cp')
+    .addArgs([
+      `${projectRoot}/programs/${parsedProgramName}.leo`,
+      `${programDir}/src/main.leo`
+    ])
+    .execute(undefined, true);
 
   // Update import dependencies on program.json
   const fileImports = await getFileImports(
@@ -249,15 +260,13 @@ async function buildProgram(programName: string, leoVersion: string) {
     }
   }
 
-  const networkFlag =
-    defaultNetwork && leoVersion.startsWith('2.')
-      ? `--network ${defaultNetwork}`
-      : '';
+  const res = await (await LeoCommand.default())
+    .addBaseCommand('cd')
+    .addArgs([programDir])
+    .chain('&&')
+    .executeCmd(LeoCommandType.Build, ['--home', leoHomeDir], true);
 
-  const leoBuildCommand = `cd "${programDir}" && leo build --home ${leoHomeDir} ${networkFlag}`;
-  const shellCommand = new Shell(leoBuildCommand);
-  const res = await shellCommand.asyncExec();
-
+  // @TODO: take execution mode from contract class initialization?
   if (aleoConfig['mode'] === 'execute' && defaultNetwork) {
     await cachePrograms(programName, programDir, defaultNetwork);
     await cachePrograms(

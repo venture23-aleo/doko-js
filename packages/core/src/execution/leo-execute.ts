@@ -1,12 +1,8 @@
-import { ContractConfig, TransactionParams } from './types';
-import { ExecutionContext, ExecutionOutput } from './types';
-import { ExecutionOutputParser, StdoutResponseParser } from './output-parser';
-import { formatArgs, execute, decryptOutput } from './execution-helper';
-import {
-  LeoExecuteResponse,
-  TransactionResponse
-} from '@/leo-types/transaction/transaction-response';
-import { DokoJSError, ERRORS } from '@doko-js/utils';
+import { TransactionParams } from './types';
+import { ExecutionContext } from './types';
+import { StdoutResponseParser } from './output-parser';
+import { TransactionResponse } from '@/leo-types/transaction/transaction-response';
+import { LeoCommand, LeoCommandType } from '@/command';
 
 export class LeoExecuteContext implements ExecutionContext {
   constructor(
@@ -18,19 +14,10 @@ export class LeoExecuteContext implements ExecutionContext {
     transitionName: string,
     args: string[]
   ): Promise<TransactionResponse> {
-    const transitionArgs = formatArgs(args);
-    const command = `cd ${this.params.contractPath} && leo execute ${transitionName} ${transitionArgs}`;
-    const { stdout } = await execute(command);
-    const output = this.parser.parse(stdout);
-    if (output.transaction)
-      return new LeoExecuteResponse(
-        output.transaction,
-        this.params,
-        transitionName
-      );
-    else
-      throw new DokoJSError(ERRORS.NETWORK.INVALID_TRANSACTION_OBJECT, {
-        transitionName
-      });
+    return new LeoCommand(this.params)
+      .addBaseCommand('cd')
+      .addArgs([this.params.contractPath])
+      .chain('&&')
+      .executeCmd(LeoCommandType.Execute, [transitionName, ...args]);
   }
 }

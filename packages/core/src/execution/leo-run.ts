@@ -1,20 +1,23 @@
-import { ContractConfig, LeoTransactionParams } from "./types";
-import { ExecutionContext, ExecutionOutput } from "./types";
-import { ExecutionOutputParser, StdoutResponseParser } from "./output-parser";
-import { formatArgs, execute } from "./execution-helper";
-import { LeoRunResponse, TransactionResponse } from "@/leo-types/transaction/transaction-response";
-
+import { LeoTransactionParams } from './types';
+import { ExecutionContext } from './types';
+import { StdoutResponseParser } from './output-parser';
+import { TransactionResponse } from '@/leo-types/transaction/transaction-response';
+import { LeoCommand, LeoCommandType } from '@/command';
 
 export class LeoRunContext implements ExecutionContext {
+  constructor(
+    public params: LeoTransactionParams,
+    public parser: StdoutResponseParser = new StdoutResponseParser()
+  ) {}
 
-    constructor(public params: LeoTransactionParams, public parser: StdoutResponseParser = new StdoutResponseParser()) {
-    }
-
-    async execute(transitionName: string, args: string[]): Promise<TransactionResponse> {
-        const transitionArgs = formatArgs(args);
-        const command = `cd ${this.params.contractPath} && leo run ${transitionName} ${transitionArgs}`;
-        const { stdout } = await execute(command);
-        const output = this.parser.parse(stdout);
-        return new LeoRunResponse(output.data);
-    }
+  async execute(
+    transitionName: string,
+    args: string[]
+  ): Promise<TransactionResponse> {
+    return new LeoCommand(this.params)
+      .addBaseCommand('cd')
+      .addArgs([this.params.contractPath])
+      .chain('&&')
+      .executeCmd(LeoCommandType.Run, [transitionName, ...args]);
+  }
 }

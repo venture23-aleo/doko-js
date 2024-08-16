@@ -2,7 +2,7 @@ import { get_decrypted_value } from "aleo-ciphertext-decryptor-beta";
 import { Output, TransactionModel } from "@aleohq/sdk";
 
 import { decryptOutput } from "@/execution/execution-helper";
-import { validateBroadcast } from "@/execution";
+import { LeoTransactionParams, validateBroadcast } from "@/execution";
 import { TransactionParams } from "@/execution";
 import { get } from "@/utils/httpRequests";
 import { DokoJSError, ERRORS } from '@doko-js/utils';
@@ -43,7 +43,7 @@ export class LeoExecuteResponse implements TransactionResponse {
     tx0?: TransactionModel;
     outputs: (Record<string, unknown> | null)[];
 
-    constructor(transaction: TransactionModel, transactionParam: TransactionParams, transitionName: string) {
+    constructor(transaction: TransactionModel, transactionParam: LeoTransactionParams, transitionName: string) {
         this.tx0 = transaction;
 
         const program = transactionParam.appName + '.aleo';
