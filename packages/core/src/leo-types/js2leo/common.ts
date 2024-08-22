@@ -161,13 +161,25 @@ export const publicField = (value: string): string => {
 };
 
 export const json = (value: any): string => {
-  return JSON.stringify(value).replace(/\"/g, '');
+  return JSON.stringify(value).replace(/"/g, '');
 };
 
-export const array = (value: Array<any>, converterFn: Function): any[] => {
-  return value.map((v) => converterFn(v));
+// Multidimensional array which is processed in
+// recursive manner
+export const array = (
+  value: Array<any>,
+  converterFn: (value: any) => string
+): any => {
+  let result = [];
+  if (Array.isArray(value)) {
+    result = value.map((v: any) => array(v, converterFn));
+  } else {
+    return converterFn(value);
+  }
+  return result;
 };
 
-export const arr2string = (arr: Array<string>) => {
-  return `[${arr.join(',')}]`;
+// Multidimensional array
+export const arr2string = (arr: Array<any>) => {
+  return JSON.stringify(arr);
 };

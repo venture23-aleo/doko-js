@@ -69,7 +69,7 @@ export function GenerateTypeConversionStatement(
   const isArray = IsLeoArray(type);
   if (isArray) {
     // Pass additional conversion function
-    const [dataType, size] = GetLeoArrTypeAndSize(type);
+    const [dataType, size] = GetLeoArrTypeAndSize(type)!;
     inputField = inputField.concat(`, ${namespace}.${dataType}`);
   }
 

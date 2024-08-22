@@ -11,7 +11,7 @@ import { capitalize } from '@doko-js/utils';
 // it generate it as `leoTokenSchema'
 export function GenerateLeoSchemaName(typeName: string) {
   if (IsLeoArray(typeName)) {
-    const [type, size] = GetLeoArrTypeAndSize(typeName);
+    const [type, size] = GetLeoArrTypeAndSize(typeName)!;
     const strippedSize = size.match(/\d+/);
     return `z.array(leo${capitalize(type)}Schema).length(${strippedSize})`;
   }
