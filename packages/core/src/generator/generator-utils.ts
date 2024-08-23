@@ -58,21 +58,25 @@ export function GenerateTypeConversionStatement(
   inputField: string,
   conversionTo: string
 ) {
-  // Split qualifier private/public
-  const [type, qualifier] = leoType.split('.');
-
-  // Determine member conversion function
-  const conversionFnName = GetConverterFunctionName(type, conversionTo);
-
   const namespace = conversionTo === 'js' ? 'leo2js' : 'js2leo';
 
-  const isArray = IsLeoArray(type);
+  const isArray = IsLeoArray(leoType);
   if (isArray) {
     // Pass additional conversion function
-    const [dataType, size] = GetLeoArrTypeAndSize(type)!;
-    inputField = inputField.concat(`, ${namespace}.${dataType}`);
+    const [dataType, size] = GetLeoArrTypeAndSize(leoType)!;
+    const converterFn = GetConverterFunctionName(dataType, conversionTo);
+    if (IsLeoPrimitiveType(dataType)) {
+      inputField = inputField.concat(`, ${namespace}.${converterFn}`);
+    } else {
+      inputField = inputField.concat(`, ${converterFn}`);
+    }
   }
 
+  // Split qualifier private/public
+  const [type, qualifier] = leoType.split('.');
+  // Determine member conversion function
+  const conversionFnName = GetConverterFunctionName(type, conversionTo);
+  // Default value is user defined type
   let fn = `${conversionFnName}(${inputField})`;
 
   // if this is not a custom type we have to use the

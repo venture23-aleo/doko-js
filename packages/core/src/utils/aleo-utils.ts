@@ -121,7 +121,12 @@ const GetLeoArrTypeAndSize = (arrDef: string) => {
 const ConvertToJSType = (type: string) => {
   if (IsLeoArray(type)) {
     const [arrType, ...dims] = GetLeoArrTypeAndSize(type)!;
-    const jsType = ALEO_TO_JS_TYPE_MAPPING.get(arrType);
+
+    let jsType;
+    if (IsLeoPrimitiveType(arrType)) {
+      jsType = ALEO_TO_JS_TYPE_MAPPING.get(arrType);
+    } else jsType = arrType;
+
     // Create n dimensional array based on dims
     return dims.reduce(
       (accumulator, currentValue) => `Array<${accumulator}>`,

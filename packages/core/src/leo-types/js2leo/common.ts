@@ -166,10 +166,7 @@ export const json = (value: any): string => {
 
 // Multidimensional array which is processed in
 // recursive manner
-export const array = (
-  value: Array<any>,
-  converterFn: (value: any) => string
-): any => {
+export const array = (value: any, converterFn: (value: any) => any): any => {
   let result = [];
   if (Array.isArray(value)) {
     result = value.map((v: any) => array(v, converterFn));
@@ -180,6 +177,6 @@ export const array = (
 };
 
 // Multidimensional array
-export const arr2string = (arr: Array<any>) => {
+export const arr2string = (arr: Array<any>): string => {
   return JSON.stringify(arr);
 };
