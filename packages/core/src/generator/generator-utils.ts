@@ -85,7 +85,10 @@ export function GenerateTypeConversionStatement(
     fn = `${namespace}.${fn}`;
 
     if (conversionTo === 'leo') {
-      if (qualifier) fn = `${namespace}.${qualifier}Field(${fn})`;
+      if (qualifier) {
+        if (isArray) fn = `${namespace}.${qualifier}ArrayField(${fn})`;
+        else fn = `${namespace}.${qualifier}Field(${fn})`;
+      }
     }
   }
 

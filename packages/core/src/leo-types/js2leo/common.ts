@@ -156,6 +156,16 @@ export const privateField = (value: string): string => {
   return value.concat('.private');
 };
 
+export const privateArrayField = (value: Array<any>): any => {
+  let result = [];
+  if (Array.isArray(value)) {
+    result = value.map((v: any) => privateArrayField(value));
+  } else {
+    return (value as string).concat('.private');
+  }
+  return result;
+};
+
 export const publicField = (value: string): string => {
   return value.concat('.public');
 };
