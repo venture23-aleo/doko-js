@@ -159,9 +159,9 @@ export const privateField = (value: string): string => {
 export const privateArrayField = (value: Array<any>): any => {
   let result = [];
   if (Array.isArray(value)) {
-    result = value.map((v: any) => privateArrayField(value));
+    result = value.map((v: any) => privateArrayField(v));
   } else {
-    return (value as string).concat('.private');
+    return value + '.private';
   }
   return result;
 };
