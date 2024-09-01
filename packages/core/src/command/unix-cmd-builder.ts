@@ -115,6 +115,26 @@ class UnixCommandBuilder {
       DokoJSLogger.error(`this is ${e}`);
     }
   }
+
+  copy(source: string, destination: string) {
+    this.addBaseCommand('cd').addArgs([source, destination]);
+    this.commands.push(this.buildBaseCommand());
+  }
+
+  remove(path: string, folder: boolean) {
+    this.addBaseCommand('rm').addArgs([folder ? '-r' : '', path]);
+    this.commands.push(this.buildBaseCommand());
+  }
+
+  changeDir(path: string) {
+    this.addBaseCommand('cd').addArgs([path]);
+    this.commands.push(this.buildBaseCommand());
+  }
+
+  mkdir(path: string) {
+    this.addBaseCommand('mkdir').addArgs(['-p', path]);
+    this.commands.push(this.buildBaseCommand());
+  }
 }
 
 export { UnixCommandBuilder, CommandOption };
