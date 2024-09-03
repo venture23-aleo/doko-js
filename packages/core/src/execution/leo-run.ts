@@ -15,9 +15,7 @@ export class LeoRunContext implements ExecutionContext {
     args: string[]
   ): Promise<TransactionResponse> {
     return new LeoCommand(this.params)
-      .addBaseCommand('cd')
-      .addArgs([this.params.contractPath])
-      .chain('&&')
+      .changeDir(this.params.contractPath)
       .executeCmd(LeoCommandType.Run, [transitionName, ...args]);
   }
 }

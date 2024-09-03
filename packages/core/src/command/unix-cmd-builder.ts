@@ -12,6 +12,12 @@ interface Command {
   args: string[];
 }
 
+interface IExecuteCmd {
+  cmd?: string;
+  shell?: boolean;
+  parse?: boolean;
+}
+
 class UnixCommandBuilder {
   private currentCommand: Command = this.initializeCommand();
   private commands = new Array<string>();
@@ -80,18 +86,21 @@ class UnixCommandBuilder {
     this.currentCommand.options.forEach((o) => {
       cmds.push(`${o.key} ${o.value}`);
     });
+    this.currentCommand = this.initializeCommand();
     return cmds.join(' ').trim();
   }
 
   build() {
     if (this.currentCommand.baseCmd)
       this.commands.push(this.buildBaseCommand());
-
-    return this.commands.join(' ').trim();
+    return this.commands.join(' && ').trim();
   }
 
-  async execute(cmd?: string, shell?: boolean, parse: boolean = true) {
+  async execute(args: IExecuteCmd = { parse: true }) {
     const _execute = promisify(exec);
+
+    // eslint-disable-next-line prefer-const
+    let { cmd, shell, parse = true } = args;
 
     if (!cmd) {
       if (this.commands.length < 0) throw new Error('No commands');
@@ -117,23 +126,27 @@ class UnixCommandBuilder {
   }
 
   copy(source: string, destination: string) {
-    this.addBaseCommand('cd').addArgs([source, destination]);
+    this.addBaseCommand('cp').addArgs([source, destination]);
     this.commands.push(this.buildBaseCommand());
+    return this;
   }
 
   remove(path: string, folder: boolean) {
     this.addBaseCommand('rm').addArgs([folder ? '-r' : '', path]);
     this.commands.push(this.buildBaseCommand());
+    return this;
   }
 
   changeDir(path: string) {
     this.addBaseCommand('cd').addArgs([path]);
     this.commands.push(this.buildBaseCommand());
+    return this;
   }
 
   mkdir(path: string) {
     this.addBaseCommand('mkdir').addArgs(['-p', path]);
     this.commands.push(this.buildBaseCommand());
+    return this;
   }
 }
 

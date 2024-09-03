@@ -49,7 +49,7 @@ class LeoCommand extends UnixCommandBuilder {
 
   async version(): Promise<string> {
     const cmd = this.addBaseCommand(this.baseCommand).addFlags(['-V']).build();
-    const output = await super.execute(cmd, false);
+    const output = await super.execute({ cmd, shell: false });
     const outputStr = typeof output === 'string' ? output : '';
     const searchResult = /leo (?<version>\d+\.\d+\.\d+)/.exec(outputStr);
     return searchResult?.groups?.version || '';
@@ -75,7 +75,7 @@ class LeoCommand extends UnixCommandBuilder {
 
     if (!cmd) throw new Error('No command to execute');
 
-    const res = await super.execute(cmd, shell);
+    const res = await super.execute({ cmd, shell });
 
     if (res && typeof res === 'object' && 'transaction' in res) {
       const { transaction, data } = res as { transaction: any; data: any };

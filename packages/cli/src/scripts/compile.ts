@@ -212,24 +212,17 @@ async function buildProgram(programName: string, leoVersion: string) {
   const leoHomeDir = path.normalize(path.join(registryDir, '..'));
 
   await new LeoCommand()
-    .addBaseCommand('mkdir')
-    .addArgs(['-p', artifactDir])
-    .chain('&&')
-    .addBaseCommand('cd')
-    .addArgs([artifactDir])
-    .chain('&&')
+    .mkdir(artifactDir)
+    .changeDir(artifactDir)
     .executeCmd(LeoCommandType.New, [parsedProgramName], true);
 
-  new UnixCommandBuilder()
-    .addBaseCommand('rm')
-    .addArgs([`${programDir}/src/main.leo`])
-    .chain('&&')
-    .addBaseCommand('cp')
-    .addArgs([
+  await new UnixCommandBuilder()
+    .remove(`${programDir}/src/main.leo`, false)
+    .copy(
       `${projectRoot}/programs/${parsedProgramName}.leo`,
       `${programDir}/src/main.leo`
-    ])
-    .execute(undefined, true);
+    )
+    .execute({ shell: true });
 
   // Update import dependencies on program.json
   const fileImports = await getFileImports(
@@ -261,9 +254,7 @@ async function buildProgram(programName: string, leoVersion: string) {
   }
 
   const res = await (await LeoCommand.default())
-    .addBaseCommand('cd')
-    .addArgs([programDir])
-    .chain('&&')
+    .changeDir(programDir)
     .executeCmd(LeoCommandType.Build, ['--home', leoHomeDir], true);
 
   // @TODO: take execution mode from contract class initialization?
