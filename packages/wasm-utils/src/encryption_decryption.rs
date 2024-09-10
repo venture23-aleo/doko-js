@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use std::str::FromStr;
 
 use snarkvm_console::{
-    account::{ComputeKey, PrivateKey},
+    account::{PrivateKey, ViewKey},
     algorithms::{Field, Group, U16},
     network::{MainnetV0, Network, TestnetV0},
     program::{compute_function_id, Ciphertext, Identifier, Plaintext, ProgramID},
@@ -14,11 +14,11 @@ use super::{AleoNetwork, NetworkCtx};
 impl<N: Network> NetworkCtx<N> {
     fn get_tvk(pk: &str, tpk: &str) -> Result<Field<N>> {
         let pk = PrivateKey::<N>::from_str(pk).context("failed to parse private key")?;
-        let compute_key = ComputeKey::<N>::try_from(pk)
-            .context("failed to parse compute key from private key")?;
+        let view_key =
+            ViewKey::<N>::try_from(pk).context("failed to parse view key from private key")?;
         let tpk = Group::<N>::from_str(tpk).context("failed to group tpk")?;
 
-        let tvk = (pk.sk_sig() + compute_key.sk_prf() + pk.r_sig()) * tpk;
+        let tvk = *view_key * tpk;
         Ok(tvk.to_x_coordinate())
     }
 
