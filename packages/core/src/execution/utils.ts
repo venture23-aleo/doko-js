@@ -191,10 +191,13 @@ export const snarkDeploy = async ({
 
   DokoJSLogger.info(`Deploying program ${config.appName}`);
 
+
   // const cmd = `cd ${config.contractPath}/build && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName}`;
   const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
 
+
   DokoJSLogger.debug(cmd);
+
 
   const { stdout } = await execute(cmd);
   const result = transactionHashToTransactionResponseObject(stdout.split("Deployment")[2].split(" ")[1],'deploy')
@@ -231,13 +234,10 @@ export const validateBroadcast = async (
   while (Date.now() - startTime < timeoutMs) {
     try {
       const response = await get(pollUrl);
-      const data = (await response.json()) as TransactionModel & {
-        deployment: any;
-      };
+      const data = await response.json() as TransactionModel & { deployment: any };
       if (!data.execution && !data.deployment) {
-        DokoJSLogger.warn('Transaction error');
+        console.error('Transaction error');
       }
-
       return data;
     } catch (e: any) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));

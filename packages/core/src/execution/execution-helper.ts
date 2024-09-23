@@ -1,7 +1,7 @@
 // @TODO replace this with shell
 import { tx } from "@/outputs";
 import { Output, TransactionModel } from "@aleohq/sdk";
-import { get_decrypted_value } from "aleo-ciphertext-decryptor"
+import { get_decrypted_value } from "aleo-ciphertext-decryptor-beta"
 import { exec } from "child_process"
 import { promisify } from "util";
 import { parseJSONLikeString } from "./utils";
@@ -23,7 +23,8 @@ export function decryptOutput(
     transaction: TransactionModel,
     transitionName: string,
     programName: string,
-    privateKey: string
+    privateKey: string,
+    networkMode: number
 ) {
     if (!transaction.execution.transitions) return [];
     const transitions = transaction.execution.transitions.filter(
@@ -48,7 +49,8 @@ export function decryptOutput(
                         transitionName,
                         offset + index,
                         privateKey,
-                        transition[0].tpk
+                        transition[0].tpk,
+                        networkMode
                     );
                 } else if (output.type == 'record') {
                     val = output.value;
