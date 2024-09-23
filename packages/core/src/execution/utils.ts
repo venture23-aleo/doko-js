@@ -191,22 +191,29 @@ export const snarkDeploy = async ({
 
   DokoJSLogger.info(`Deploying program ${config.appName}`);
 
-  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  // const cmd = `cd ${config.contractPath}/build && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName}`;
+  const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
+
   DokoJSLogger.debug(cmd);
 
   const { stdout } = await execute(cmd);
-  const result = new SnarkStdoutResponseParser().parse(stdout);
-  // @TODO check it later
-  await broadcastTransaction(
-    result.transaction as TransactionModel,
-    nodeEndPoint,
-    config.networkName!
-  );
+  const result = transactionHashToTransactionResponseObject(stdout.split("Deployment")[2].split(" ")[1],'deploy')
+  // // @TODO check it later
+  // await broadcastTransaction(
+  //   result as TransactionModel,
+  //   nodeEndPoint,
+  //   config.networkName!
+  // );
   return new SnarkDeployResponse(
-    result.transaction as TransactionModel,
+    result as TransactionModel,
     config
   );
 };
+
+export const transactionHashToTransactionResponseObject= (transactionHash: string,type:'deploy'|'execute'): TransactionModel | null => {
+  const transaction={id:transactionHash,type,execution:{edition:1}}
+  return transaction
+}
 
 export const validateBroadcast = async (
   transactionId: string,
