@@ -4,7 +4,7 @@ import {
   ContractConfig,
   snarkDeploy,
   checkDeployment,
-  CreateExecutionContext,  
+  CreateExecutionContext,
   TransactionResponse
 } from '@doko-js/core';
 import { to_address } from 'aleo-program-to-address';
@@ -50,9 +50,9 @@ export class BaseContract {
     return checkDeployment(endpoint);
   }
 
-/** 
-  * @deprecated Use transaction receipt to wait.
-*/  
+  /**
+   * @deprecated Use transaction receipt to wait.
+   */
 
   async wait<T extends TransactionResponse = TransactionResponse>(
     transaction: T

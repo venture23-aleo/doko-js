@@ -191,38 +191,38 @@ export const snarkDeploy = async ({
 
   DokoJSLogger.info(`Deploying program ${config.appName}`);
 
-
   // const cmd = `cd ${config.contractPath}/build && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName}`;
   const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
 
-
   DokoJSLogger.debug(cmd);
 
-
   const { stdout } = await execute(cmd);
-  const result = transactionHashToTransactionResponseObject(stdout.split("Deployment")[2].split(" ")[1],'deploy')
+  const result = transactionHashToTransactionResponseObject(
+    stdout.split('Deployment')[2].split(' ')[1],
+    'deploy'
+  );
   // // @TODO check it later
   // await broadcastTransaction(
   //   result as TransactionModel,
   //   nodeEndPoint,
   //   config.networkName!
   // );
-  return new SnarkDeployResponse(
-    result as TransactionModel,
-    config
-  );
+  return new SnarkDeployResponse(result as TransactionModel, config);
 };
 
-export const transactionHashToTransactionResponseObject= (transactionHash: string,type:'deploy'|'execute'): TransactionModel | null => {
-  const transaction={id:transactionHash,type,execution:{edition:1}}
-  return transaction
-}
+export const transactionHashToTransactionResponseObject = (
+  transactionHash: string,
+  type: 'deploy' | 'execute'
+): TransactionModel | null => {
+  const transaction = { id: transactionHash, type, execution: { edition: 1 } };
+  return transaction;
+};
 
 export const validateBroadcast = async (
   transactionId: string,
   nodeEndpoint: string,
   networkName: string
-): Promise<TransactionModel | null> => {
+): Promise<Optional<TransactionModel>> => {
   const pollUrl = `${nodeEndpoint}/${networkName}/transaction/${transactionId}`;
   const timeoutMs = 60_000;
   const pollInterval = 1000; // 1 second
@@ -234,7 +234,9 @@ export const validateBroadcast = async (
   while (Date.now() - startTime < timeoutMs) {
     try {
       const response = await get(pollUrl);
-      const data = await response.json() as TransactionModel & { deployment: any };
+      const data = (await response.json()) as TransactionModel & {
+        deployment: any;
+      };
       if (!data.execution && !data.deployment) {
         console.error('Transaction error');
       }
