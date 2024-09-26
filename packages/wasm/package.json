@@ -1,10 +1,15 @@
 {
   "name": "@doko-js/wasm",
   "version": "0.0.2",
-  "description": "Wasm-utils for doko tools",
+  "description": "Wasm Build for doko tools",
   "type": "module",
+  "main": "./dist/wasm.js",
+  "types": "./dist/wasm.d.ts",
+  "exports": {
+    ".": "./dist/wasm.js"
+  },
   "scripts": {
-    "build": "wasm-pack build --scope dokojs --target nodejs --out-dir=../wasm --release"
+    "build": "wasm-pack build --scope doko-js --target nodejs --out-dir=./dist --release --no-pack"
   },
   "repository": {
     "type": "git",
