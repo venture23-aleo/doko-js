@@ -76,66 +76,84 @@ impl<N: Network> NetworkCtx<N> {
         Ok(decrypted.to_string())
     }
 }
+#[wasm_bindgen]
+pub struct Encryter;
 
-#[wasm_bindgen(js_namespace=encrypt)]
-pub fn get_encrypted_value(
-    val: &str,
-    program: &str,
-    fn_name: &str,
-    input_index: u16,
-    pk: &str,
-    tpk: &str,
-    network: AleoNetwork,
-) -> JsValue {
-    let res = match network {
-        AleoNetwork::Testnet => {
-            NetworkCtx::<TestnetV0>::encrypt_plaintext(val, program, fn_name, input_index, pk, tpk)
-        }
-        AleoNetwork::Mainnet => {
-            NetworkCtx::<MainnetV0>::encrypt_plaintext(val, program, fn_name, input_index, pk, tpk)
-        }
-        _ => Err(anyhow::Error::msg("Invalid Network")),
-    };
+#[wasm_bindgen]
+impl Encryter {
+    pub fn get_encrypted_value(
+        val: &str,
+        program: &str,
+        fn_name: &str,
+        input_index: u16,
+        pk: &str,
+        tpk: &str,
+        network: AleoNetwork,
+    ) -> JsValue {
+        let res = match network {
+            AleoNetwork::Testnet => NetworkCtx::<TestnetV0>::encrypt_plaintext(
+                val,
+                program,
+                fn_name,
+                input_index,
+                pk,
+                tpk,
+            ),
+            AleoNetwork::Mainnet => NetworkCtx::<MainnetV0>::encrypt_plaintext(
+                val,
+                program,
+                fn_name,
+                input_index,
+                pk,
+                tpk,
+            ),
+            _ => Err(anyhow::Error::msg("Invalid Network")),
+        };
 
-    match res {
-        Ok(r) => JsValue::from_str(&r),
-        Err(e) => JsValue::from_str(&e.to_string()),
+        match res {
+            Ok(r) => JsValue::from_str(&r),
+            Err(e) => JsValue::from_str(&e.to_string()),
+        }
     }
 }
+#[wasm_bindgen]
+pub struct Decrypter;
 
-#[wasm_bindgen(js_namespace = decrypt)]
-pub fn get_decrypted_value(
-    cipher: &str,
-    program: &str,
-    fn_name: &str,
-    input_index: u16,
-    pk: &str,
-    tpk: &str,
-    network: AleoNetwork,
-) -> JsValue {
-    let res = match network {
-        AleoNetwork::Testnet => NetworkCtx::<TestnetV0>::decrypt_ciphertext(
-            cipher,
-            program,
-            fn_name,
-            input_index,
-            pk,
-            tpk,
-        ),
-        AleoNetwork::Mainnet => NetworkCtx::<MainnetV0>::decrypt_ciphertext(
-            cipher,
-            program,
-            fn_name,
-            input_index,
-            pk,
-            tpk,
-        ),
-        _ => Err(anyhow::Error::msg("Invalid Network")),
-    };
+#[wasm_bindgen]
+impl Decrypter {
+    pub fn get_decrypted_value(
+        cipher: &str,
+        program: &str,
+        fn_name: &str,
+        input_index: u16,
+        pk: &str,
+        tpk: &str,
+        network: AleoNetwork,
+    ) -> JsValue {
+        let res = match network {
+            AleoNetwork::Testnet => NetworkCtx::<TestnetV0>::decrypt_ciphertext(
+                cipher,
+                program,
+                fn_name,
+                input_index,
+                pk,
+                tpk,
+            ),
+            AleoNetwork::Mainnet => NetworkCtx::<MainnetV0>::decrypt_ciphertext(
+                cipher,
+                program,
+                fn_name,
+                input_index,
+                pk,
+                tpk,
+            ),
+            _ => Err(anyhow::Error::msg("Invalid Network")),
+        };
 
-    match res {
-        Ok(r) => JsValue::from_str(&r),
-        Err(e) => JsValue::from_str(&e.to_string()),
+        match res {
+            Ok(r) => JsValue::from_str(&r),
+            Err(e) => JsValue::from_str(&e.to_string()),
+        }
     }
 }
 
@@ -150,7 +168,7 @@ fn test_decryption2() {
     let cipher =
         String::from("ciphertext1qyqv5fj8jc4enpvl8xdkxllvdhxe49qz3mn72xmr574ve5n4qtuawpgs4egw3"); //get_encrypted_value(val, program_name, function_name, input_index, private_key, tpk);\
 
-    let plain = get_decrypted_value(
+    let plain = Decrypter::get_decrypted_value(
         cipher.as_str(),
         program_name,
         function_name,

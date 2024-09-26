@@ -68,26 +68,30 @@ impl<N: Network> NetworkCtx<N> {
     }
 }
 
-#[wasm_bindgen(js_namespace = hash)]
-pub fn hasher(alg: &str, val: &str, out: &str, network: AleoNetwork) -> JsValue {
-    let res = match network {
-        AleoNetwork::Testnet => NetworkCtx::<TestnetV0>::hash(alg, val, out),
-        AleoNetwork::Mainnet => NetworkCtx::<MainnetV0>::hash(alg, val, out),
-        _ => Err(anyhow::Error::msg("Invalid Aleo Network")),
-    };
-    match res {
-        Ok(d) => JsValue::from_str(&d),
-        Err(e) => JsValue::from_str(&e.to_string()),
+#[wasm_bindgen]
+pub struct Hasher;
+
+#[wasm_bindgen]
+impl Hasher {
+    pub fn hash(alg: &str, val: &str, out: &str, network: AleoNetwork) -> JsValue {
+        let res = match network {
+            AleoNetwork::Testnet => NetworkCtx::<TestnetV0>::hash(alg, val, out),
+            AleoNetwork::Mainnet => NetworkCtx::<MainnetV0>::hash(alg, val, out),
+            _ => Err(anyhow::Error::msg("Invalid Aleo Network")),
+        };
+        match res {
+            Ok(d) => JsValue::from_str(&d),
+            Err(e) => JsValue::from_str(&e.to_string()),
+        }
     }
 }
-
 #[test]
 fn test_direct() {
     let algorithm = "keccak256";
     let val = "{arr: [1u8, 1u8], size: 2u8}";
     let destination_type = "address";
 
-    let g = hasher(algorithm, val, destination_type, AleoNetwork::Testnet);
+    let g = Hasher::hash(algorithm, val, destination_type, AleoNetwork::Testnet);
 
     println!("{:?}", g);
 }
