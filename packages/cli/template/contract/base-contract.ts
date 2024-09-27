@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { PrivateKey, TransactionModel } from '@aleohq/sdk';
+import { PrivateKey, TransactionModel } from '@provablehq/sdk';
 import {
   ContractConfig,
   snarkDeploy,

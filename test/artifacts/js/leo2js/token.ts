@@ -9,7 +9,7 @@ import {
 } from "@doko-js/core";
 import {
   PrivateKey
-} from "@aleohq/sdk"
+} from "@provablehq/sdk"
 
 
 export function gettoken(token: tokenLeo): token {

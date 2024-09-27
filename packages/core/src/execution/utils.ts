@@ -1,6 +1,6 @@
 import { get, post } from '@/utils/httpRequests';
 import { ContractConfig } from './types';
-import { TransactionModel } from '@aleohq/sdk';
+import { TransactionModel } from '@provablehq/sdk';
 import { execute } from './execution-helper';
 import { SnarkStdoutResponseParser } from './output-parser';
 import {

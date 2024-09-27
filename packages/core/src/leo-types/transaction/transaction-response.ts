@@ -1,5 +1,5 @@
 import { get_decrypted_value } from 'aleo-ciphertext-decryptor';
-import { Output, TransactionModel } from '@aleohq/sdk';
+import { Output, TransactionModel } from '@provablehq/sdk';
 
 import { decryptOutput } from '@/execution/execution-helper';
 import { validateBroadcast } from '@/execution';

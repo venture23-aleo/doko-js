@@ -242,7 +242,7 @@ Create a test file (e.g., token.test.ts) inside the test directory. An example t
 
 ```js
 import { parseRecordString } from '@doko-js/core';
-import { PrivateKey } from '@aleohq/sdk';
+import { PrivateKey } from '@provablehq/sdk';
 
 import { TokenContract } from '../artifacts/js/token';
 import { token, tokenLeo } from '../artifacts/js/types/token';

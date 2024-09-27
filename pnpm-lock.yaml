@@ -98,12 +98,12 @@ importers:
 
   packages/core:
     dependencies:
-      '@aleohq/sdk':
-        specifier: ^0.6.9
-        version: 0.6.9
       '@doko-js/utils':
         specifier: workspace:*
         version: link:../utils
+      '@provablehq/sdk':
+        specifier: ^0.6.13
+        version: 0.6.13
       aleo-ciphertext-decryptor:
         specifier: ^0.1.0
         version: 0.1.0
@@ -121,9 +121,6 @@ importers:
 
   test:
     dependencies:
-      '@aleohq/sdk':
-        specifier: ^0.6.9
-        version: 0.6.9
       '@doko-js/cli':
         specifier: workspace:*
         version: link:../packages/cli
@@ -133,6 +130,9 @@ importers:
       '@doko-js/utils':
         specifier: workspace:*
         version: link:../packages/utils
+      '@provablehq/sdk':
+        specifier: ^0.6.9
+        version: 0.6.13
       aleo-program-to-address:
         specifier: ^0.1.0
         version: 0.1.0
@@ -165,19 +165,6 @@ packages:
     resolution: {integrity: sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==}
     engines: {node: '>=0.10.0'}
     dev: true
-
-  /@aleohq/sdk@0.6.9:
-    resolution: {integrity: sha512-XerwoyQvwYsAWWir7gWWC9i9ZZc7DvbP9Gfkqv92lEKDILe/Ac/PIu7cRlJsRqv09aih8dgVXsKROU303z1PJQ==}
-    dependencies:
-      '@aleohq/wasm': 0.6.9
-      comlink: 4.4.1
-      mime: 3.0.0
-      sync-request: 6.1.0
-    dev: false
-
-  /@aleohq/wasm@0.6.9:
-    resolution: {integrity: sha512-lDQePcCN+H4uyiCk3Vy22k+vpppogCSMveZk2f3qV3v0H0MCetA1dqFxR3HMZr73n2Yw7B6ZkwTlfotTdcGtPA==}
-    dev: false
 
   /@ampproject/remapping@2.3.0:
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -2008,6 +1995,19 @@ packages:
     resolution: {integrity: sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
     dev: true
+
+  /@provablehq/sdk@0.6.13:
+    resolution: {integrity: sha512-VcPw5sjGRvi0FZQtlEBvSlp587BfXjlpLhgtdjyDxn5duo7sdfrNuQWrW8IcmfzaJKRKB3fDjE913p3VD2Yn/Q==}
+    dependencies:
+      '@provablehq/wasm': 0.6.13
+      comlink: 4.4.1
+      mime: 3.0.0
+      sync-request: 6.1.0
+    dev: false
+
+  /@provablehq/wasm@0.6.13:
+    resolution: {integrity: sha512-M7H0kM240xtYryENXVbRUpW07+LOsnpt+s+X7Q7i/4lbEMWDB9lInLs987AF3EsRdRwx+eiz2ul9jraBvZ0jcg==}
+    dev: false
 
   /@rollup/plugin-json@6.1.0(rollup@4.9.6):
     resolution: {integrity: sha512-EGI2te5ENk1coGeADSIwZ7G2Q8CJS2sF120T7jLw4xFw9n7wIOXHo+kIYRAoVpJAN+kmqZSoO3Fp4JtoNF4ReA==}

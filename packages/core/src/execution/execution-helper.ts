@@ -1,6 +1,6 @@
 // @TODO replace this with shell
 import { tx } from "@/outputs";
-import { Output, TransactionModel } from "@aleohq/sdk";
+import { Output, TransactionModel } from "@provablehq/sdk";
 import { get_decrypted_value } from "aleo-ciphertext-decryptor"
 import { exec } from "child_process"
 import { promisify } from "util";
