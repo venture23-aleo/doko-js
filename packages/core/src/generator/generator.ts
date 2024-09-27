@@ -571,13 +571,13 @@ class Generator {
           ...config,
           appName: '${programName}',
           networkMode: config.networkMode, 
-          fee: '0.01'
+          fee: '0.01',
           contractPath: '${this.programParams?.isImportedAleo ? IMPORTS_PATH : PROGRAM_DIRECTORY}${programName}',
           isImportedAleo: ${Boolean(this.programParams?.isImportedAleo)}
       });
   }\n`
     );
-    //           networkMode: config.networkName === 'testnet' ? 1 : 0, 
+    //           networkMode: config.networkName === 'testnet' ? 1 : 0,
     this.refl.functions.forEach((func) => {
       if (func.type === 'function') {
         classGenerator.addMethod(

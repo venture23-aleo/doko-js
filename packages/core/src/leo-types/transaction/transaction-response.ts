@@ -48,11 +48,12 @@ export class LeoExecuteResponse<T extends Tuple>
   transaction: Optional<TransactionModel>;
 
   constructor(
-    private transactionId: string,
+    transaction: TransactionModel,
     private transactionParam: TransactionParams,
     private transitionName: string
   ) {
-    /*
+    this.transaction = transaction;
+
     const program = transactionParam.appName + '.aleo';
     this.outputs = decryptOutput(
       transaction,
@@ -61,7 +62,6 @@ export class LeoExecuteResponse<T extends Tuple>
       transactionParam.privateKey,
       transactionParam.networkMode
     );
-    */
   }
 
   async wait(): Promise<T | void> {
@@ -153,12 +153,13 @@ export class SnarkDeployResponse<T extends Tuple>
     if (!endpoint)
       throw new DokoJSError(ERRORS.NETWORK.EMPTY_URL, { value: 'endpoint' });
 
-    if (this.transactionId)
-      return await validateBroadcast(
+    if (this.transactionId) {
+      this.transaction = await validateBroadcast(
         this.transactionId,
         endpoint,
         this.transactionParams.networkName
       );
+    }
   }
 
   async blockHeight() {

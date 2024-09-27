@@ -1,5 +1,5 @@
 import { get, post } from '@/utils/httpRequests';
-import { ContractConfig } from './types';
+import { ContractConfig, Optional } from './types';
 import { TransactionModel } from '@aleohq/sdk';
 import { execute } from './execution-helper';
 import { SnarkStdoutResponseParser } from './output-parser';
@@ -143,10 +143,7 @@ async function deployAleo(
     nodeEndPoint,
     config.networkName!
   );
-  return new SnarkDeployResponse(
-    result.transaction as TransactionModel,
-    config
-  );
+  return new SnarkDeployResponse(result.transaction?.id || '', config);
 }
 
 const snarkDeployAleo = async ({
@@ -207,7 +204,7 @@ export const snarkDeploy = async ({
   //   nodeEndPoint,
   //   config.networkName!
   // );
-  return new SnarkDeployResponse(result as TransactionModel, config);
+  return new SnarkDeployResponse(result?.id || '', config);
 };
 
 export const transactionHashToTransactionResponseObject = (
@@ -249,7 +246,7 @@ export const validateBroadcast = async (
 
   DokoJSLogger.info('Broadcast validation timeout');
 
-  return null;
+  return undefined;
 };
 
 export const waitTransaction = async (

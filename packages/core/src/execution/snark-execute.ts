@@ -56,7 +56,11 @@ export class SnarkExecuteContext implements ExecutionContext {
     const { transaction } = this.parser.parse(stdout);
     if (transaction) {
       await this.broadcast(transaction, nodeEndPoint);
-      return new SnarkExecuteResponse(transaction, this.params, transitionName);
+      return new SnarkExecuteResponse(
+        transaction.id,
+        this.params,
+        transitionName
+      );
     } else
       throw new DokoJSError(ERRORS.NETWORK.INVALID_TRANSACTION_OBJECT, {
         transitionName
