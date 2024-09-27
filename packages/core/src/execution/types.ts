@@ -50,5 +50,4 @@ export type LeoTransactionParams = Omit<
 export type SnarkExecuteTransactionParams = TransactionParams &
   Pick<ContractConfig, 'isImportedAleo'>;
 
-export type Tuple = Array<unknown>;
 export type Optional<T> = T | undefined;

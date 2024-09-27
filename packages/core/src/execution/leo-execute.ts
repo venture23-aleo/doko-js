@@ -7,6 +7,7 @@ import {
   TransactionResponse
 } from '@/leo-types/transaction/transaction-response';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
+import { TransactionModel } from '@aleohq/sdk';
 
 export class LeoExecuteContext implements ExecutionContext {
   constructor(
@@ -24,7 +25,7 @@ export class LeoExecuteContext implements ExecutionContext {
     const output = this.parser.parse(stdout);
     if (output.transaction)
       return new LeoExecuteResponse(
-        output.transaction,
+        output.transaction as any,
         this.params,
         transitionName
       );

@@ -150,7 +150,7 @@ const snarkDeployAleo = async ({
   config
 }: {
   config: ContractConfig;
-}): Promise<TransactionResponse> => {
+}): Promise<TransactionResponse<any>> => {
   const aleoCode = await fs.readFile(`${config.contractPath}.aleo`);
   const importsDir = path.normalize(path.join(config.contractPath, '..'));
 
@@ -161,7 +161,7 @@ export const snarkDeploy = async ({
   config
 }: {
   config: ContractConfig;
-}): Promise<TransactionResponse> => {
+}): Promise<TransactionResponse<any>> => {
   if (config.isImportedAleo) {
     return snarkDeployAleo({ config });
   }
@@ -219,7 +219,7 @@ export const validateBroadcast = async (
   transactionId: string,
   nodeEndpoint: string,
   networkName: string
-): Promise<Optional<TransactionModel>> => {
+): Promise<TransactionModel | null> => {
   const pollUrl = `${nodeEndpoint}/${networkName}/transaction/${transactionId}`;
   const timeoutMs = 60_000;
   const pollInterval = 1000; // 1 second
@@ -245,8 +245,7 @@ export const validateBroadcast = async (
   }
 
   DokoJSLogger.info('Broadcast validation timeout');
-
-  return undefined;
+  return null;
 };
 
 export const waitTransaction = async (

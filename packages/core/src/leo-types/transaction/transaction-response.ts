@@ -1,57 +1,81 @@
-import { TransactionModel } from '@aleohq/sdk';
+import { TransactionModel, Transition } from '@aleohq/sdk';
 
 import { decryptOutput } from '@/execution/execution-helper';
 import { validateBroadcast } from '@/execution';
 import { TransactionParams } from '@/execution';
 import { get } from '@/utils/httpRequests';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
-import { Tuple, Optional } from '@/execution';
+import { Optional } from '@/execution';
 
-export interface TransactionResponse<T extends Tuple = Tuple> {
+type Tuple = Optional<Array<unknown>>;
+type ConverterFn = (val: any) => any;
+
+export abstract class TransactionResponse<
+  TransactionDefinition extends TransactionModel = TransactionModel,
+  Result = Tuple
+> {
   // Outputs for the transition for which this object is returned
   outputs: Optional<Array<Record<string, unknown>>>;
-
+  converterFn: Optional<Array<ConverterFn>>;
   // this function poll whether the transaction id is included in chain or not.
-  //xthis function return null in LeoRun and LeoExecuteMode.In SnarkExecute mode it
+  // this function return null in LeoRun and LeoExecuteMode.In SnarkExecute mode it
   // returns the transaction object that is obtained from the endpoint
-  wait: () => Promise<T | void>;
-  // @TODO add block() function to get the blockHeight at which transaction is included
-  blockHeight: () => Promise<Optional<string>>;
+  abstract wait(): Promise<Result>;
 
-  getTransaction: () => Promise<Optional<TransactionModel>>;
+  set_converter_fn(converters: Array<ConverterFn>) {
+    this.converterFn = converters;
+  }
+
+  // @TODO add block() function to get the blockHeight at which transaction is included
+  async blockHeight(): Promise<Optional<string>> {
+    return undefined;
+  }
+
+  async getTransaction(): Promise<TransactionDefinition | null> {
+    return null;
+  }
+
+  protected apply_converters(): Result {
+    if (!this.outputs) return undefined as Result;
+
+    const outputValues = Array.from(this.outputs.values());
+    if (this.converterFn && outputValues) {
+      const result = outputValues.map((val: any, index: any) =>
+        this.converterFn![index]!(val)
+      );
+      return result as Result;
+    } else {
+      return outputValues as Result;
+    }
+  }
 }
 
-export class LeoRunResponse<T extends Tuple> implements TransactionResponse<T> {
-  outputs: Optional<Array<Record<string, unknown>>>;
+export class LeoRunResponse<
+  TransactionDefinition extends TransactionModel,
+  Result extends Tuple = Tuple
+> extends TransactionResponse<TransactionDefinition, Result> {
   constructor(outputs: Record<string, unknown>[]) {
+    super();
     this.outputs = outputs;
   }
 
-  async wait(): Promise<T | void> {
-    if (this.outputs && this.outputs.length > 0)
-      return Array.from(this.outputs.values()) as T;
-  }
-
-  async blockHeight() {
-    return undefined;
-  }
-
-  async getTransaction() {
-    return undefined;
+  async wait(): Promise<Result> {
+    return this.apply_converters();
   }
 }
 
-export class LeoExecuteResponse<T extends Tuple>
-  implements TransactionResponse<T>
-{
-  outputs: Optional<Array<Record<string, unknown>>>;
-  transaction: Optional<TransactionModel>;
+export class LeoExecuteResponse<
+  TransactionDefinition extends TransactionModel = TransactionModel,
+  Result extends Tuple = Tuple
+> extends TransactionResponse<TransactionDefinition, Result> {
+  transaction: TransactionDefinition;
 
   constructor(
-    transaction: TransactionModel,
-    private transactionParam: TransactionParams,
-    private transitionName: string
+    transaction: TransactionDefinition,
+    transactionParam: TransactionParams,
+    transitionName: string
   ) {
+    super();
     this.transaction = transaction;
 
     const program = transactionParam.appName + '.aleo';
@@ -64,42 +88,44 @@ export class LeoExecuteResponse<T extends Tuple>
     );
   }
 
-  async wait(): Promise<T | void> {
-    if (this.outputs && this.outputs.length > 0)
-      return Array.from(this.outputs.values()) as T;
+  async wait(): Promise<Result> {
+    return this.apply_converters();
   }
 
   async blockHeight() {
     return undefined;
   }
 
-  async getTransaction() {
+  async getTransaction(): Promise<TransactionDefinition | null> {
     return this.transaction;
   }
 }
 
-export class SnarkExecuteResponse<T extends Tuple>
-  implements TransactionResponse<T>
-{
-  outputs: Optional<Array<Record<string, unknown>>>;
-  transaction: Optional<TransactionModel>;
+export class SnarkExecuteResponse<
+  TransactionDefinition extends TransactionModel = TransactionModel,
+  Result extends Tuple = Tuple
+> extends TransactionResponse<TransactionDefinition, Result> {
+  protected transaction: TransactionDefinition | null;
 
   constructor(
-    private transactionId: string,
-    private transactionParams: TransactionParams,
-    private transitionName: string
-  ) {}
+    protected transactionId: string,
+    protected transactionParams: TransactionParams,
+    protected transitionName: string
+  ) {
+    super();
+    this.transaction = null;
+  }
 
-  async wait(): Promise<T | void> {
+  async wait(): Promise<Result> {
     const endpoint = this.transactionParams.network.endpoint;
     if (!endpoint)
       throw new DokoJSError(ERRORS.NETWORK.EMPTY_URL, { value: 'endpoint' });
 
-    this.transaction = await validateBroadcast(
+    this.transaction = (await validateBroadcast(
       this.transactionId,
       endpoint,
       this.transactionParams.networkName
-    );
+    )) as any;
 
     if (this.transaction) {
       const program = this.transactionParams.appName + '.aleo';
@@ -112,6 +138,7 @@ export class SnarkExecuteResponse<T extends Tuple>
         networkMode
       );
     }
+    return this.apply_converters();
   }
 
   async blockHeight() {
@@ -126,42 +153,41 @@ export class SnarkExecuteResponse<T extends Tuple>
     return blockHeight;
   }
 
-  async getTransaction() {
+  async getTransaction(): Promise<TransactionDefinition | null> {
     if (this.transaction) return this.transaction;
-    this.transaction = await validateBroadcast(
+
+    this.transaction = (await validateBroadcast(
       this.transactionId,
       this.transactionParams.network.endpoint,
       this.transactionParams.networkName
-    );
+    )) as any;
     return this.transaction;
   }
 }
 
-export class SnarkDeployResponse<T extends Tuple>
-  implements TransactionResponse<T>
-{
-  private transaction: Optional<TransactionModel>;
-  outputs: Optional<Array<Record<string, unknown>>>;
+export class SnarkDeployResponse<
+  TransactionDefinition extends TransactionModel = TransactionModel,
+  Result extends Tuple = Tuple
+> extends SnarkExecuteResponse<TransactionDefinition, Result> {
+  constructor(transactionId: string, transactionParams: TransactionParams) {
+    super(transactionId, transactionParams, '');
+  }
 
-  constructor(
-    private transactionId: string,
-    private transactionParams: TransactionParams
-  ) {}
-
-  async wait(): Promise<T | void> {
+  async wait(): Promise<Result> {
     const endpoint = this.transactionParams.network.endpoint;
     if (!endpoint)
       throw new DokoJSError(ERRORS.NETWORK.EMPTY_URL, { value: 'endpoint' });
 
     if (this.transactionId) {
-      this.transaction = await validateBroadcast(
+      this.transaction = (await validateBroadcast(
         this.transactionId,
         endpoint,
         this.transactionParams.networkName
-      );
+      )) as any;
     }
+    return undefined as Result;
   }
-
+  /*
   async blockHeight() {
     const nodeEndpoint = this.transactionParams.network.endpoint;
     let pollUrl = `${nodeEndpoint}/${this.transactionParams.networkName}/find/blockHash/${this.transactionId}`;
@@ -182,4 +208,5 @@ export class SnarkDeployResponse<T extends Tuple>
     );
     return this.transaction;
   }
+    */
 }
