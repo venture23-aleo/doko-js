@@ -1,10 +1,10 @@
 // @TODO replace this with shell
 import { tx } from "@/outputs";
 import { Output, TransactionModel } from "@aleohq/sdk";
-import { get_decrypted_value } from "aleo-ciphertext-decryptor-beta"
 import { exec } from "child_process"
 import { promisify } from "util";
 import { parseJSONLikeString } from "./utils";
+import { Decrypter } from "@doko-js/wasm";
 
 const _execute = promisify(exec);
 export const execute = (cmd: string) => {
@@ -43,7 +43,7 @@ export function decryptOutput(
             (output: Output, index: number) => {
                 let val = output.value;
                 if (output.type == 'private') {
-                    val = get_decrypted_value(
+                    val = Decrypter.get_decrypted_value(
                         output.value,
                         programName,
                         transitionName,
