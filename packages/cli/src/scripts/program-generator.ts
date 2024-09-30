@@ -126,10 +126,10 @@ async function installNpmPackages(path: string | undefined) {
   const dependencies = [
     'zod',
     '@aleohq/sdk',
-    'aleo-program-to-address',
     'dotenv',
     '@doko-js/core',
-    '@doko-js/utils'
+    '@doko-js/utils',
+    '@doko-js/wasm'
   ];
   const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
     ' '

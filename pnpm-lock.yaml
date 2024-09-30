@@ -89,6 +89,9 @@ importers:
       '@doko-js/utils':
         specifier: workspace:*
         version: link:../utils
+      '@doko-js/wasm':
+        specifier: workspace:*
+        version: link:../wasm
       commander:
         specifier: ^11.0.0
         version: 11.1.0
@@ -104,9 +107,12 @@ importers:
       '@doko-js/utils':
         specifier: workspace:*
         version: link:../utils
-      aleo-ciphertext-decryptor-beta:
-        specifier: ^0.1.5
-        version: 0.1.5
+      '@doko-js/wasm':
+        specifier: workspace:*
+        version: link:../wasm
+      fs-extra:
+        specifier: ^11.1.1
+        version: 11.2.0
       js-beautify:
         specifier: ^1.14.11
         version: 1.14.11
@@ -115,6 +121,8 @@ importers:
         version: 3.22.4
 
   packages/utils: {}
+
+  packages/wasm: {}
 
   test:
     dependencies:
@@ -130,9 +138,9 @@ importers:
       '@doko-js/utils':
         specifier: workspace:*
         version: link:../packages/utils
-      aleo-program-to-address:
-        specifier: ^0.1.0
-        version: 0.1.0
+      '@doko-js/wasm':
+        specifier: workspace:*
+        version: link:../packages/wasm
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
@@ -1275,12 +1283,6 @@ packages:
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
-
-  aleo-ciphertext-decryptor-beta@0.1.5:
-    resolution: {integrity: sha512-cdZUkivpl1FH6cBLQAEoZRKVYLmMIkqgiWO3bTHVZn/1stZQpb/rD0SE/vUn/B07MAUjid0Mici6kj6N9Ilppw==}
-
-  aleo-program-to-address@0.1.0:
-    resolution: {integrity: sha512-/ejsQOihWNB7407EU1IBxOysOMZwPi56c8AOiu93uROeHyqy/LgaZeWkyRiey3jEVZ+WeLmBbhJnD99FXvrLcg==}
 
   ansi-colors@4.1.3:
     resolution: {integrity: sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw==}
@@ -5112,10 +5114,6 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
-
-  aleo-ciphertext-decryptor-beta@0.1.5: {}
-
-  aleo-program-to-address@0.1.0: {}
 
   ansi-colors@4.1.3: {}
 
