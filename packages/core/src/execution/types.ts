@@ -23,7 +23,6 @@ export interface BaseConfig {
   network: NetworkConfig;
   networkName: string;
   privateKey: string;
-  networkMode: number;
 }
 
 export interface ContractConfig extends BaseConfig {

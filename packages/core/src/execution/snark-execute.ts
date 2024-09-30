@@ -43,7 +43,6 @@ export class SnarkExecuteContext implements ExecutionContext {
       });
     }
 
-    const programName = this.params.appName + '.aleo';
     const transitionArgs = formatArgs(args);
     const cdCmd = this.params.isImportedAleo
       ? ''

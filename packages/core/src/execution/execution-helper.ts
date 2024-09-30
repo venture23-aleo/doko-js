@@ -23,7 +23,7 @@ export function decryptOutput(
   transitionName: string,
   programName: string,
   privateKey: string,
-  networkMode: number
+  network: string 
 ) {
   if (!transaction.execution.transitions) return [];
   const transitions = transaction.execution.transitions.filter(
@@ -49,7 +49,7 @@ export function decryptOutput(
             offset + index,
             privateKey,
             transition[0].tpk,
-            networkMode
+            network
           );
         } else if (output.type == 'record') {
           val = output.value;

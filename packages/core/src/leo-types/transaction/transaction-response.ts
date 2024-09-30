@@ -49,13 +49,19 @@ export class LeoExecuteResponse implements TransactionResponse {
     this.tx0 = transaction;
 
     const program = transactionParam.appName + '.aleo';
+    try {
     this.outputs = decryptOutput(
       transaction,
       transitionName,
       program,
       transactionParam.privateKey,
-      transactionParam.networkMode
+      transactionParam.networkName 
     );
+  }catch(err: any) {
+    throw new DokoJSError(ERRORS.INTERNAL.DECRYPTION_FAILED, {
+      value: err.message
+    }) 
+  }
   }
 
   async wait(): Promise<TransactionModel | null> {
