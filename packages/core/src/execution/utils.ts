@@ -237,7 +237,7 @@ export const validateBroadcast = async (
   const startTime = Date.now();
 
   DokoJSLogger.info(`Validating transaction: ${pollUrl}`);
-  const retryCount = 0;
+  let retryCount = 0;
 
   while (Date.now() - startTime < timeoutMs) {
     try {
@@ -252,6 +252,7 @@ export const validateBroadcast = async (
     } catch (e: any) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
       DokoJSLogger.log(`Retrying, count: ${retryCount}: `, e.message);
+      retryCount++;
     }
   }
 

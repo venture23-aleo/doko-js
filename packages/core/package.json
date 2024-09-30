@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/venture23-aleo/doko-js#readme",
   "dependencies": {
-    "@provablehq/sdk": "0.7.0",
+    "@provablehq/sdk": "0.6.9",
     "@doko-js/utils": "workspace:*",
     "@doko-js/wasm": "workspace:*",
     "fs-extra": "^11.1.1",

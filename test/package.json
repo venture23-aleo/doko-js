@@ -20,7 +20,7 @@
   "dependencies": {
     "@doko-js/cli": "workspace:*",
     "@doko-js/core": "workspace:*",
-    "@provablehq/sdk": "0.7.0",
+    "@provablehq/sdk": "0.6.9",
     "@doko-js/utils": "workspace:*",
     "aleo-program-to-address": "^0.1.0",
     "dotenv": "^16.4.5",
