@@ -9,7 +9,7 @@
     ".": "./dist/wasm.js"
   },
   "scripts": {
-    "build": "wasm-pack build --scope doko-js --target nodejs --out-dir=./dist --release --no-pack"
+    "build": "wasm-pack build --scope doko-js --target nodejs --out-dir=./dist --release"
   },
   "repository": {
     "type": "git",
