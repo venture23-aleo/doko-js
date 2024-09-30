@@ -1,4 +1,4 @@
-import { TransactionModel } from '@aleohq/sdk';
+import { TransactionModel } from '@provablehq/sdk';
 import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
 
 import { SnarkExecuteTransactionParams, ExecutionContext } from './types';

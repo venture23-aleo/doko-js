@@ -125,7 +125,7 @@ async function installNpmPackages(path: string | undefined) {
   ];
   const dependencies = [
     'zod',
-    '@aleohq/sdk',
+    '@provablehq/sdk',
     'dotenv',
     '@doko-js/core',
     '@doko-js/utils',

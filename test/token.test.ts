@@ -1,5 +1,5 @@
 import { parseRecordString } from '@doko-js/core';
-import { PrivateKey } from '@aleohq/sdk';
+import { PrivateKey } from '@provablehq/sdk';
 
 import { TokenContract } from './artifacts/js/token';
 import { token, tokenLeo } from './artifacts/js/types/token';
