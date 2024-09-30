@@ -119,7 +119,7 @@ async function installNpmPackages(path: string | undefined) {
   const devDeps = [
     '@types/jest',
     'jest',
-    'ts-jest',
+    'ts-jest@29.0.1',
     'babel-jest',
     '@babel/preset-env'
   ];
