@@ -101,8 +101,9 @@ async function makeProjectForDeploy(
     join(projectDir, 'program.json'),
     JSON.stringify(projectManifest)
   );
-  await fs.writeFile(join(projectDir, 'main.aleo'), aleoCode);
-  await fs.copy(importsDir, join(projectDir, 'imports'), {});
+  await fs.mkdir(join(projectDir, 'build'));
+  await fs.writeFile(join(`${projectDir}/build`, 'main.aleo'), aleoCode);
+  await fs.copy(importsDir, join(`${projectDir}/build`, 'imports'), {});
 
   return projectDir;
 }
@@ -135,18 +136,26 @@ async function deployAleo(
   );
   const priorityFee = config.priorityFee || 0;
 
-  const cmd = `cd ${projectDir} && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  // const cmd = `cd ${projectDir} && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  // const { stdout } = await execute(cmd);
+  // const result = new SnarkStdoutResponseParser().parse(stdout);
+  // await broadcastTransaction(
+  //   result.transaction as TransactionModel,
+  //   nodeEndPoint,
+  //   config.networkName!
+  // );
+  // return new SnarkDeployResponse(
+  //   result.transaction as TransactionModel,
+  //   config
+  // );
+  const cmd = `cd ${projectDir} && leo deploy --priority-fee ${priorityFee} --private-key ${config.privateKey} --no-build --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
+  DokoJSLogger.debug(cmd);
   const { stdout } = await execute(cmd);
-  const result = new SnarkStdoutResponseParser().parse(stdout);
-  await broadcastTransaction(
-    result.transaction as TransactionModel,
-    nodeEndPoint,
-    config.networkName!
+  const result = transactionHashToTransactionResponseObject(
+    stdout.split('Deployment')[2].split(' ')[1],
+    'deploy'
   );
-  return new SnarkDeployResponse(
-    result.transaction as TransactionModel,
-    config
-  );
+  return new SnarkDeployResponse(result as TransactionModel, config);
 }
 
 const snarkDeployAleo = async ({
@@ -192,23 +201,33 @@ export const snarkDeploy = async ({
   DokoJSLogger.info(`Deploying program ${config.appName}`);
 
 
-  const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --network ${config.networkMode} --query ${nodeEndPoint} --dry-run`;
-  // const cmd = `cd ${config.contractPath}/build && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  // const cmd = `cd ${config.contractPath}/build && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName}`;
+  const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
+
+
   DokoJSLogger.debug(cmd);
 
 
   const { stdout } = await execute(cmd);
-  const result = new SnarkStdoutResponseParser().parse(stdout);
-  // @TODO check it later
-  await broadcastTransaction(
-    result.transaction as TransactionModel,
-    nodeEndPoint,
-    config.networkName!
+  const result = transactionHashToTransactionResponseObject(
+    stdout.split('Deployment')[2].split(' ')[1],
+    'deploy'
   );
-  return new SnarkDeployResponse(
-    result.transaction as TransactionModel,
-    config
-  );
+  // // @TODO check it later
+  // await broadcastTransaction(
+  //   result as TransactionModel,
+  //   nodeEndPoint,
+  //   config.networkName!
+  // );
+  return new SnarkDeployResponse(result as TransactionModel, config);
+};
+
+export const transactionHashToTransactionResponseObject = (
+  transactionHash: string,
+  type: 'deploy' | 'execute'
+): TransactionModel | null => {
+  const transaction = { id: transactionHash, type, execution: { edition: 1 } };
+  return transaction;
 };
 
 export const validateBroadcast = async (
