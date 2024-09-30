@@ -20,6 +20,5 @@ export default {
       priorityFee: 0.001
     }
   },
-  defaultNetwork: 'testnet',
-  networkMode: 1
+  defaultNetwork: 'testnet'
 };

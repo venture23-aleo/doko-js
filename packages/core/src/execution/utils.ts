@@ -251,8 +251,8 @@ export const validateBroadcast = async (
       return data;
     } catch (e: any) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
-      DokoJSLogger.log(`Retrying, count: ${retryCount}: `, e.message);
       retryCount++;
+      DokoJSLogger.log(`Retrying, count: ${retryCount}: `, e.message);
     }
   }
 
