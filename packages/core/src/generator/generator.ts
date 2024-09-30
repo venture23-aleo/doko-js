@@ -571,7 +571,7 @@ class Generator {
           ...config,
           appName: '${programName}',
           networkMode: config.networkMode, 
-          fee: '0.01'
+          fee: '0.01',
           contractPath: '${this.programParams?.isImportedAleo ? IMPORTS_PATH : PROGRAM_DIRECTORY}${programName}',
           isImportedAleo: ${Boolean(this.programParams?.isImportedAleo)}
       });
