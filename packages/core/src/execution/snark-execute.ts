@@ -48,13 +48,13 @@ export class SnarkExecuteContext implements ExecutionContext {
       ? ''
       : `cd ${this.params.contractPath} && `;
 
-    const cmd = `${cdCmd}leo execute ${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --dry-run`;
+    const programName = this.params.appName + '.aleo';
+    const cmd = `${cdCmd}leo execute --program ${programName} ${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes`;
     DokoJSLogger.debug(cmd);
 
     const { stdout } = await execute(cmd);
     const { transaction } = this.parser.parse(stdout);
     if (transaction) {
-      await this.broadcast(transaction, nodeEndPoint);
       return new SnarkExecuteResponse(
         transaction.id,
         this.params,
