@@ -119,17 +119,17 @@ async function installNpmPackages(path: string | undefined) {
   const devDeps = [
     '@types/jest',
     'jest',
-    'ts-jest',
+    'ts-jest@29.1.1',
     'babel-jest',
     '@babel/preset-env'
   ];
   const dependencies = [
     'zod',
-    '@aleohq/sdk',
-    'aleo-program-to-address',
+    '@provablehq/sdk',
     'dotenv',
     '@doko-js/core',
-    '@doko-js/utils'
+    '@doko-js/utils',
+    '@doko-js/wasm'
   ];
   const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
     ' '

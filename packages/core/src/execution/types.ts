@@ -1,4 +1,4 @@
-import { TransactionModel } from '@aleohq/sdk';
+import { TransactionModel } from '@provablehq/sdk';
 import { tx } from '@/outputs';
 import { TransactionResponse } from '@/leo-types/transaction/transaction-response';
 
@@ -23,7 +23,6 @@ export interface BaseConfig {
   network: NetworkConfig;
   networkName: string;
   privateKey: string;
-  networkMode: number;
 }
 
 export interface ContractConfig extends BaseConfig {

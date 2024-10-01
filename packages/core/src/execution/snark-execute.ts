@@ -1,4 +1,4 @@
-import { TransactionModel } from '@aleohq/sdk';
+import { TransactionModel } from '@provablehq/sdk';
 import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
 
 import { SnarkExecuteTransactionParams, ExecutionContext } from './types';
@@ -43,13 +43,12 @@ export class SnarkExecuteContext implements ExecutionContext {
       });
     }
 
-    const programName = this.params.appName + '.aleo';
     const transitionArgs = formatArgs(args);
     const cdCmd = this.params.isImportedAleo
       ? ''
       : `cd ${this.params.contractPath} && `;
 
-    const cmd = `${cdCmd}snarkos developer execute ${programName} ${transitionName} ${transitionArgs} --network ${this.params.networkMode} --private-key ${this.params.privateKey} --query ${nodeEndPoint} --dry-run`;
+    const cmd = `${cdCmd}leo execute ${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --dry-run`;
     DokoJSLogger.debug(cmd);
 
     const { stdout } = await execute(cmd);

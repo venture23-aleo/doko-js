@@ -6,6 +6,7 @@
 
 CORE_DIR="packages/core"
 UTILS_DIR="packages/utils"
+WASM_DIR="packages/wasm/dist"
 LIB_DIR="./lib"
 
 rm -rf "$LIB_DIR"
@@ -22,12 +23,18 @@ echo "Creating lib for 'utils'"
 cd "$UTILS_DIR" && pnpm pack
 popd > /dev/null 2>&1
 
+pushd ./ > /dev/null 2>&1
+echo "Creating lib for 'wasm'"
+cd "$WASM_DIR" && pnpm pack
+popd > /dev/null 2>&1
+
 echo "Creating 'lib' directory"
 mkdir -p "$LIB_DIR"
 
 echo "Moving artifacts ..."
 mv "$CORE_DIR"/doko-js-core-*.tgz $LIB_DIR
 mv "$UTILS_DIR"/doko-js-utils-*.tgz $LIB_DIR
+mv "$WASM_DIR"/doko-js-wasm-*.tgz $LIB_DIR
 
 
 echo "Add following dependencies in package.json"
@@ -39,6 +46,10 @@ echo '"@doko-js/core": "http://localhost:3000/'$CORE_LIB'",'
 
 UTILS_LIB=$(basename $(find "$LIB_DIR" -name "*utils*.tgz" -print -quit))
 echo '"@doko-js/utils": "http://localhost:3000/'$UTILS_LIB'",'
+
+WASM_LIB=$(basename $(find "$LIB_DIR" -name "*wasm*.tgz" -print -quit))
+echo '"@doko-js/wasm": "http://localhost:3000/'$WASM_LIB'",'
+
 printf '\n'
 echo "run 'npm install'"
 

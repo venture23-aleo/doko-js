@@ -1,8 +1,7 @@
 import { get, post } from '@/utils/httpRequests';
-import { ContractConfig, Optional } from './types';
-import { TransactionModel } from '@aleohq/sdk';
+import { ContractConfig } from './types';
+import { TransactionModel } from '@provablehq/sdk';
 import { execute } from './execution-helper';
-import { SnarkStdoutResponseParser } from './output-parser';
 import {
   SnarkDeployResponse,
   TransactionResponse
@@ -101,8 +100,9 @@ async function makeProjectForDeploy(
     join(projectDir, 'program.json'),
     JSON.stringify(projectManifest)
   );
-  await fs.writeFile(join(projectDir, 'main.aleo'), aleoCode);
-  await fs.copy(importsDir, join(projectDir, 'imports'), {});
+  await fs.mkdir(join(projectDir, 'build'));
+  await fs.writeFile(join(`${projectDir}/build`, 'main.aleo'), aleoCode);
+  await fs.copy(importsDir, join(`${projectDir}/build`, 'imports'), {});
 
   return projectDir;
 }
@@ -135,15 +135,26 @@ async function deployAleo(
   );
   const priorityFee = config.priorityFee || 0;
 
-  const cmd = `cd ${projectDir} && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  // const cmd = `cd ${projectDir} && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
+  // const { stdout } = await execute(cmd);
+  // const result = new SnarkStdoutResponseParser().parse(stdout);
+  // await broadcastTransaction(
+  //   result.transaction as TransactionModel,
+  //   nodeEndPoint,
+  //   config.networkName!
+  // );
+  // return new SnarkDeployResponse(
+  //   result.transaction as TransactionModel,
+  //   config
+  // );
+  const cmd = `cd ${projectDir} && leo deploy --priority-fee ${priorityFee} --private-key ${config.privateKey} --no-build --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
+  DokoJSLogger.debug(cmd);
   const { stdout } = await execute(cmd);
-  const result = new SnarkStdoutResponseParser().parse(stdout);
-  await broadcastTransaction(
-    result.transaction as TransactionModel,
-    nodeEndPoint,
-    config.networkName!
+  const result = transactionHashToTransactionResponseObject(
+    stdout.split('Deployment')[2].split(' ')[1],
+    'deploy'
   );
-  return new SnarkDeployResponse(result.transaction?.id || '', config);
+  return new SnarkDeployResponse(result?.id || '', config);
 }
 
 const snarkDeployAleo = async ({
@@ -226,7 +237,7 @@ export const validateBroadcast = async (
   const startTime = Date.now();
 
   DokoJSLogger.info(`Validating transaction: ${pollUrl}`);
-  const retryCount = 0;
+  let retryCount = 0;
 
   while (Date.now() - startTime < timeoutMs) {
     try {
@@ -240,6 +251,7 @@ export const validateBroadcast = async (
       return data;
     } catch (e: any) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      retryCount++;
       DokoJSLogger.log(`Retrying, count: ${retryCount}: `, e.message);
     }
   }

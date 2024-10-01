@@ -1,6 +1,6 @@
 // @TODO replace this with shell
 import { Output, TransactionModel } from '@aleohq/sdk';
-import { get_decrypted_value } from 'aleo-ciphertext-decryptor-beta';
+import { Decrypter } from '@doko-js/wasm';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { parseJSONLikeString } from './utils';
@@ -24,7 +24,7 @@ export function decryptOutput(
   transitionName: string,
   programName: string,
   privateKey: string,
-  networkMode: number
+  network: string
 ): Optional<Array<Record<string, unknown>>> {
   if (!transaction.execution.transitions) return [];
   const transitions = transaction.execution.transitions.filter(
@@ -43,14 +43,14 @@ export function decryptOutput(
       (output: Output, index: number) => {
         let val = output.value;
         if (output.type == 'private') {
-          val = get_decrypted_value(
+          val = Decrypter.get_decrypted_value(
             output.value,
             programName,
             transitionName,
             offset + index,
             privateKey,
             transition[0].tpk,
-            networkMode
+            network
           );
         } else if (output.type == 'record') {
           val = output.value;

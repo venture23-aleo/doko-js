@@ -1,0 +1,17 @@
+[package]
+name = "wasm"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+snarkvm-console = { git = "https://github.com/ProvableHQ/snarkVM.git", branch = "mainnet-staging", version = "^0.16.19", features = [
+  "wasm",
+]}
+
+wasm-bindgen = "0.2"
+getrandom = { version = "0.2.11", features = ["js"] }
+wasm-bindgen-test = "0.3.39"
+anyhow = "1"

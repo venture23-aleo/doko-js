@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { PrivateKey, TransactionModel } from '@aleohq/sdk';
+import { PrivateKey, TransactionModel } from '@provablehq/sdk';
 import {
   ContractConfig,
   snarkDeploy,
@@ -7,8 +7,8 @@ import {
   CreateExecutionContext,
   TransactionResponse
 } from '@doko-js/core';
-import { to_address } from 'aleo-program-to-address';
 import networkConfig from '../aleo-config';
+import { to_address } from '@doko-js/wasm';
 
 export class BaseContract {
   public config: ContractConfig = {};
@@ -24,8 +24,7 @@ export class BaseContract {
 
     if (!this.config.networkName)
       this.config.networkName = networkConfig.defaultNetwork;
-    if (!this.config.networkMode)
-      this.config.networkMode = networkConfig.networkMode;
+    
     const networkName = this.config.networkName;
     if (networkName) {
       if (!networkConfig?.networks[networkName])

@@ -1,6 +1,6 @@
 import { ExecutionMode, parseJSONLikeString } from "@doko-js/core";
 import { Types_testContract } from "./artifacts/js/types_test";
-import { PrivateKey } from "@aleohq/sdk";
+import { PrivateKey } from "@provablehq/sdk";
 import { decryptCounts } from "./artifacts/js/leo2js/types_test";
 
 const testContract = new Types_testContract({ mode: ExecutionMode.LeoRun });
