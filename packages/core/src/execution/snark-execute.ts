@@ -15,7 +15,7 @@ export class SnarkExecuteContext implements ExecutionContext {
     public params: SnarkExecuteTransactionParams,
     public parser: SnarkStdoutResponseParser = new SnarkStdoutResponseParser()
   ) {}
-
+  /*
   private async broadcast(transaction: TransactionModel, endpoint: string) {
     try {
       return await post(
@@ -31,7 +31,7 @@ export class SnarkExecuteContext implements ExecutionContext {
       DokoJSLogger.error(err);
     }
   }
-
+  */
   async execute(
     transitionName: string,
     args: string[]

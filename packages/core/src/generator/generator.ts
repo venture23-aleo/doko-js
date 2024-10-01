@@ -52,7 +52,8 @@ import {
   GenerateZkMappingCode,
   InferExternalRecordInputDataType,
   GenerateExternalRecordConversionStatement,
-  GenerateAsteriskTSImport
+  GenerateAsteriskTSImport,
+  GetTypeConversionFunctionsJS
 } from './generator-utils';
 import { OutputArg, TSReceiptTypeGenerator } from './ts-receipt-type-generator';
 
@@ -452,8 +453,15 @@ class Generator {
         }
 
         const converterFn = isExternalRecord
-          ? GenerateExternalRecordConversionStatement(output, '', STRING_JS)
-          : GenerateTypeConversionStatement(formattedOutput, '', STRING_JS);
+          ? [GenerateExternalRecordConversionStatement(output, '', STRING_JS)]
+          : isRecordType
+            ? ['leo2js.json']
+            : GetTypeConversionFunctionsJS(formattedOutput);
+
+        const formatConverterFn =
+          converterFn.length > 1
+            ? `[${converterFn.join(',')}]`
+            : converterFn[0];
 
         returnValues.push({
           type: isExternalRecord
@@ -461,7 +469,7 @@ class Generator {
             : isRecordType
               ? 'LeoRecord'
               : InferJSDataType(type),
-          converterFunction: converterFn.substring(0, converterFn.length - 2)
+          converterFunction: formatConverterFn
         });
       });
     }
@@ -470,7 +478,6 @@ class Generator {
     const converterFns = returnValues.map(
       (returnValues) => returnValues.converterFunction
     );
-    console.log(converterFns);
 
     const returnType = `Promise<TransactionResponse<TransactionModel & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}, [${types.join(',')}]>>`;
     if (converterFns.length > 0) {

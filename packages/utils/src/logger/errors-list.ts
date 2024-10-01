@@ -23,7 +23,7 @@ export const ERROR_RANGES: {
   NETWORK: { min: 100, max: 199, title: 'Network related errors' },
   ARTIFACTS: { min: 200, max: 299, title: 'Artifacts related errors' },
   INTERNAL: { min: 300, max: 399, title: 'Internal DokoJS errors' },
-  VARS: { min: 400, max: 499, title: 'Configuration variables errors' },
+  VARS: { min: 400, max: 499, title: 'Configuration variables errors' }
 };
 
 export const ERRORS = {
@@ -241,10 +241,10 @@ Please [report it](https://github.com/venture23-aleo/doko-js/issues) to help us 
       shouldBeReported: false
     },
     DECRYPTION_FAILED: {
-      number:307,
-      title: "Output Decryption Failed",
-      message: "Failed to decrypt output value in transaction",
-      description: "Failed to decrypt %value%",
+      number: 307,
+      title: 'Output Decryption Failed',
+      message: 'Failed to decrypt output value in transaction',
+      description: 'Failed to decrypt %value%',
       shouldBeReported: false
     }
   },

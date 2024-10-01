@@ -8,7 +8,8 @@ import { DokoJSError, ERRORS } from '@doko-js/utils';
 import { Optional } from '@/execution';
 
 type Tuple = Optional<Array<unknown>>;
-type ConverterFn = (val: any) => any;
+type ConverterFn = (val: any, rest?: any) => any;
+type ConverterFnDefinition = [ConverterFn, ...string[]];
 
 export abstract class TransactionResponse<
   TransactionDefinition extends TransactionModel = TransactionModel,
@@ -16,14 +17,22 @@ export abstract class TransactionResponse<
 > {
   // Outputs for the transition for which this object is returned
   outputs: Optional<Array<Record<string, unknown>>>;
-  converterFn: Optional<Array<ConverterFn>>;
+  converterFns: Optional<Array<ConverterFn | ConverterFnDefinition>>;
   // this function poll whether the transaction id is included in chain or not.
   // this function return null in LeoRun and LeoExecuteMode.In SnarkExecute mode it
   // returns the transaction object that is obtained from the endpoint
   abstract wait(): Promise<Result>;
 
-  set_converter_fn(converters: Array<ConverterFn>) {
-    this.converterFn = converters;
+  // set_converter_fn takes input in form of array of tuples
+  // For e.g if the output is expected to be number and string then
+  // we can set converter as [leo2js.number, leo2js.string]
+  // However in case of array we have to represent something like
+  // leo2js.array(arrays, leo2js.u32) (where second arg specifies that the array is to interpreted
+  // as u32)
+  // this should be passed as [[leo2js.array, leo2js.u32], leo2js.string] where starting from second elements in
+  // the tuples are interpreted as argument to function which is first element of tuple
+  set_converter_fn(converters: Array<ConverterFn | ConverterFnDefinition>) {
+    this.converterFns = converters;
   }
 
   // @TODO add block() function to get the blockHeight at which transaction is included
@@ -39,13 +48,17 @@ export abstract class TransactionResponse<
     if (!this.outputs) return undefined as Result;
 
     const outputValues = Array.from(this.outputs.values());
-    if (this.converterFn && outputValues) {
-      const result = outputValues.map((val: any, index: any) =>
-        this.converterFn![index]!(val)
-      );
+    if (this.converterFns && outputValues) {
+      const result: Tuple = [];
+      for (let i = 0; i < this.converterFns.length; ++i) {
+        const functionInfo = this.converterFns![i];
+        if (Array.isArray(functionInfo)) {
+          result.push(functionInfo[0](this.outputs[i], functionInfo[1]));
+        } else result.push(functionInfo(this.outputs[i]));
+      }
       return result as Result;
     } else {
-      return outputValues as Result;
+      return Array.from(outputValues.values()) as Result;
     }
   }
 }

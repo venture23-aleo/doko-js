@@ -7,6 +7,7 @@ import {
 } from '@/utils/aleo-utils';
 import { GetConverterFunctionName } from './leo-naming';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
+import { STRING_JS } from './string-constants';
 
 export function InferJSDataType(type: string): string {
   if (
@@ -86,6 +87,30 @@ export function GenerateTypeConversionStatement(
   }
 
   return fn;
+}
+
+// Return list of function involved in conversion of the given type
+export function GetTypeConversionFunctionsJS(leoType: string) {
+  // Split qualifier private/public
+  const [type, qualifier] = leoType.split('.');
+
+  const functions = [];
+  // Determine member conversion function
+  const namespace = 'leo2js';
+  const conversionFnName = GetConverterFunctionName(type, STRING_JS);
+  const isArray = IsLeoArray(type);
+
+  const isLeoType = isArray || IsLeoPrimitiveType(type);
+  functions.push(
+    isLeoType ? `${namespace}.${conversionFnName}` : conversionFnName
+  );
+
+  if (isArray) {
+    // Pass additional conversion function
+    const [dataType, size] = GetLeoArrTypeAndSize(type);
+    functions.push(`${namespace}.${dataType}`);
+  }
+  return functions;
 }
 
 export function InferExternalRecordInputDataType(recordType: string) {

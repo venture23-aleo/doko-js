@@ -1,4 +1,3 @@
-import { ExternalRecord } from '@/utils';
 import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
 
 const PRIVATE = '.private';
@@ -105,4 +104,10 @@ export const boolean = (value: string): boolean => {
 
 export const array = (value: Array<any>, converterFn: Function): any[] => {
   return value.map((v) => converterFn(v));
+};
+
+export const json = (value: string): string => {
+  return JSON.stringify(value, (_, v) =>
+    typeof v === 'bigint' ? v.toString() : v
+  );
 };
