@@ -147,7 +147,7 @@ async function deployAleo(
   //   result.transaction as TransactionModel,
   //   config
   // );
-  const cmd = `cd ${projectDir} && leo deploy --priority-fee ${priorityFee} --private-key ${config.privateKey} --no-build --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
+  const cmd = leoDeployCommand(projectDir, config.privateKey, nodeEndPoint, config.networkName, priorityFee, true);
   DokoJSLogger.debug(cmd);
   const { stdout } = await execute(cmd);
   const result = transactionHashToTransactionResponseObject(
@@ -200,8 +200,8 @@ export const snarkDeploy = async ({
   DokoJSLogger.info(`Deploying program ${config.appName}`);
 
   // const cmd = `cd ${config.contractPath}/build && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName}`;
-  const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
-
+  // const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
+  const cmd=leoDeployCommand(config.contractPath, config.privateKey, nodeEndPoint, config.networkName, priorityFee);
   DokoJSLogger.debug(cmd);
 
   const { stdout } = await execute(cmd);
@@ -217,6 +217,10 @@ export const snarkDeploy = async ({
   // );
   return new SnarkDeployResponse(result as TransactionModel, config);
 };
+
+export const leoDeployCommand = (path:string, privateKey:string, endpoint:string, network:string='testnet', priorityFee:number=0,noBuild:boolean=false) => {
+  return `cd ${path} && leo deploy --priority-fee ${priorityFee}  --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes ${noBuild ? '--no-build' : ''}`;
+}
 
 export const transactionHashToTransactionResponseObject = (
   transactionHash: string,
