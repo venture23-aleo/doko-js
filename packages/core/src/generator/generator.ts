@@ -623,7 +623,7 @@ class Generator {
         '@doko-js/core'
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
-      GenerateTSImport(['TransactionModel'], '@aleohq/sdk'),
+      GenerateTSImport(['TransactionModel'], '@provablehq/sdk'),
       GenerateAsteriskTSImport(`./transitions/${programName}`, 'receipt'),
       '\n\n'
     );

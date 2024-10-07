@@ -1,5 +1,5 @@
 // @TODO replace this with shell
-import { Output, TransactionModel } from '@aleohq/sdk';
+import { Output, TransactionModel } from '@provablehq/sdk';
 import { Decrypter } from '@doko-js/wasm';
 import { exec } from 'child_process';
 import { promisify } from 'util';

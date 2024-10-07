@@ -1,11 +1,10 @@
-import { TransactionModel, Transition } from '@aleohq/sdk';
-
 import { decryptOutput } from '@/execution/execution-helper';
 import { validateBroadcast } from '@/execution';
 import { TransactionParams } from '@/execution';
 import { get } from '@/utils/httpRequests';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
 import { Optional } from '@/execution';
+import { TransactionModel } from '@provablehq/sdk';
 
 type Tuple = Optional<Array<unknown>>;
 type ConverterFn = (val: any, rest?: any) => any;

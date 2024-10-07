@@ -5,7 +5,6 @@ import { LeoExecuteContext } from './leo-execute';
 import { LeoRunContext } from './leo-run';
 import { SnarkExecuteContext } from './snark-execute';
 import { ContractConfig, ExecutionContext, ExecutionMode } from './types';
-import { TransactionModel } from '@aleohq/sdk';
 
 export function CreateExecutionContext(
   config: ContractConfig

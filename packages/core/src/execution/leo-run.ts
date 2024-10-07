@@ -6,7 +6,6 @@ import {
   LeoRunResponse,
   TransactionResponse
 } from '@/leo-types/transaction/transaction-response';
-import { TransactionModel } from '@aleohq/sdk';
 
 export class LeoRunContext implements ExecutionContext {
   constructor(
