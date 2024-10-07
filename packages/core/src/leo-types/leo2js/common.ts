@@ -1,4 +1,5 @@
 import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
+import { RecordCiphertext } from '@provablehq/sdk';
 
 const PRIVATE = '.private';
 const PUBLIC = '.public';
@@ -110,4 +111,11 @@ export const json = (value: string): string => {
   return JSON.stringify(value, (_, v) =>
     typeof v === 'bigint' ? v.toString() : v
   );
+};
+
+// For LeoRun the output is returned as json string
+// whereas for SnarkExecute it is returned as ciphertext
+export const record = (value: any): string => {
+  if (typeof value === 'string' && value.startsWith('record1')) return value;
+  return json(value);
 };

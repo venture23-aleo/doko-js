@@ -455,7 +455,7 @@ class Generator {
         const converterFn = isExternalRecord
           ? [GenerateExternalRecordConversionStatement(output, '', STRING_JS)]
           : isRecordType
-            ? ['leo2js.json']
+            ? ['leo2js.record']
             : GetTypeConversionFunctionsJS(formattedOutput);
 
         const formatConverterFn =
