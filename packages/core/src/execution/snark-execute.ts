@@ -56,7 +56,7 @@ export class SnarkExecuteContext implements ExecutionContext {
     const { transaction } = this.parser.parse(stdout);
     if (transaction) {
       return new SnarkExecuteResponse(
-        transaction.id,
+        transaction as string,
         this.params,
         transitionName
       );

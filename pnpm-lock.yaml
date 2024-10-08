@@ -108,8 +108,8 @@ importers:
         specifier: workspace:*
         version: link:../wasm
       '@provablehq/sdk':
-        specifier: 0.7.0
-        version: 0.7.0
+        specifier: 0.6.9
+        version: 0.6.9
       fs-extra:
         specifier: ^11.1.1
         version: 11.2.0
@@ -136,8 +136,8 @@ importers:
         specifier: workspace:*
         version: link:../packages/utils
       '@provablehq/sdk':
-        specifier: 0.7.0
-        version: 0.7.0
+        specifier: 0.6.9
+        version: 0.6.9
       aleo-program-to-address:
         specifier: ^0.1.0
         version: 0.1.0
@@ -976,11 +976,11 @@ packages:
     resolution: {integrity: sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
-  '@provablehq/sdk@0.7.0':
-    resolution: {integrity: sha512-iDtb2JyPLtNBaLUVsNxxw3dM4j/ic3KLayyG9MlKx9WRTsGNAcf2nzothpbvVl0OjRWGBlm0AdZRriGk9LmjtQ==}
+  '@provablehq/sdk@0.6.9':
+    resolution: {integrity: sha512-Hf3zTBUzVJyZj1l6BDC3KhMVsHFm7M2v8nnrYyL3npiENvY4AtMZUxHWdfEEyRlU/RK44aTE09cYyjs4DM89sA==}
 
-  '@provablehq/wasm@0.7.0':
-    resolution: {integrity: sha512-WEwRxd3DnxMc1YA7hpII9w0AGP+ffT7IPJbPnekHPC7AS+e6bA+V8fvQCo1+uGUJLwpRvM/AwdYXhfPQ2Daz1A==}
+  '@provablehq/wasm@0.6.13':
+    resolution: {integrity: sha512-M7H0kM240xtYryENXVbRUpW07+LOsnpt+s+X7Q7i/4lbEMWDB9lInLs987AF3EsRdRwx+eiz2ul9jraBvZ0jcg==}
 
   '@rollup/plugin-json@6.1.0':
     resolution: {integrity: sha512-EGI2te5ENk1coGeADSIwZ7G2Q8CJS2sF120T7jLw4xFw9n7wIOXHo+kIYRAoVpJAN+kmqZSoO3Fp4JtoNF4ReA==}
@@ -4563,14 +4563,14 @@ snapshots:
 
   '@pkgr/core@0.1.1': {}
 
-  '@provablehq/sdk@0.7.0':
+  '@provablehq/sdk@0.6.9':
     dependencies:
-      '@provablehq/wasm': 0.7.0
+      '@provablehq/wasm': 0.6.13
       comlink: 4.4.1
       mime: 3.0.0
       sync-request: 6.1.0
 
-  '@provablehq/wasm@0.7.0': {}
+  '@provablehq/wasm@0.6.13': {}
 
   '@rollup/plugin-json@6.1.0(rollup@4.22.5)':
     dependencies:

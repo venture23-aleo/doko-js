@@ -14,7 +14,7 @@ interface NetworkConfig {
 
 export interface ExecutionOutput {
   data: any;
-  transaction?: TransactionModel & tx.Receipt;
+  transaction?: (TransactionModel & tx.Receipt) | string;
 }
 
 export interface BaseConfig {
