@@ -1,16 +1,17 @@
-// @ts-nocheck
-import { PrivateKey, TransactionModel } from '@provablehq/sdk';
+import { PrivateKey } from '@provablehq/sdk';
 import {
   ContractConfig,
   snarkDeploy,
   checkDeployment,
   CreateExecutionContext,
-  TransactionResponse
+  TransactionResponse,
+  ExecutionContext
 } from '@doko-js/core';
 import { to_address } from 'aleo-program-to-address';
 import networkConfig from '../aleo-config';
 
 export class BaseContract {
+  // @ts-expect-error Initialized at constructor
   public config: ContractConfig = {};
   public ctx: ExecutionContext;
 
@@ -48,9 +49,9 @@ export class BaseContract {
     return checkDeployment(endpoint);
   }
 
-  /** 
-    * @deprecated Use transaction receipt to wait.
-  */
+  /**
+   * @deprecated Use transaction receipt to wait.
+   */
 
   async wait<T extends TransactionResponse = TransactionResponse>(
     transaction: T

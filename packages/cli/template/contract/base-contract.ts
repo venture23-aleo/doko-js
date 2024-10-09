@@ -1,15 +1,17 @@
-import { PrivateKey, TransactionModel } from '@provablehq/sdk';
+import { PrivateKey } from '@provablehq/sdk';
 import {
   ContractConfig,
   snarkDeploy,
   checkDeployment,
   CreateExecutionContext,
-  TransactionResponse
+  TransactionResponse,
+  ExecutionContext
 } from '@doko-js/core';
 import networkConfig from '../aleo-config';
 import { to_address } from '@doko-js/wasm';
 
 export class BaseContract {
+  // @ts-expect-error Initialized at constructor
   public config: ContractConfig = {};
   public ctx: ExecutionContext;
 
@@ -67,7 +69,7 @@ export class BaseContract {
   }
 
   address(): string {
-    return to_address(`${this.config.appName}.aleo`);
+    return to_address(`${this.config.appName}.aleo`, this.config.networkName);
   }
 
   // TODO: handle properly
