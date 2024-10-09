@@ -11,6 +11,9 @@ import fs from 'fs-extra';
 import path, { join } from 'path';
 import { tmpdir } from 'os';
 
+// @TODO Fix this
+const REGISTRY_DIR = 'artifacts/aleo';
+
 // Convert json like string to json
 export function parseJSONLikeString(
   recordString: string
@@ -135,7 +138,7 @@ async function deployAleo(
   );
   const priorityFee = config.priorityFee || 0;
 
-  const cmd = `cd ${projectDir} && leo deploy --priority-fee ${priorityFee} --private-key ${config.privateKey} --no-build --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
+  const cmd = `cd ${projectDir} && leo deploy --home ${REGISTRY_DIR} --priority-fee ${priorityFee} --private-key ${config.privateKey} --no-build --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
   DokoJSLogger.debug(cmd);
   const { stdout } = await execute(cmd);
   const result = transactionHashToTransactionResponseObject(
@@ -188,7 +191,7 @@ export const snarkDeploy = async ({
   DokoJSLogger.info(`Deploying program ${config.appName}`);
 
   // const cmd = `cd ${config.contractPath}/build && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName}`;
-  const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
+  const cmd = `cd ${config.contractPath} && leo deploy --home ${REGISTRY_DIR} --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
 
   DokoJSLogger.debug(cmd);
 

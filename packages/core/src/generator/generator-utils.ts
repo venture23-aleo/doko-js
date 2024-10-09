@@ -131,7 +131,7 @@ export function GenerateExternalRecordConversionStatement(
   const record = parts[1];
 
   if (converstionTo === 'js') {
-    return `new ExternalRecord('${program}.aleo/${record}')`;
+    return ['leo2js.externalRecord', `'${program}.aleo/${record}'`];
   } else {
     return `js2leo.json(${program}_${GetConverterFunctionName(record, 'leo')}(${value}))`;
   }

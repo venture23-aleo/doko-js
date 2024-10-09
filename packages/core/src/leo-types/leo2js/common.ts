@@ -1,5 +1,5 @@
 import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
-import { RecordCiphertext } from '@provablehq/sdk';
+import { ExternalRecord } from '@/utils';
 
 const PRIVATE = '.private';
 const PUBLIC = '.public';
@@ -118,4 +118,11 @@ export const json = (value: string): string => {
 export const record = (value: any): string => {
   if (typeof value === 'string' && value.startsWith('record1')) return value;
   return json(value);
+};
+
+export const externalRecord = <P extends string, R extends string>(
+  value: string,
+  name: `${P}.aleo/${R}`
+): ExternalRecord<P, R> => {
+  return new ExternalRecord<P, R>(name);
 };

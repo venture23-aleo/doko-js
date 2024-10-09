@@ -54,8 +54,9 @@ export function decryptOutput(
           );
         } else if (output.type == 'record') {
           val = output.value;
-        } /*else if (output.type == 'external_record') {
-        }*/
+        } else if (output.type == 'external_record') {
+          return { external_record: '' };
+        }
         return parseJSONLikeString(val);
       }
     );
