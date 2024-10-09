@@ -1,5 +1,23 @@
 # @doko-js/core
 
+## 1.0.0
+
+### Major Changes
+
+- 14b6c22: - Remove snarkos dependency from doko-js
+  - Replace @aleohq/sdk with @provablehq/sdk
+  - Remove dry run feature. Instead of parsing transaction from the output of dry, now
+    outputs are fetched from the endpoint and provided to user
+  - Add feature to get transaction object from TransactionResponse
+  - Deprecate LeoExecute
+
+### Patch Changes
+
+- Updated dependencies [14b6c22]
+- Updated dependencies [14b6c22]
+  - @doko-js/utils@1.0.0
+  - @doko-js/wasm@0.1.1
+
 ## 0.3.0
 
 ### Minor Changes
