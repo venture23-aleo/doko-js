@@ -1,10 +1,10 @@
-import { TransactionModel } from '@aleohq/sdk';
+import { TransactionModel } from '@provablehq/sdk';
 import { tx } from '@/outputs';
 import { TransactionResponse } from '@/leo-types/transaction/transaction-response';
 
 export enum ExecutionMode {
   LeoRun,
-  LeoExecute,
+  LeoExecute_Deprecated,
   SnarkExecute
 }
 
@@ -14,7 +14,7 @@ interface NetworkConfig {
 
 export interface ExecutionOutput {
   data: any;
-  transaction?: TransactionModel & tx.Receipt;
+  transaction?: (TransactionModel & tx.Receipt) | string;
 }
 
 export interface BaseConfig {
@@ -23,7 +23,6 @@ export interface BaseConfig {
   network: NetworkConfig;
   networkName: string;
   privateKey: string;
-  networkMode: number;
 }
 
 export interface ContractConfig extends BaseConfig {
@@ -49,3 +48,5 @@ export type LeoTransactionParams = Omit<
 
 export type SnarkExecuteTransactionParams = TransactionParams &
   Pick<ContractConfig, 'isImportedAleo'>;
+
+export type Optional<T> = T | undefined;

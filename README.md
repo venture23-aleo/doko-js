@@ -10,12 +10,8 @@ Before beginning, make sure you have the following set up:
 
 **1. Rust**: [Installation Guide](https://www.rust-lang.org/tools/install)
 
-**2. SnarkOS**: [Installation Guide](https://github.com/aleoHQ/snarkos)
-
-> In case there are some issues with build try from [here](https://github.com/eqlabs/snarkOS/tree/fix/compile)
-
-**3. Leo language**:
-[Installation Guide](https://github.com/aleoHQ/leo)
+**2. Leo language**:
+[Installation Guide](https://github.com/ProvableHQ/leo)
 
 ### From NPM
 
@@ -25,6 +21,7 @@ Install dokojs globally using npm:
 ### From Source
 
 > In case pnpm is not set up, follow the [pnpm installation guide](https://pnpm.io/installation)
+
 ```bash
 # Download the source file
 git clone https://github.com/venture23-aleo/doko-js
@@ -52,11 +49,11 @@ dokojs
 The expected output is as following:
 
 ```bash
-  ____        _             _ ____  
- |  _ \  ___ | | _____     | / ___| 
- | | | |/ _ \| |/ / _ \ _  | \___ \ 
+  ____        _             _ ____
+ |  _ \  ___ | | _____     | / ___|
+ | | | |/ _ \| |/ / _ \ _  | \___ \
  | |_| | (_) |   | (_) | |_| |___) |
- |____/ \___/|_|\_\___/ \___/|____/ 
+ |____/ \___/|_|\_\___/ \___/|____/
 Usage: dokojs [options] [command]
 
 DokoJS CLI
@@ -134,9 +131,9 @@ export default {
   mode: 'execute',
   mainnet: {},
   networks: {
-    testnet3: {
+    testnet: {
       endpoint: 'http://localhost:3030',
-      accounts: [process.env.ALEO_PRIVATE_KEY_TESTNET3, 
+      accounts: [process.env.ALEO_PRIVATE_KEY_TESTNET3,
                  process.env.ALEO_DEVNET_PRIVATE_KEY2]
       priorityFee: 0.01
     },
@@ -146,13 +143,13 @@ export default {
       priorityFee: 0.001
     }
   },
-  defaultNetwork: 'testnet3'
+  defaultNetwork: 'testnet'
 };
 ```
 
 We have two modes of execution supported:
 
-1. `execute`: In this mode, proof is generated and broadcasted on chain. Internally, it calls `snarkos developer execute` command.
+1. `execute`: In this mode, proof is generated and broadcasted on chain. Internally, it calls `leo developer execute` command.
 2. `evaluate`: In this mode, no proof is generated and broadcasted on chain. Internally, it calls `leo run` command.
 
 > `aleo-config` acts as a default configuation for the entire project. It can be overwritten on per program basis as well.
@@ -160,10 +157,12 @@ We have two modes of execution supported:
 ### Adding / Modifying a Program
 
 To add a new program create a new file inside the `programs/` directory.
-To modify the existing file, simply modify the existing file or run command 
+To modify the existing file, simply modify the existing file or run command
+
 ```
 dokojs add [PROGRAM_NAME]
 ```
+
 ### Compliation
 
 To compile the project, run:
@@ -241,109 +240,85 @@ This documentation provides a comprehensive guide to installing Dokojs, starting
 Create a test file (e.g., token.test.ts) inside the test directory. An example test file is provided below:
 
 ```js
-import { parseRecordString } from '@doko-js/core';
-import { PrivateKey } from '@aleohq/sdk';
-
+import { ExecutionMode } from '@doko-js/core';
 import { TokenContract } from '../artifacts/js/token';
-import { token, tokenLeo } from '../artifacts/js/types/token';
-import { gettoken } from '../artifacts/js/leo2js/token';
+import { decrypttoken } from '../artifacts/js/leo2js/token';
+import { PrivateKey } from '@provablehq/sdk';
 
 const TIMEOUT = 200_000;
 const amount = BigInt(2);
 
+// Available modes are evaluate | execute (Check README.md for further description)
+const mode = ExecutionMode.SnarkExecute;
 // Contract class initialization
-const mode = 'execute';
 const contract = new TokenContract({ mode });
 
 // This maps the accounts defined inside networks in aleo-config.js and return array of address of respective private keys
-const [admin, user] = contract.getAccounts();
+const [admin] = contract.getAccounts();
+const recipient = process.env.ALEO_DEVNET_PRIVATE_KEY3;
 
-// This method returns private key of associated aleo address
-const adminPrivateKey = contract.getPrivateKey(admin);
+describe('deploy test', () => {
+  test('deploy', async () => {
+    if ((mode as ExecutionMode) == ExecutionMode.SnarkExecute) {
+      const tx = await contract.deploy();
+      await tx.wait();
+    }
+  }, 10000000);
 
-// Custom function to parse token record data
-function parseRecordtoToken(
-  recordString: string,
-  mode?: 'execute' | 'evaluate',
-  privateKey?: string
-): token {
-  // Records are encrypted in execute mode so we need to decrypt them
-  if (mode && mode === 'execute') {
-    if (!privateKey)
-      throw new Error('Private key is required for execute mode');
-    const record = gettoken(
-      parseRecordString(
-        PrivateKey.from_string(privateKey).to_view_key().decrypt(recordString)
-      ) as tokenLeo
+  test('mint public', async () => {
+    const actualAmount = BigInt(100000);
+    const tx = await contract.mint_public(admin, actualAmount);
+    await tx.wait();
+
+    const expected = await contract.account(admin);
+    expect(expected).toBe(actualAmount);
+  }, 10000000);
+
+  test('mint private', async () => {
+    const actualAmount = BigInt(100000);
+    const tx = await contract.mint_private(
+      'aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px',
+      actualAmount
     );
-    return record;
-  }
-  const record = gettoken(
-    parseRecordString(JSON.stringify(recordString)) as tokenLeo
+    const [record1] = await tx.wait();
+
+    // @NOTE Only decrypt in SnarkExecute use JSON.parse in LeoRun
+    const decryptedRecord = decrypttoken(
+      record1,
+      process.env.ALEO_PRIVATE_KEY_TESTNET3
+    );
+
+    expect(decryptedRecord.amount).toBe(actualAmount);
+  }, 10000000);
+
+  test(
+    'private transfer to user',
+    async () => {
+      const account = contract.config.privateKey;
+      const amount1 = BigInt(1000000000);
+      const amount2 = BigInt(100000000);
+
+      const mintTx = await contract.mint_private(admin, amount1);
+      const [result] = await mintTx.wait();
+      const decryptedRecord = decrypttoken(result, account);
+
+      const receiptAddress = PrivateKey.from_string(recipient)
+        .to_address()
+        .to_string();
+
+      const tx = await contract.transfer_private(
+        decryptedRecord,
+        receiptAddress,
+        amount
+      );
+      const [record1, record2] = await tx.wait();
+      const decryptedRecord2 = decrypttoken(record1, account);
+
+      expect(decryptedRecord2.amount).toBe(amount1 - amount2);
+    },
+    TIMEOUT
   );
-  return record;
-}
-
-// This gets executed before the tests start
-beforeAll(async () => {
-  // We need to deploy contract before running tests in execute mode
-  if (contract.config.mode === 'execute') {
-    // This checks for program code on chain to validate that the program is deployed
-    const deployed = await contract.isDeployed();
-
-    // If the contract is already deployed we skip deployment
-    if (deployed) return;
-
-    const tx = await contract.deploy();
-    await contract.wait(tx);
-  }
-}, TIMEOUT);
-
-test(
-  'mint private',
-  async () => {
-    const [result, tx] = await contract.mint_private(admin, amount);
-
-    // tx is undefined in evaluate mode
-    // This method waits for the transction to be broadcasted in execute mode
-    if (tx) await contract.wait(tx);
-
-    const senderRecord: token = parseRecordtoToken(
-      result,
-      mode,
-      adminPrivateKey
-    );
-    expect(senderRecord.owner).toBe(admin);
-    expect(senderRecord.amount.toString()).toBe(amount.toString());
-  },
-  TIMEOUT
-);
-
-test(
-  'transfer private',
-  async () => {
-    const [token, tx] = await contract.mint_private(admin, amount);
-    if (tx) await contract.wait(tx);
-    const record: token = parseRecordtoToken(token, mode, adminPrivateKey);
-
-    // Transfer private returns two records so result1 and result2 hold those records and tx1 holds the transaction execution data
-    const [result1, result2, tx1] = await contract.transfer_private(
-      record,
-      user,
-      amount
-    );
-
-    if (tx1) await contract.wait(tx1);
-
-    const privateKey = contract.getPrivateKey(user);
-    const record1 = parseRecordtoToken(result1, mode, adminPrivateKey);
-    const record2 = parseRecordtoToken(result2, mode, privateKey);
-
-    expect(record1.amount).toBe(BigInt(0));
-    expect(record2.amount).toBe(amount);
-  },
-  TIMEOUT
-);
+});
 
 ```
 

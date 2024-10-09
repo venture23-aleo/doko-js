@@ -161,9 +161,10 @@ export const publicField = (value: string): string => {
 };
 
 export const json = (value: any): string => {
-  return JSON.stringify(value).replace(/\"/g, '');
+  return JSON.stringify(value).replace(/"/g, '');
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const array = (value: Array<any>, converterFn: Function): any[] => {
   return value.map((v) => converterFn(v));
 };

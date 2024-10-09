@@ -1,5 +1,20 @@
 # @doko-js/core
 
+## 0.3.0
+
+### Minor Changes
+
+- 607c291: - Logger and error handling with custom codes
+  - Leo version check added when compiling and building
+  - External Aleo code import, compiliation and type gen
+  - Fix an issue where parsing failed due to improper handling of new line escape sequence
+  - Update aleo registry to project level
+
+### Patch Changes
+
+- Updated dependencies [607c291]
+  - @doko-js/utils@0.1.0
+
 ## 0.2.0
 
 ### Minor Changes

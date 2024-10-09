@@ -5,7 +5,6 @@ export default {
   accounts: [process.env.ALEO_PRIVATE_KEY],
   mode: 'evaluate',
   mainnet: {},
-  networkMode: 1,
   networks: {
     testnet: {
       endpoint: 'http://localhost:3030',

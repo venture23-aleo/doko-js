@@ -1,6 +1,6 @@
 {
   "name": "@dokojs/test",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -20,7 +20,7 @@
   "dependencies": {
     "@doko-js/cli": "workspace:*",
     "@doko-js/core": "workspace:*",
-    "@aleohq/sdk": "^0.6.9",
+    "@provablehq/sdk": "0.6.9",
     "@doko-js/utils": "workspace:*",
     "aleo-program-to-address": "^0.1.0",
     "dotenv": "^16.4.5",

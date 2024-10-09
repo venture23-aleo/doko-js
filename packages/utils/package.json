@@ -1,14 +1,14 @@
 {
   "name": "@doko-js/utils",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Utilis for doko tools",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
     "build": "rimraf dist && rollup -c",
     "build:tsc": "npx tsc && tsc-alias",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix --ext .ts ."
+    "lint": "eslint . --ignore-pattern dist/**",
+    "lint:fix": "eslint --fix --ext .ts . --ignore-pattern dist/**"
   },
   "repository": {
     "type": "git",

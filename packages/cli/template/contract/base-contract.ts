@@ -1,14 +1,13 @@
-// @ts-nocheck
-import { PrivateKey, TransactionModel } from '@aleohq/sdk';
+import { PrivateKey, TransactionModel } from '@provablehq/sdk';
 import {
   ContractConfig,
   snarkDeploy,
   checkDeployment,
-  CreateExecutionContext,  
+  CreateExecutionContext,
   TransactionResponse
 } from '@doko-js/core';
-import { to_address } from 'aleo-program-to-address';
 import networkConfig from '../aleo-config';
+import { to_address } from '@doko-js/wasm';
 
 export class BaseContract {
   public config: ContractConfig = {};
@@ -24,8 +23,7 @@ export class BaseContract {
 
     if (!this.config.networkName)
       this.config.networkName = networkConfig.defaultNetwork;
-    if (!this.config.networkMode)
-      this.config.networkMode = networkConfig.networkMode;
+
     const networkName = this.config.networkName;
     if (networkName) {
       if (!networkConfig?.networks[networkName])
@@ -50,9 +48,9 @@ export class BaseContract {
     return checkDeployment(endpoint);
   }
 
-/** 
-  * @deprecated Use transaction receipt to wait.
-*/  
+  /**
+   * @deprecated Use transaction receipt to wait.
+   */
 
   async wait<T extends TransactionResponse = TransactionResponse>(
     transaction: T
