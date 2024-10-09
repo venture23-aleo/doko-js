@@ -10,6 +10,7 @@ export enum ExecutionMode {
 
 interface NetworkConfig {
   endpoint: string;
+  accounts: string[];
 }
 
 export interface ExecutionOutput {
