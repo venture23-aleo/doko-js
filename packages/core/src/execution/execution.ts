@@ -18,7 +18,7 @@ export function CreateExecutionContext(
   switch (config.mode) {
     case ExecutionMode.LeoRun:
       return new LeoRunContext(config);
-    case ExecutionMode.LeoExecute:
+    case ExecutionMode.LeoExecute_Deprecated:
       return new LeoExecuteContext(config);
     case ExecutionMode.SnarkExecute:
       return new SnarkExecuteContext({ ...config });

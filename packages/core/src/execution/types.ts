@@ -4,7 +4,7 @@ import { TransactionResponse } from '@/leo-types/transaction/transaction-respons
 
 export enum ExecutionMode {
   LeoRun,
-  LeoExecute,
+  LeoExecute_Deprecated,
   SnarkExecute
 }
 
