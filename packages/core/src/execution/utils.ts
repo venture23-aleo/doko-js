@@ -135,18 +135,6 @@ async function deployAleo(
   );
   const priorityFee = config.priorityFee || 0;
 
-  // const cmd = `cd ${projectDir} && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
-  // const { stdout } = await execute(cmd);
-  // const result = new SnarkStdoutResponseParser().parse(stdout);
-  // await broadcastTransaction(
-  //   result.transaction as TransactionModel,
-  //   nodeEndPoint,
-  //   config.networkName!
-  // );
-  // return new SnarkDeployResponse(
-  //   result.transaction as TransactionModel,
-  //   config
-  // );
   const cmd = `cd ${projectDir} && leo deploy --priority-fee ${priorityFee} --private-key ${config.privateKey} --no-build --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
   DokoJSLogger.debug(cmd);
   const { stdout } = await execute(cmd);

@@ -10,11 +10,7 @@ Before beginning, make sure you have the following set up:
 
 **1. Rust**: [Installation Guide](https://www.rust-lang.org/tools/install)
 
-**2. SnarkOS**: [Installation Guide](https://github.com/AleoNet/snarkos)
-
-> In case there are some issues with build try from [here](https://github.com/eqlabs/snarkOS/tree/fix/compile)
-
-**3. Leo language**:
+**2. Leo language**:
 [Installation Guide](https://github.com/ProvableHQ/leo)
 
 ### From NPM
@@ -152,7 +148,7 @@ export default {
 
 We have two modes of execution supported:
 
-1. `execute`: In this mode, proof is generated and broadcasted on chain. Internally, it calls `snarkos developer execute` command.
+1. `execute`: In this mode, proof is generated and broadcasted on chain. Internally, it calls `leo developer execute` command.
 2. `evaluate`: In this mode, no proof is generated and broadcasted on chain. Internally, it calls `leo run` command.
 
 > `aleo-config` acts as a default configuation for the entire project. It can be overwritten on per program basis as well.
