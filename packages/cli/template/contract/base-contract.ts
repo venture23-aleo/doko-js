@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { PrivateKey, TransactionModel } from '@provablehq/sdk';
 import {
   ContractConfig,
@@ -24,7 +23,7 @@ export class BaseContract {
 
     if (!this.config.networkName)
       this.config.networkName = networkConfig.defaultNetwork;
-    
+
     const networkName = this.config.networkName;
     if (networkName) {
       if (!networkConfig?.networks[networkName])

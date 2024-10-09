@@ -103,6 +103,7 @@ export const boolean = (value: string): boolean => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const array = (value: Array<any>, converterFn: Function): any[] => {
   return value.map((v) => converterFn(v));
 };

@@ -1,3 +1,3 @@
-import console from "console"
+import console from 'console';
 
-global.console = console
+global.console = console;

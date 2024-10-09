@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "rimraf dist && rollup -c",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix --ext .ts ."
+    "lint": "eslint . --ignore-pattern dist/**",
+    "lint:fix": "eslint --fix --ext .ts . --ignore-pattern dist/**"
   },
   "repository": {
     "type": "git",
