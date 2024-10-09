@@ -63,7 +63,7 @@ export const leoSignatureSchema = z
   .string()
   .startsWith('sign1')
   .or(z.string().startsWith('sign1').endsWith('.private'))
-  .or(z.string().startsWith('sign1').endsWith('.public'))
+  .or(z.string().startsWith('sign1').endsWith('.public'));
 
 export type LeoSignature = z.infer<typeof leoSignatureSchema>;
 

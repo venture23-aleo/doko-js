@@ -1,5 +1,5 @@
 import { ContractConfig, TransactionParams } from './types';
-import { ExecutionContext, ExecutionOutput } from './types';
+import { ExecutionContext } from './types';
 import { ExecutionOutputParser, StdoutResponseParser } from './output-parser';
 import { formatArgs, execute, decryptOutput } from './execution-helper';
 import {
@@ -24,7 +24,7 @@ export class LeoExecuteContext implements ExecutionContext {
     const output = this.parser.parse(stdout);
     if (output.transaction)
       return new LeoExecuteResponse(
-        output.transaction,
+        output.transaction as any,
         this.params,
         transitionName
       );

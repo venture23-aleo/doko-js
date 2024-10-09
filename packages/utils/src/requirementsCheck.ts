@@ -66,14 +66,12 @@ const installProgram = (command: string, shouldEnd: boolean = true) => {
 const checkAndInstallRequirements = async () => {
   const isRustInstalled = await checkProgramInstallation('rustc --version');
   // const isAleoInstalled = await checkProgramInstallation('aleo-develop --help');
-  const isSnarkOsInstalled = await checkProgramInstallation('snarkos --help');
   const isLeoInstalled = await checkProgramInstallation('leo --help');
 
   const needSetup: string[] = [];
 
   if (!isRustInstalled) needSetup.push('rustc');
   // if (!isAleoInstalled) needSetup.push('aleo-development-server');
-  if (!isSnarkOsInstalled) needSetup.push('snarkos');
   if (!isLeoInstalled) needSetup.push('leo-lang');
 
   const flag = 0;

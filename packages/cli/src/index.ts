@@ -72,7 +72,9 @@ program
         `Checkout to ${projectName} directory for accessing the program`
       );
       process.exit(0);
-    } catch (e) {}
+    } catch (e) {
+      /* empty */
+    }
   });
 
 program

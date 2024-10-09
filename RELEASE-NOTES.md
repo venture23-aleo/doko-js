@@ -46,4 +46,4 @@
 - https://github.com/venture23-aleo/doko-js/blob/main/packages/cli/CHANGELOG.md
 - https://github.com/venture23-aleo/doko-js/blob/main/packages/core/CHANGELOG.md
 
-PS: **This update mostly focuses on improving current implementation focusing on functionalities and changes included on testnet3. We noticed some inconsistencies and breaking changes incompatible with updataed version of leo and snarkos, and will be working on adding support for the changes on upcoming release.**
+PS: **This update mostly focuses on improving current implementation focusing on functionalities and changes included on testnet3. We noticed some inconsistencies and breaking changes incompatible with updated version of leo and snarkos, and will be working on adding support for the changes on upcoming release.**

@@ -1,104 +1,79 @@
-import { ExecutionMode, parseJSONLikeString } from '@doko-js/core';
-import { PrivateKey } from '@aleohq/sdk';
-
+import { ExecutionMode } from '@doko-js/core';
 import { TokenContract } from '../artifacts/js/token';
-import { token, tokenLeo } from '../artifacts/js/types/token';
-import { gettoken } from '../artifacts/js/leo2js/token';
+import { decrypttoken } from '../artifacts/js/leo2js/token';
+import { PrivateKey } from '@provablehq/sdk';
 
 const TIMEOUT = 200_000;
 const amount = BigInt(2);
 
 // Available modes are evaluate | execute (Check README.md for further description)
-const mode = ExecutionMode.LeoRun;
+const mode = ExecutionMode.SnarkExecute;
 // Contract class initialization
 const contract = new TokenContract({ mode });
 
 // This maps the accounts defined inside networks in aleo-config.js and return array of address of respective private keys
-const [admin, user] = contract.getAccounts();
+const [admin] = contract.getAccounts();
+const recipient = process.env.ALEO_DEVNET_PRIVATE_KEY3;
 
-// This method returns private key of associated aleo address
-const adminPrivateKey = contract.getPrivateKey(admin);
+describe('deploy test', () => {
+  test('deploy', async () => {
+    if ((mode as ExecutionMode) == ExecutionMode.SnarkExecute) {
+      const tx = await contract.deploy();
+      await tx.wait();
+    }
+  }, 10000000);
 
-// Custom function to parse token record data
-function parseRecordtoToken(
-  recordString: string,
-  mode: ExecutionMode,
-  privateKey?: string
-): token {
-  // Records are encrypted in execute mode so we need to decrypt them
-  if (mode === ExecutionMode.SnarkExecute || mode === ExecutionMode.LeoExecute) {
-    if (!privateKey)
-      throw new Error('Private key is required for execute mode');
-    const record = gettoken(
-      parseJSONLikeString(
-        PrivateKey.from_string(privateKey).to_view_key().decrypt(recordString)
-      ) as tokenLeo
+  test('mint public', async () => {
+    const actualAmount = BigInt(100000);
+    const tx = await contract.mint_public(admin, actualAmount);
+    await tx.wait();
+
+    const expected = await contract.account(admin);
+    expect(expected).toBe(actualAmount);
+  }, 10000000);
+
+  test('mint private', async () => {
+    const actualAmount = BigInt(100000);
+    const tx = await contract.mint_private(
+      'aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px',
+      actualAmount
     );
-    return record;
-  }
-  const record = gettoken(
-    parseJSONLikeString(recordString) as tokenLeo
+    const [record1] = await tx.wait();
+
+    // @NOTE Only decrypt in SnarkExecute use JSON.parse in LeoRun
+    const decryptedRecord = decrypttoken(
+      record1,
+      process.env.ALEO_PRIVATE_KEY_TESTNET3
+    );
+
+    expect(decryptedRecord.amount).toBe(actualAmount);
+  }, 10000000);
+
+  test(
+    'private transfer to user',
+    async () => {
+      const account = contract.config.privateKey;
+      const amount1 = BigInt(1000000000);
+      const amount2 = BigInt(100000000);
+
+      const mintTx = await contract.mint_private(admin, amount1);
+      const [result] = await mintTx.wait();
+      const decryptedRecord = decrypttoken(result, account);
+
+      const receiptAddress = PrivateKey.from_string(recipient)
+        .to_address()
+        .to_string();
+
+      const tx = await contract.transfer_private(
+        decryptedRecord,
+        receiptAddress,
+        amount
+      );
+      const [record1, record2] = await tx.wait();
+      const decryptedRecord2 = decrypttoken(record1, account);
+
+      expect(decryptedRecord2.amount).toBe(amount1 - amount2);
+    },
+    TIMEOUT
   );
-  return record;
-}
-
-// This gets executed before the tests start
-beforeAll(async () => {
-  // We need to deploy contract before running tests in execute mode
-  if (contract.config.mode === ExecutionMode.SnarkExecute) {
-    // This checks for program code on chain to validate that the program is deployed
-    const deployed = await contract.isDeployed();
-
-    // If the contract is already deployed we skip deployment
-    if (deployed) return;
-
-    const tx = await contract.deploy();
-    await contract.wait(tx);
-  }
-}, TIMEOUT);
-
-test(
-  'mint private',
-  async () => {
-    const [result, tx] = await contract.mint_private(admin, amount);
-
-    // tx is undefined in evaluate mode
-    // This method waits for the transction to be broadcasted in execute mode
-    if (tx) await contract.wait(tx);
-
-    const senderRecord: token = parseRecordtoToken(
-      result,
-      mode,
-      adminPrivateKey
-    );
-    expect(senderRecord.owner).toBe(admin);
-    expect(senderRecord.amount.toString()).toBe(amount.toString());
-  },
-  TIMEOUT
-);
-
-test(
-  'transfer private',
-  async () => {
-    const [token, tx] = await contract.mint_private(admin, amount);
-    if (tx) await contract.wait(tx);
-    const record: token = parseRecordtoToken(token, mode, adminPrivateKey);
-
-    // Transfer private returns two records so result1 and result2 hold those records and tx1 holds the transaction execution data
-    const [result1, result2, tx1] = await contract.transfer_private(
-      record,
-      user,
-      amount
-    );
-
-    if (tx1) await contract.wait(tx1);
-
-    const privateKey = contract.getPrivateKey(user);
-    const record1 = parseRecordtoToken(result1, mode, adminPrivateKey);
-    const record2 = parseRecordtoToken(result2, mode, privateKey);
-
-    expect(record1.amount).toBe(BigInt(0));
-    expect(record2.amount).toBe(amount);
-  },
-  TIMEOUT
-);
+});

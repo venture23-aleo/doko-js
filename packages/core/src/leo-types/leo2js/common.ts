@@ -1,5 +1,5 @@
-import { ExternalRecord } from '@/utils';
 import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
+import { ExternalRecord } from '@/utils';
 
 const PRIVATE = '.private';
 const PUBLIC = '.public';
@@ -103,6 +103,27 @@ export const boolean = (value: string): boolean => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const array = (value: Array<any>, converterFn: Function): any[] => {
   return value.map((v) => converterFn(v));
+};
+
+export const json = (value: string): string => {
+  return JSON.stringify(value, (_, v) =>
+    typeof v === 'bigint' ? v.toString() : v
+  );
+};
+
+// For LeoRun the output is returned as json string
+// whereas for SnarkExecute it is returned as ciphertext
+export const record = (value: any): string => {
+  if (typeof value === 'string' && value.startsWith('record1')) return value;
+  return json(value);
+};
+
+export const externalRecord = <P extends string, R extends string>(
+  value: string,
+  name: `${P}.aleo/${R}`
+): ExternalRecord<P, R> => {
+  return new ExternalRecord<P, R>(name);
 };

@@ -1,16 +1,17 @@
-// @ts-nocheck
-import { PrivateKey, TransactionModel } from '@aleohq/sdk';
+import { PrivateKey } from '@provablehq/sdk';
 import {
   ContractConfig,
   snarkDeploy,
   checkDeployment,
-  CreateExecutionContext,  
-  TransactionResponse
+  CreateExecutionContext,
+  TransactionResponse,
+  ExecutionContext
 } from '@doko-js/core';
-import { to_address } from 'aleo-program-to-address';
 import networkConfig from '../aleo-config';
+import { to_address } from '@doko-js/wasm';
 
 export class BaseContract {
+  // @ts-expect-error Initialized at constructor
   public config: ContractConfig = {};
   public ctx: ExecutionContext;
 
@@ -24,8 +25,7 @@ export class BaseContract {
 
     if (!this.config.networkName)
       this.config.networkName = networkConfig.defaultNetwork;
-    if (!this.config.networkMode)
-      this.config.networkMode = networkConfig.networkMode;
+
     const networkName = this.config.networkName;
     if (networkName) {
       if (!networkConfig?.networks[networkName])
@@ -50,9 +50,9 @@ export class BaseContract {
     return checkDeployment(endpoint);
   }
 
-/** 
-  * @deprecated Use transaction receipt to wait.
-*/  
+  /**
+   * @deprecated Use transaction receipt to wait.
+   */
 
   async wait<T extends TransactionResponse = TransactionResponse>(
     transaction: T
@@ -69,7 +69,7 @@ export class BaseContract {
   }
 
   address(): string {
-    return to_address(`${this.config.appName}.aleo`);
+    return to_address(`${this.config.appName}.aleo`, this.config.networkName);
   }
 
   // TODO: handle properly

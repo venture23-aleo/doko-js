@@ -1,4 +1,3 @@
-import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
 import { DokoJSLogger, getAleoConfig } from '@doko-js/utils';

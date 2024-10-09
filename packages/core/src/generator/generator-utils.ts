@@ -7,6 +7,7 @@ import {
 } from '@/utils/aleo-utils';
 import { GetConverterFunctionName } from './leo-naming';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
+import { STRING_JS } from './string-constants';
 
 export function InferJSDataType(type: string): string {
   if (
@@ -88,6 +89,30 @@ export function GenerateTypeConversionStatement(
   return fn;
 }
 
+// Return list of function involved in conversion of the given type
+export function GetTypeConversionFunctionsJS(leoType: string) {
+  // Split qualifier private/public
+  const [type, qualifier] = leoType.split('.');
+
+  const functions = [];
+  // Determine member conversion function
+  const namespace = 'leo2js';
+  const conversionFnName = GetConverterFunctionName(type, STRING_JS);
+  const isArray = IsLeoArray(type);
+
+  const isLeoType = isArray || IsLeoPrimitiveType(type);
+  functions.push(
+    isLeoType ? `${namespace}.${conversionFnName}` : conversionFnName
+  );
+
+  if (isArray) {
+    // Pass additional conversion function
+    const [dataType, size] = GetLeoArrTypeAndSize(type);
+    functions.push(`${namespace}.${dataType}`);
+  }
+  return functions;
+}
+
 export function InferExternalRecordInputDataType(recordType: string) {
   const parts = recordType.replace('.record', '').split('.aleo/');
   const program = parts[0];
@@ -106,7 +131,7 @@ export function GenerateExternalRecordConversionStatement(
   const record = parts[1];
 
   if (converstionTo === 'js') {
-    return `new ExternalRecord('${program}.aleo/${record}')`;
+    return ['leo2js.externalRecord', `'${program}.aleo/${record}'`];
   } else {
     return `js2leo.json(${program}_${GetConverterFunctionName(record, 'leo')}(${value}))`;
   }
@@ -121,7 +146,7 @@ export function FormatLeoDataType(type: string) {
 }
 
 export function GenerateZkRunCode(transitionName: string) {
-  return `const result = await this.ctx.execute('${transitionName}', params);`;
+  return `const result = await this.ctx.execute('${transitionName}', params);\n`;
 }
 
 export function GenerateZkMappingCode(mappingName: string) {

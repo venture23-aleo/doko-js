@@ -52,7 +52,8 @@ import {
   GenerateZkMappingCode,
   InferExternalRecordInputDataType,
   GenerateExternalRecordConversionStatement,
-  GenerateAsteriskTSImport
+  GenerateAsteriskTSImport,
+  GetTypeConversionFunctionsJS
 } from './generator-utils';
 import { OutputArg, TSReceiptTypeGenerator } from './ts-receipt-type-generator';
 
@@ -428,71 +429,71 @@ class Generator {
     // Add zkRun statement
     fnGenerator.addStatement(GenerateZkRunCode(func.name));
 
-    /*
-    fnGenerator.addStatement(
-      '\t if(this.config.mode === "execute") return result; \n'
-    );
-    */
-
     // Ignore 'future' returntype for now
     const funcOutputs = func.outputs.filter(
       (output) => !output.includes('future')
     );
 
-    const returnValues: { name: string; type: string }[] = [];
+    const returnValues: { type: string; converterFunction: string }[] = [];
     if (funcOutputs.length > 0) {
-      const createOutputVariable = (index: number) => `out${index}`;
-
-      funcOutputs.forEach((output, index) => {
+      funcOutputs.forEach((output) => {
         const formattedOutput = FormatLeoDataType(output);
-        const lhs = createOutputVariable(index);
-        let input = `result.outputs[${index}]`;
 
         // cast non-custom datatype to string
         const type = formattedOutput.split('.')[0];
-        if (IsLeoPrimitiveType(type)) input = `${input} as string`;
-
         const isRecordType = this.refl.isRecordType(type);
         const isExternalRecord =
           output.includes('.aleo/') && output.includes('.record');
         const externaleRecordParts = output
           .replace('.record', '')
           .split('.aleo/');
-        const rhs = isExternalRecord
-          ? GenerateExternalRecordConversionStatement(output, input, STRING_JS)
-          : isRecordType
-            ? `(this.config.mode===ExecutionMode.LeoRun) ? JSON.stringify(${input}) : ${input}`
-            : GenerateTypeConversionStatement(
-                formattedOutput,
-                input,
-                STRING_JS
-              );
-        fnGenerator.addStatement(`\tconst ${lhs} = ${rhs};\n`);
+
         if (this.refl.isCustomType(type)) {
           outUsedTypes.add(InferJSDataType(type));
         }
+
+        const converterFn = isExternalRecord
+          ? [
+              ...GenerateExternalRecordConversionStatement(
+                output,
+                '',
+                STRING_JS
+              )
+            ]
+          : isRecordType
+            ? ['leo2js.record']
+            : GetTypeConversionFunctionsJS(formattedOutput);
+
+        const formatConverterFn =
+          converterFn.length > 1
+            ? `[${converterFn.join(',')}]`
+            : converterFn[0];
+
         returnValues.push({
-          name: lhs,
           type: isExternalRecord
             ? `ExternalRecord<'${externaleRecordParts[0]}', '${externaleRecordParts[1]}'>`
             : isRecordType
               ? 'LeoRecord'
-              : InferJSDataType(type)
+              : InferJSDataType(type),
+          converterFunction: formatConverterFn
         });
       });
     }
-    // We return transaction object as last argument
-    returnValues.push({
-      name: 'result',
-      type: `TransactionResponse & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}`
-    });
 
-    // Format return statement and return type accordingly
-    const variables = returnValues.map((returnValue) => returnValue.name);
     const types = returnValues.map((returnValues) => returnValues.type);
-    fnGenerator.addStatement(`\t return [${variables.join(', ')}];\n`);
-    const returnTypeString = `Promise<[${types.join(', ')}]>`;
-    return fnGenerator.generate(func.name, args, returnTypeString);
+    const converterFns = returnValues.map(
+      (returnValues) => returnValues.converterFunction
+    );
+
+    const returnType = `Promise<TransactionResponse<TransactionModel & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}, [${types.join(',')}]>>`;
+    if (converterFns.length > 0) {
+      fnGenerator.addStatement(
+        `result.set_converter_fn([${converterFns.join(', ')}]);\n`
+      );
+    }
+
+    fnGenerator.addStatement('return result');
+    return fnGenerator.generate(func.name, args, returnType);
   }
 
   private generateMappingFunction(
@@ -570,9 +571,8 @@ class Generator {
         super({
           ...config,
           appName: '${programName}',
-          contractPath: '${this.programParams?.isImportedAleo ? IMPORTS_PATH : PROGRAM_DIRECTORY}${programName}',
-          networkMode: config.networkName === 'testnet' ? 1 : 0, 
           fee: '0.01',
+          contractPath: '${this.programParams?.isImportedAleo ? IMPORTS_PATH : PROGRAM_DIRECTORY}${programName}',
           isImportedAleo: ${Boolean(this.programParams?.isImportedAleo)}
       });
   }\n`
@@ -629,6 +629,7 @@ class Generator {
         '@doko-js/core'
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
+      GenerateTSImport(['TransactionModel'], '@provablehq/sdk'),
       GenerateAsteriskTSImport(`./transitions/${programName}`, 'receipt'),
       '\n\n'
     );

@@ -234,10 +234,17 @@ Please [report it](https://github.com/venture23-aleo/doko-js/issues) to help us 
       shouldBeReported: false
     },
     EXCEEDED_INT_VALUE: {
-      number: 305,
+      number: 306,
       title: 'Exceeded max uint value',
       message: 'Exceeded max %type% value',
       description: 'Exceeded max %type% value: %value%',
+      shouldBeReported: false
+    },
+    DECRYPTION_FAILED: {
+      number: 307,
+      title: 'Output Decryption Failed',
+      message: 'Failed to decrypt output value in transaction',
+      description: 'Failed to decrypt %value%',
       shouldBeReported: false
     }
   },
