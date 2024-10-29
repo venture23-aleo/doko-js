@@ -115,7 +115,10 @@ export function GetTypeConversionFunctionsJS(leoType: string) {
   if (isArray) {
     // Pass additional conversion function
     const [dataType] = GetLeoArrTypeAndSize(type)!;
-    functions.push(`${namespace}.${dataType}`);
+    // Check if it is array of leo types
+    if (IsLeoPrimitiveType(dataType))
+      functions.push(`${namespace}.${dataType}`);
+    else functions.push(GetConverterFunctionName(dataType, STRING_JS));
   }
   return functions;
 }
