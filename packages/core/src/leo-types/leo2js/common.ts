@@ -103,9 +103,17 @@ export const boolean = (value: string): boolean => {
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const array = (value: Array<any>, converterFn: Function): any[] => {
-  return value.map((v) => converterFn(v));
+export const array = (
+  value: Array<any>,
+  converterFn: (value: any) => any
+): any[] => {
+  let result = [];
+  if (Array.isArray(value)) {
+    result = value.map((v: any) => array(v, converterFn));
+  } else {
+    return converterFn(value);
+  }
+  return result;
 };
 
 export const json = (value: string): string => {

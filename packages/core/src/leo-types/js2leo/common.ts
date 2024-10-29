@@ -156,6 +156,16 @@ export const privateField = (value: string): string => {
   return value.concat('.private');
 };
 
+export const privateArrayField = (value: Array<any>): any => {
+  let result = [];
+  if (Array.isArray(value)) {
+    result = value.map((v: any) => privateArrayField(v));
+  } else {
+    return value + '.private';
+  }
+  return result;
+};
+
 export const publicField = (value: string): string => {
   return value.concat('.public');
 };
@@ -164,11 +174,19 @@ export const json = (value: any): string => {
   return JSON.stringify(value).replace(/"/g, '');
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const array = (value: Array<any>, converterFn: Function): any[] => {
-  return value.map((v) => converterFn(v));
+// Multidimensional array which is processed in
+// recursive manner
+export const array = (value: any, converterFn: (value: any) => any): any => {
+  let result = [];
+  if (Array.isArray(value)) {
+    result = value.map((v: any) => array(v, converterFn));
+  } else {
+    return converterFn(value);
+  }
+  return result;
 };
 
-export const arr2string = (arr: Array<string>) => {
-  return `[${arr.join(',')}]`;
+// Multidimensional array
+export const arr2string = (arr: Array<any>): string => {
+  return JSON.stringify(arr);
 };

@@ -108,17 +108,30 @@ const IsLeoExternalRecord = (type: string) => {
 };
 
 const GetLeoArrTypeAndSize = (arrDef: string) => {
-  const arrComponents = arrDef.substring(1, arrDef.length - 1).split(' ');
-  if (arrComponents.length !== 2)
+  // Match everthing that is combination of word and digit
+  // This strips the square braces and return the
+  // type as first component and dims in other
+  const arrComponents = arrDef.match(/[\w\d]+/g);
+  // Must have atleast two component, type and size (single dims)
+  if (arrComponents && arrComponents.length < 2)
     DokoJSLogger.error(`Invalid array definition: ${arrDef}`);
   return arrComponents;
 };
 
 const ConvertToJSType = (type: string) => {
   if (IsLeoArray(type)) {
-    const [arrType, arrSize] = GetLeoArrTypeAndSize(type);
-    const jsType = ALEO_TO_JS_TYPE_MAPPING.get(arrType);
-    return `Array<${jsType}>`;
+    const [arrType, ...dims] = GetLeoArrTypeAndSize(type)!;
+
+    let jsType;
+    if (IsLeoPrimitiveType(arrType)) {
+      jsType = ALEO_TO_JS_TYPE_MAPPING.get(arrType);
+    } else jsType = arrType;
+
+    // Create n dimensional array based on dims
+    return dims.reduce(
+      (accumulator, currentValue) => `Array<${accumulator}>`,
+      jsType
+    );
   }
   if (IsLeoExternalRecord(type)) {
     const typeParts = type.split('.aleo/');
