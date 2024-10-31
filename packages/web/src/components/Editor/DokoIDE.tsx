@@ -59,9 +59,11 @@ export const IDEWithExplorer = () => {
 
     return (
         <Layout style={{
-            width: "100%"
+            width: "100%",
+            position: "relative"
         }}>
             <Sider
+                className='main-app-sidebar editor-sidebar'
                 style={{ background: "#242322" }}
                 breakpoint="lg"
                 collapsedWidth="0"

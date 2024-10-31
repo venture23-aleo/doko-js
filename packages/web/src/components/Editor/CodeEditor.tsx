@@ -88,7 +88,7 @@ export const MultiTabEditor: React.FC = () => {
                                     textOverflow: "ellipsis",
                                 }}>{tab.name}</span>
                             </div>
-                            <CloseOutlined
+                            {tab.id != 1 && < CloseOutlined
                                 height={10}
                                 width={10}
                                 onClick={(e) => {
@@ -96,15 +96,13 @@ export const MultiTabEditor: React.FC = () => {
                                     onTabClose(tab)
                                 }}
                                 style={{
-                                    // margin: '1px',
-                                    // marginLeft: "2px",
                                     cursor: 'pointer',
                                     position: "absolute",
                                     right: 5,
                                     top: 0,
                                     bottom: 0,
                                 }}
-                            />
+                            />}
                         </div>
                     </Tooltip>
                 ))}
@@ -115,7 +113,8 @@ export const MultiTabEditor: React.FC = () => {
                     key={`${activeElement.id}-${activeElement?.metadata?.content}`}
                     name={activeElement.name}
                     data={(activeElement?.metadata?.content || "") as string}
-                    readOnly={activeElement?.metadata?.type == "output"}
+                    // readOnly={activeElement?.metadata?.type == "output"}
+                    readOnly
                 />
             )}
         </div>

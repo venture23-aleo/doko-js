@@ -35,52 +35,28 @@ const EditorContext = React.createContext<IEditorContext>({
     compileAleoPrograms: () => console.log("method not implemented"),
 });
 
-
-export const EditorContextProvider = ({ children }) => {
-    const { message } = App.useApp();
-    const [newTabId, setNewTabId] = useState<number>(2);
-    const [activeId, setActiveId] = useState<string | null>(null);
-    const [inputs, setInputs] = useState<INode[]>([
+const DEFAULT_INPUT_DATA = flattenTree({
+    "name": "",
+    "children": [
         {
-            "id": 0,
-            "name": "",
-            "children": [
-                1
-            ],
-            "parent": null
-        },
-        {
-            "id": 1,
             "name": "README.md",
-            "children": [],
-            "parent": 0,
             metadata: {
                 "content": EDITOR_README,
                 type: "input"
             }
         }
-    ])
-    const [outputs, setOutputs] = useState<INode[]>([
-        {
-            "id": 0,
-            "name": "",
-            "children": [
-                1
-            ],
-            "parent": null
-        },
-        {
-            "id": 1,
-            "name": "README.md",
-            "children": [],
-            "parent": 0,
-            metadata: {
-                "content": EDITOR_README,
-                type: "output"
-            }
-        }
-    ])
-    const [openedTabs, setOpenedTabs] = useState<INode[]>([]);
+    ],
+})
+
+
+export const EditorContextProvider = ({ children }) => {
+    const { message } = App.useApp();
+    const [newTabId, setNewTabId] = useState<number>(2);
+    const [activeId, setActiveId] = useState<string | null>(`1-input`);
+    const [inputs, setInputs] = useState<INode[]>(DEFAULT_INPUT_DATA)
+
+    const [outputs, setOutputs] = useState<INode[]>([])
+    const [openedTabs, setOpenedTabs] = useState<INode[]>([DEFAULT_INPUT_DATA[1]]);
 
     const getDokoOutput = async (programs) => {
         try {
@@ -88,7 +64,6 @@ export const EditorContextProvider = ({ children }) => {
             const folder = parseOutputData(data.programData);
 
             const flattenedData = flattenTree(folder);
-            setActiveId(null);
             setOutputs(flattenedData)
         } catch (e) { }
     }
@@ -132,7 +107,7 @@ export const EditorContextProvider = ({ children }) => {
             setOpenedTabs(prevTabs => [...prevTabs, selectedFileData])
         }
 
-        setActiveTabId(selectedFileData)
+        onTabSelect(selectedFileData)
     };
 
     /** EDITOR ACTIONS */
@@ -155,8 +130,7 @@ export const EditorContextProvider = ({ children }) => {
     /** NEW FILE ACTION */
     const onAddFile = (programData) => {
         const inputsData = [...inputs];
-
-        inputsData.push({
+        const newFileData = {
             "id": newTabId,
             "name": programData.name,
             "children": [],
@@ -166,12 +140,12 @@ export const EditorContextProvider = ({ children }) => {
                 type: "input",
                 user: true
             }
-        });
+        }
+        inputsData.push(newFileData);
         const rootData = inputsData.find(inpData => inpData.id === 0);
         rootData?.children.push(newTabId);
-
-
         setInputs(inputsData);
+        onFileSelect(newFileData);
         setNewTabId(newTabId + 1);
         localStorage.setItem("inputs", JSON.stringify(inputsData))
     }

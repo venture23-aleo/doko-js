@@ -75,3 +75,33 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.main-app-sidebar .ant-layout-sider-zero-width-trigger {
+  position: absolute;
+  top: 64px;
+  left: 200px;
+  z-index: 10;
+  width: 40px;
+  height: 40px; 
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-start-start-radius: 0;
+  border-start-end-radius: 6px;
+  border-end-end-radius: 6px;
+  border-end-start-radius: 0;
+  cursor: pointer;
+  background-color: #141414;
+  color: white;
+  transition: background 0.3s ease,
+            left 0.3s ease;
+}
+
+.main-app-sidebar.editor-sidebar .ant-layout-sider-zero-width-trigger {
+  left: 256px;
+}
+
+.main-app-sidebar.ant-layout-sider-collapsed .ant-layout-sider-zero-width-trigger {
+  left: 0;
+}

@@ -13,7 +13,7 @@
   "dependencies": {
     "@ant-design/icons": "^4.4.0",
     "@doko-js/core": "^1.0.3-beta.1",
-    "@doko-js/wasm": "^0.1.2",
+    "@doko-js/wasm": "0.1.3-beta.1",
     "ace-builds": "^1.36.2",
     "antd": "^5.6.4",
     "axios": "^1.7.7",

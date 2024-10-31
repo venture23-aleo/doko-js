@@ -45,10 +45,9 @@ const HomePage: React.FC = () => {
                 </Header>
 
                 {/* Content */}
-                <Content className='content' style={{
+                <Content  className='content' style={{
                     maxWidth: "1200px",
                     margin: "auto",
-                    padding: '2rem 4rem'
                 }}>
                     <div id='about'>
                         <Title style={{ fontSize: "5em" }} level={1}>DokoJS - Powerful and Lightweight</Title>
@@ -63,13 +62,13 @@ const HomePage: React.FC = () => {
                                 referrerPolicy="no-referrer"
                             >
                                 <Button style={{
-                                    width: 200,
+                                    maxWidth: 200,
                                     height: 50
                                 }} type="primary" size="large">Get Started</Button>
                             </Link>
                             <Link to="/demo">
                                 <Button style={{
-                                    width: 200,
+                                    maxWidth: 200,
                                     height: 50
                                 }} type="default" size="large">Quick Demo</Button>
                             </Link>

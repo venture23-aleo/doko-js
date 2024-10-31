@@ -143,7 +143,7 @@ Click on \`▶️\` icon next to \`OUTPUTS\` section to compile the files
 You can select the files to view it on editor.
 Editor is read-only
 
-You can right-click the files in \`INPUTS\` section to delete the files.`
+You can right-click the files in \`INPUTS\` section to delete the files you added.`
 
 export const SAMPLE_PROGRAM = 
 `

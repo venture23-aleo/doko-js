@@ -56,10 +56,10 @@ function Main() {
         >
             <App>
                 <Layout style={{ minHeight: "100vh" }}>
-                    <Sider breakpoint="lg" collapsedWidth="0" theme="light">
+                    <Sider className="main-app-sidebar" breakpoint="lg" collapsedWidth="0" theme="light">
                         <h1 style={{ paddingLeft: "10px" }}>
-                            <Link to="/">
-                                DOKOJS
+                            <Link style={{ color: "white", padding: "0 0.5rem", fontSize: "2rem" }} to="/">
+                                <b>DokoJS</b>
                             </Link>
                         </h1>
                         <Menu
@@ -80,7 +80,7 @@ function Main() {
                         /> */}
                     </Sider>
                     <Layout>
-                        <Content style={{ padding: "50px 50px", margin: "0 auto", minWidth: "850px", width: "100%" }}>
+                        <Content style={{ padding: "50px 50px", margin: "0 auto", width: "100%" }}>
                             <Outlet />
                         </Content>
                         <Footer style={{ textAlign: "center", display: "flex", flexDirection: "column" }} />

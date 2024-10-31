@@ -58,10 +58,12 @@ export const FileExplorer = ({ data, selectedIds }: IFileExplorerProps) => {
     const { onFileSelect } = useEditorContext();
 
     const handleSelect = (nodeData: ITreeViewOnNodeSelectProps) => {
-        if (nodeData.isBranch || !nodeData.isSelected) return null;
+        if (nodeData.isBranch || !nodeData.isSelected) return;
 
         onFileSelect(nodeData.element)
     }
+
+    if (!data.length) return null;
 
     return (
         <>
@@ -72,7 +74,7 @@ export const FileExplorer = ({ data, selectedIds }: IFileExplorerProps) => {
                     aria-label="directory tree"
                     togglableSelect
                     clickAction="EXCLUSIVE_SELECT"
-                    selectedIds={selectedIds}
+                    // selectedIds={selectedIds}
                     expandedIds={data.map(d => d.id)}
                     onSelect={handleSelect}
                     nodeRenderer={({
@@ -85,7 +87,7 @@ export const FileExplorer = ({ data, selectedIds }: IFileExplorerProps) => {
                         return (
                             <CustomContextMenu element={element} isBranch={isBranch}>
                                 <div {...getNodeProps()} style={{
-                                    paddingLeft: 20 * (level - 1),
+                                    paddingLeft: 20 * (level),
                                     whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                                     display: "flex",
                                 }}>
