@@ -16,6 +16,7 @@
     "@doko-js/wasm": "^0.1.2",
     "ace-builds": "^1.36.2",
     "antd": "^5.6.4",
+    "axios": "^1.7.7",
     "compression": "^1.7.4",
     "copy-to-clipboard": "^3.3.1",
     "express": "^4.19.2",
