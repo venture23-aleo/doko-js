@@ -1,0 +1,97 @@
+/* :root {
+    --primary-color: #1890ff;
+    --text-color: #333;
+    --bg-color-light: #fff;
+    --bg-color-dark: #1c1c1e;
+    --text-color-dark: #f1f1f1;
+  } */
+  
+  body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .light-mode {
+    background-color: var(--bg-color-light);
+    color: var(--text-color);
+  }
+  
+  .dark-mode {
+    background-color: var(--bg-color-dark);
+    color: var(--text-color-dark);
+  }
+  
+  .layout {
+    min-height: 100vh;
+  }
+/*   
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    background-color: var(--primary-color);
+  }
+   */
+  .logo {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .menu-desktop {
+    flex-grow: 1;
+    justify-content: flex-end;
+    display: none;
+  }
+  
+  .menu-mobile {
+    color: #fff;
+    border: none;
+  }
+  
+  .theme-switch {
+    margin-left: 16px;
+  }
+  
+  .content {
+    padding: 48px 24px;
+    text-align: center;
+  }
+  
+  .description {
+    font-size: 1.5rem;
+    line-height: 3rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .features .ant-card-head-title {
+    font-size: 1.2rem;
+  }
+
+  .features .feat-description {
+    font-size: 1.2rem;
+    line-height: 2.75rem;
+    margin: 0 auto;
+  }
+  
+  .cta-buttons {
+    font-size: 2rem;
+    margin: 50px auto;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+  
+  .footer {
+    background-color: var(--bg-color-dark);
+    padding: 24px;
+    text-align: center;
+  }
+  
+  .footer-content {
+    color: #ccc;
+    font-size: 0.9rem;
+  }
+
+  
