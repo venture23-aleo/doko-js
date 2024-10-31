@@ -1,3 +1,42 @@
+### Release Note: @dokojs/cli 1.0.0, @dokojs/core 1.0.0, @dokojs/utils 1.0.0 & @dokojs/wasm 0.1.0
+
+#### Key Updates
+##### **1. SDK Integration and Migration**
+- **Replaced SnarkOS Commands with Leo Commands:** 
+  - Commit [`319d8ac`](https://github.com/venture23-aleo/doko-js/commit/319d8ac), [`f770f65`](https://github.com/venture23-aleo/doko-js/commit/f770f65), [`44bc8fc`](https://github.com/venture23-aleo/doko-js/commit/44bc8fc) – Migrated from `snarkos` to `leo` commands (`leo execute`, `leo deploy`) to remove dependencies on SnarkOS, making the project leaner and less dependent on external packages.
+
+- **Transition to `provablehq/sdk`:**
+  - Commit [`0a29006`](https://github.com/venture23-aleo/doko-js/commit/0a29006) – Replaced `aleohq/sdk` with `provablehq/sdk` for improved consistency and support with the latest tools and functions.
+
+##### **2. Transaction Encryption/Decryption and Hashing Mechanisms**
+
+- **WASM Enhancements and Utilities for Hashing/Encryption:**
+  - Commit [`93c1ce9`](https://github.com/venture23-aleo/doko-js/commit/93c1ce9) – Introduced structures for encryption, decryption, and hashing operations within WebAssembly (WASM) for efficient execution.
+  - **Local WASM Dependencies**:
+    - Commit [`b55b1b4`](https://github.com/venture23-aleo/doko-js/commit/b55b1b4) – Included local WASM dependencies to streamline the build process, reducing compatibility issues with different environments.
+  - **Target Updates for NodeJS Compatibility**:
+    - Commit [`fbf45ff`](https://github.com/venture23-aleo/doko-js/commit/fbf45ff) – Updated WASM target for Node.js, ensuring DokoJS operates smoothly in both web and server-side contexts.
+
+##### **3. Web Tools & Website Enhancements**
+
+- **Website Addition for Web Tools:**
+  - Commit [`4de1951`](https://github.com/venture23-aleo/doko-js/commit/4de1951) – Added the initial website for web-based contract interaction, generation, and transaction management.
+  - **Responsive and UX Improvements**: 
+    - Commits [`55c0c07`](https://github.com/venture23-aleo/doko-js/commit/55c0c07), [`ab5974e`](https://github.com/venture23-aleo/doko-js/commit/ab5974e) – Addressed responsive design issues and refined the user interface, ensuring a smoother experience for various devices.
+
+- **Transaction Signature and Hashing Enhancements:**
+  - Commits [`f5ea56b`](https://github.com/venture23-aleo/doko-js/commit/f5ea56b), [`5ed0c0d`](https://github.com/venture23-aleo/doko-js/commit/5ed0c0d) – Improved handling of transaction responses, including signature verification and added support for encryption and hashing algorithms.
+
+##### **4. Additional Enhancements**
+
+- **Error Fixes and Compatibility Adjustments:**
+  - Commits [`55c0c07`](https://github.com/venture23-aleo/doko-js/commit/55c0c07), [`a01c82c`](https://github.com/venture23-aleo/doko-js/commit/a01c82c), [`5ba1783`](https://github.com/venture23-aleo/doko-js/commit/5ba1783) – Fixed minor issues like build errors, pnpm compatibility, and eslint issues, improving overall code quality and project stability.
+  - **Refined Type Definitions and Improved Generators**:
+    - Commits [`88a5a6c`](https://github.com/venture23-aleo/doko-js/commit/88a5a6c), [`055d19f`](https://github.com/venture23-aleo/doko-js/commit/055d19f) – Enhanced transaction response formatting and refined type definitions for the transition function with clearer API interfaces.
+
+- **Contract Testing and Template Refinements:**
+  - Commits [`61151de`](https://github.com/venture23-aleo/doko-js/commit/61151de), [`5ba1783`](https://github.com/venture23-aleo/doko-js/commit/5ba1783) – Updated sample contracts and fixed issues with base contract generation, ensuring that the templates are functional and coverage for various use cases.
+
 ### Release Note: @dokojs/cli 0.2.0, @dokojs/core 0.3.0 & @dokojs/utils 0.1.0
 
 #### Key Updates:

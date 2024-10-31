@@ -88,7 +88,7 @@ export const DecryptRecord = () => {
         return (
             <div className="container">
                 <Card
-                    title="Decrypt Record"
+                    title="Decrypt Data"
                     style={{ width: "100%" }}
                     extra={
                         <>

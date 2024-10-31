@@ -87,7 +87,7 @@ export const EncryptRecord = () => {
         return (
             <div className="container">
                 <Card
-                    title="Encrypt Record"
+                    title="Encrypt Data"
                     style={{ width: "100%" }}
                     extra={
                         <>
