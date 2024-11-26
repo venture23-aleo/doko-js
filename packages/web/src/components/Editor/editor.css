@@ -1,0 +1,19 @@
+.editor-tabs-content::-webkit-scrollbar {
+    width: 0;
+    height: 3px;
+    /* width of the entire scrollbar */
+}
+
+.editor-tabs-content::-webkit-scrollbar-track {
+    background: transparent;
+    /* color of the tracking area */
+}
+
+.editor-tabs-content::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    /* color of the scroll thumb */
+    border-radius: 20px;
+    /* roundness of the scroll thumb */
+    border: 3px solid grey;
+    /* creates padding around scroll thumb */
+}
