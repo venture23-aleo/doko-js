@@ -1,5 +1,11 @@
 # @doko-js/utils
 
+## 1.0.0
+
+### Major Changes
+
+- 14b6c22:
+
 ## 0.1.0
 
 ### Minor Changes

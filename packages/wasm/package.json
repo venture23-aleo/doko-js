@@ -1,6 +1,6 @@
 {
   "name": "@doko-js/wasm",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Wasm Build for doko tools",
   "type": "module",
   "main": "./dist/wasm.js",

@@ -1,5 +1,22 @@
 # @doko-js/cli
 
+## 1.0.0
+
+### Major Changes
+
+- 14b6c22: - Remove snarkos dependency from doko-js
+  - Update template to support latest changes
+  - Replace @aleohq/sdk with @provablehq/sdk
+
+### Patch Changes
+
+- Updated dependencies [14b6c22]
+- Updated dependencies [14b6c22]
+- Updated dependencies [14b6c22]
+  - @doko-js/utils@1.0.0
+  - @doko-js/core@1.0.0
+  - @doko-js/wasm@0.1.1
+
 ## 0.2.0
 
 ### Minor Changes
