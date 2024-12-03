@@ -77,10 +77,10 @@ impl<N: Network> NetworkCtx<N> {
     }
 }
 #[wasm_bindgen]
-pub struct Encryter;
+pub struct Encrypter;
 
 #[wasm_bindgen]
-impl Encryter {
+impl Encrypter {
     pub fn get_encrypted_value(
         val: &str,
         program: &str,

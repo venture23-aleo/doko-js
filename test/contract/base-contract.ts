@@ -102,6 +102,7 @@ export class BaseContract {
       throw Error(`Account ${account} not found!`);
     } else {
       this.config.privateKey = this.config.network.accounts[accountIndex];
+      this.ctx = CreateExecutionContext(this.config);
     }
   }
 }
