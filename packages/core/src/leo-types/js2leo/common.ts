@@ -32,7 +32,12 @@ import {
   leoTxSchema,
   LeoTx,
   LeoSignature,
-  leoSignatureSchema
+  leoSignatureSchema,
+  leoI8Schema,
+  leoI128Schema,
+  leoI16Schema,
+  leoI32Schema,
+  leoI64Schema
 } from '../types/leo-types';
 
 // Leo Type Converter
@@ -108,7 +113,7 @@ export const u128 = (value: bigint): LeoU128 => {
 export const i8 = (value: number): LeoU8 => {
   if (isNaN(value)) DokoJSLogger.warn('u8 parsing failed');
   const parsed = value + 'i8';
-  return leoU8Schema.parse(parsed);
+  return leoI8Schema.parse(parsed);
 };
 
 export const i16 = (value: number): LeoU16 => {
@@ -117,7 +122,7 @@ export const i16 = (value: number): LeoU16 => {
       type: 'u16'
     });
   const parsed = value + 'i16';
-  return leoU16Schema.parse(parsed);
+  return leoI16Schema.parse(parsed);
 };
 
 export const i32 = (value: number): LeoU32 => {
@@ -126,17 +131,17 @@ export const i32 = (value: number): LeoU32 => {
       type: 'u32'
     });
   const parsed = value + 'i32';
-  return leoU32Schema.parse(parsed);
+  return leoI32Schema.parse(parsed);
 };
 
 export const i64 = (value: bigint): LeoU64 => {
   const parsed = value + 'i64';
-  return leoU64Schema.parse(parsed);
+  return leoI64Schema.parse(parsed);
 };
 
 export const i128 = (value: bigint): LeoU128 => {
   const parsed = value + 'i128';
-  return leoU128Schema.parse(parsed);
+  return leoI128Schema.parse(parsed);
 };
 
 export const boolean = (value: boolean): LeoU128 => {

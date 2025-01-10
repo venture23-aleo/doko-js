@@ -29,9 +29,6 @@ export type LeoViewKey = z.infer<typeof leoViewKeySchema>;
 export const leoTxIdSchema = z.string().startsWith('at1');
 export type LeoTxId = z.infer<typeof leoTxIdSchema>;
 
-export const leoU128Schema = leoStringSchema('u128');
-export type LeoU128 = z.infer<typeof leoFieldSchema>;
-
 export const leoScalarSchema = leoStringSchema('scalar');
 export type LeoScalar = z.infer<typeof leoScalarSchema>;
 
@@ -52,6 +49,24 @@ export type LeoU32 = z.infer<typeof leoU32Schema>;
 
 export const leoU64Schema = leoStringSchema('u64');
 export type LeoU64 = z.infer<typeof leoU64Schema>;
+
+export const leoU128Schema = leoStringSchema('u128');
+export type LeoU128 = z.infer<typeof leoU128Schema>;
+
+export const leoI8Schema = leoStringSchema('i8');
+export type LeoI8 = z.infer<typeof leoI8Schema>;
+
+export const leoI16Schema = leoStringSchema('i16');
+export type LeoI16 = z.infer<typeof leoI16Schema>;
+
+export const leoI32Schema = leoStringSchema('i32');
+export type LeoI32 = z.infer<typeof leoI32Schema>;
+
+export const leoI64Schema = leoStringSchema('i64');
+export type LeoI64 = z.infer<typeof leoI64Schema>;
+
+export const leoI128Schema = leoStringSchema('i128');
+export type LeoI128 = z.infer<typeof leoI128Schema>;
 
 export const leoGroupSchema = leoStringSchema('group');
 export type LeoGroup = z.infer<typeof leoGroupSchema>;

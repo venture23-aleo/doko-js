@@ -71,7 +71,7 @@ export const i16 = (value: string): number => {
 
 export const i32 = (value: string): number => {
   const parsed = Number(replaceValue(value, 'i32'));
-  if (isNaN(parsed)) DokoJSLogger.warn('u32 parsing failed');
+  if (isNaN(parsed)) DokoJSLogger.warn('i32 parsing failed');
   return parsed;
 };
 
@@ -81,7 +81,7 @@ export const i64 = (value: string): bigint => {
 };
 
 export const i128 = (value: string): bigint => {
-  const parsed = BigInt(replaceValue(value, 'u128'));
+  const parsed = BigInt(replaceValue(value, 'i128'));
   return parsed;
 };
 
