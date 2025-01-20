@@ -327,7 +327,6 @@ describe('deploy test', () => {
 >     npm test -- --runInBand token.test.ts
 
 
-# Documentation
 ## Dokojs Configuration
 The configuration of the dokojs can be defined in `aleo-config.js`
 
@@ -489,7 +488,7 @@ Example:
 ```
 
 
-# DOKOJS CLI 
+## DOKOJS CLI 
 The DokoJS CLI provides an interface for managing, building, and deploying projects built with DokoJS. Below is a detailed breakdown of its usage and commands, along with examples.
 
 **Usage**
