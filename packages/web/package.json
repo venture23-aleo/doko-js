@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development npx nodemon ./server.js",
+    "dev": "cross-env NODE_ENV=development node ./server.js",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build --ssrManifest --outDir dist/client",
     "build:server": "vite build --ssr src/entry-server.tsx --outDir dist/server",
@@ -26,8 +26,12 @@
     "react-ace": "^12.0.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.3.0",
+    "react-markdown": "^9.0.3",
     "react-router-dom": "^6.14.1",
     "react-simple-code-editor": "^0.14.1",
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.0",
+    "remark-parse": "^11.0.0",
     "sirv": "^2.0.4"
   },
   "devDependencies": {
