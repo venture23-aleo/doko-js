@@ -327,7 +327,7 @@ describe('deploy test', () => {
 
 
 # Documentation
-## 1. Dokojs Configuration
+## Dokojs Configuration
 The configuration of the dokojs can be defined in `aleo-config.js`
 
 ### Description
@@ -362,7 +362,7 @@ defaultNetwork: 'testnet'
 ```
 
 
-## 2. Base Contract 
+## Base Contract 
 This is the base class for type generated program files. This includes common methods used for most of the contract and testing. `base-contract.ts`. It includes methods for deployment, account management, and program execution.
 
 ### Constructor ###
@@ -488,8 +488,7 @@ Example:
 ```
 
 
-#
-# DOKOJS CLI documenation 
+# DOKOJS CLI 
 The DokoJS CLI provides an interface for managing, building, and deploying projects built with DokoJS. Below is a detailed breakdown of its usage and commands, along with examples.
 
 **Usage**
@@ -502,7 +501,7 @@ dokojs [options] [command]
 
 + -h, --help: Display help for commands or the CLI in general.
 
-## Commands ##
+## Commands 
 
 **init [options] <project-name>**
 
