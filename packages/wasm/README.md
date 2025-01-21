@@ -29,7 +29,7 @@ To use the `@doko-js/wasm` library in your JavaScript project, import the WebAss
 
 ### Encryption/Decryption
 
-- **`Encryter.get_encrypted_value(val, program, fn_name, input_index, pk, tpk, network)`**
+- **`Encrypter.get_encrypted_value(val, program, fn_name, input_index, pk, tpk, network)`**
   - Encrypts a plaintext value using the provided parameters.
   - **Parameters:**
     - `val` - The plaintext to encrypt.
@@ -56,10 +56,10 @@ To use the `@doko-js/wasm` library in your JavaScript project, import the WebAss
 ### Example: Encryption and Decryption
 
 ```javascript
-import { Encryter, Decrypter } from '@doko-js/wasm';
+import { Encrypter, Decrypter } from '@doko-js/wasm';
 
 // Encryption Example
-const encryptedValue = Encryter.get_encrypted_value(
+const encryptedValue = Encrypter.get_encrypted_value(
   "3u32",
   "types_test.aleo",
   "sum",
