@@ -7,14 +7,8 @@ import { Link } from "react-router-dom";
 
 import './Homepage.css';
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Footer, Sider } = Layout;
 const { Title, Paragraph } = Typography;
-
-type MarkdownNode = {
-  type: 'heading';
-  depth: 2;
-  text: string;
-};
 
 const Docs: React.FC = () => {
   const [isDarkMode] = useState<boolean>(true);
@@ -86,7 +80,7 @@ const Docs: React.FC = () => {
     <ConfigProvider theme={{ algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
       <App>
         <Layout style={{ minHeight: "100vh" }}>
-          <Sider className="main-app-sidebar" breakpoint="lg" collapsedWidth="0" theme="light">
+          <Sider className="docs-page main-app-sidebar" breakpoint="lg" collapsedWidth="0" theme="light">
             <h1 style={{ paddingLeft: "10px" }}>
               <Link style={{ color: "white", padding: "0 0.5rem", fontSize: "2rem" }} to="/">
                 <b>DokoJS</b>
