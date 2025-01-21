@@ -34,7 +34,7 @@ const HomePage: React.FC = () => {
     const [isDarkMode] = useState(true);
 
     return (
-        <ConfigProvider theme={{ algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
+        <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
 
             <Layout className={`layout ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
                 {/* Header */}
@@ -45,7 +45,7 @@ const HomePage: React.FC = () => {
                 </Header>
 
                 {/* Content */}
-                <Content  className='content' style={{
+                <Content className='content' style={{
                     maxWidth: "1200px",
                     margin: "auto",
                 }}>
@@ -57,9 +57,7 @@ const HomePage: React.FC = () => {
                         </Paragraph>
                         <div className="cta-buttons">
                             <Link
-                                to="https://github.com/venture23-aleo/doko-js?tab=readme-ov-file#dokojs-developer-guide"
-                                target='_blank'
-                                referrerPolicy="no-referrer"
+                                to="/docs"
                             >
                                 <Button style={{
                                     maxWidth: 200,
