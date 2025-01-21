@@ -1,3 +1,21 @@
+### Release Note: @dokojs/cli 1.0.0, @dokojs/core 1.0.0, @dokojs/utils 1.0.0 & @dokojs/wasm 1.0.0
+
+#### Key Updates
+##### **1. Developer Documentations**
+- **Update documentation to packages and web:**
+    - Commit [`5649706`](https://github.com/venture23-aleo/doko-js/commit/5649706), Commit [`ee4584f`](https://github.com/venture23-aleo/doko-js/commit/ee4584f), Commit [`49e4b05`](https://github.com/venture23-aleo/doko-js/commit/49e4b05) - Updated documentations and Readme, added documentation to website, added jsdoc to functionalities
+
+##### **2. Testings**
+- **Added tests:**
+  - Commit [`188d6c9`](https://github.com/venture23-aleo/doko-js/commit/188d6c9), Commit [`c1d8651`](https://github.com/venture23-aleo/doko-js/commit/c1d8651), Commit [`0008542`](https://github.com/venture23-aleo/doko-js/commit/0008542) - Added tests for validating the program inputs and outputs, program generations mechanism
+  - Commit [`f4147fb`](https://github.com/venture23-aleo/doko-js/commit/f4147fb), Commit [`c1d8651`](https://github.com/venture23-aleo/doko-js/commit/c1d8651) - Updated tests to adapt with testnet beta compatibilities
+  - Commit [`ee4584f`](https://github.com/venture23-aleo/doko-js/commit/ee4584f) - Updated jsdoc in test programs
+
+##### **3. Additional Improvements**
+ - **Signed type updates and minor improvements:**
+    - Commit [`36c97b8`](https://github.com/venture23-aleo/doko-js/commit/36c97b8) Add schema for signed leo types, fixes on some of the leo types
+    - Commit [`d48f163`](https://github.com/venture23-aleo/doko-js/commit/d48f163) Update account connect functionality, typo in exported variable for wasm
+
 ### Release Note: @dokojs/cli 1.0.0, @dokojs/core 1.0.0, @dokojs/utils 1.0.0 & @dokojs/wasm 0.1.0
 
 #### Key Updates
