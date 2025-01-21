@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Typography, Spin, ConfigProvider, theme, Menu } from 'antd';
+import { Layout, Typography, Spin, ConfigProvider, theme, Menu, App } from 'antd';
 import { GithubOutlined } from '@ant-design/icons';
 import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
+import { Link } from "react-router-dom";
 
 import './Homepage.css';
 
@@ -74,20 +75,23 @@ const Docs: React.FC = () => {
     code: (props: { [key: string]: any }) => (
       <code style={{ backgroundColor: '#2d2d2d', padding: '2px 4px', borderRadius: '4px', color: '#f8f8f2' }} {...props} />
     ),
-    pre: (props: { [key: string]: any }) => (
-      <pre style={{ backgroundColor: '#2d2d2d', padding: '12px', borderRadius: '6px', overflowX: 'auto', color: '#f8f8f2' }} {...props} />
-    ),
+    pre: (props: { [key: string]: any }) => {
+      return (
+        <pre style={{ backgroundColor: '#2d2d2d', padding: '12px', borderRadius: '6px', overflowX: 'auto', color: '#f8f8f2' }} {...props} />
+      )
+    },
   };
 
   return (
     <ConfigProvider theme={{ algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
-      <Layout className={`layout ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
-        <Header style={{ backgroundColor: '#111111', color: '#fff', position: 'fixed', width: '100%', zIndex: 1000, top: 0 }}>
-          <Title level={1} style={{ color: '#fff', margin: 10, fontWeight: 'bold', fontSize: '28px' }}>DokoJS Developer Guide</Title>
-        </Header>
-
-        <Layout style={{ marginTop: '64px' }}>
-          <Sider width={250} style={{ background: '#1f1f1f', padding: '10px', height: '100vh', position: 'fixed', overflowY: 'auto' }}>
+      <App>
+        <Layout style={{ minHeight: "100vh" }}>
+          <Sider className="main-app-sidebar" breakpoint="lg" collapsedWidth="0" theme="light">
+            <h1 style={{ paddingLeft: "10px" }}>
+              <Link style={{ color: "white", padding: "0 0.5rem", fontSize: "2rem" }} to="/">
+                <b>DokoJS</b>
+              </Link>
+            </h1>
             <div style={{ padding: '10px 20px', marginBottom: '10px' }}>
               <Title level={4} style={{ color: '#fff', margin: 0 }}>Contents</Title>
             </div>
@@ -101,27 +105,28 @@ const Docs: React.FC = () => {
               }))}
             />
           </Sider>
+          <Layout style={{ marginTop: '64px' }}>
 
-          <Content style={{ marginLeft: '250px', maxWidth: '900px', padding: '20px', margin: '0 auto' }}>
-            {loading ? (
-              <Spin tip="Loading README...">
-                <div style={{ minHeight: '100px' }} />
-              </Spin>
-            ) : error ? (
-              <Paragraph style={{ color: 'red' }}>{error}</Paragraph>
-            ) : (
-              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{markdownContent}</ReactMarkdown>
-            )}
-          </Content>
+            <Content style={{ marginLeft: '250px', padding: '20px', maxWidth: "100%", margin: '0 auto' }}>
+              {loading ? (
+                <Spin tip="Loading README...">
+                  <div style={{ minHeight: '100px' }} />
+                </Spin>
+              ) : error ? (
+                <Paragraph style={{ color: 'red' }}>{error}</Paragraph>
+              ) : (
+                <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{markdownContent}</ReactMarkdown>
+              )}
+            </Content>
+            <Footer style={{ textAlign: 'center' }}>
+              <a href="https://github.com/venture23-aleo/doko-js" target="_blank" rel="noopener noreferrer">
+                <GithubOutlined /> View on GitHub
+              </a>
+              <Paragraph style={{ marginTop: '1rem' }}>©2024</Paragraph>
+            </Footer>
+          </Layout>
         </Layout>
-
-        <Footer style={{ textAlign: 'center' }}>
-          <a href="https://github.com/venture23-aleo/doko-js" target="_blank" rel="noopener noreferrer">
-            <GithubOutlined /> View on GitHub
-          </a>
-          <Paragraph style={{ marginTop: '1rem' }}>©2024</Paragraph>
-        </Footer>
-      </Layout>
+      </App>
     </ConfigProvider>
   );
 };
