@@ -26,7 +26,7 @@ const Docs: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        'https://raw.githubusercontent.com/venture23-aleo/doko-js/refs/heads/docs/README.md'
+        'https://raw.githubusercontent.com/venture23-aleo/doko-js/refs/heads/main/README.md'
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch README: ${response.statusText}`);
