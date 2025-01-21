@@ -4,7 +4,6 @@ import { decrypttoken } from '../artifacts/js/leo2js/token';
 import { PrivateKey } from '@provablehq/sdk';
 
 const TIMEOUT = 200_000;
-const amount = BigInt(2);
 
 // Available modes are evaluate | execute (Check README.md for further description)
 const mode = ExecutionMode.SnarkExecute;
@@ -67,7 +66,7 @@ describe('deploy test', () => {
       const tx = await contract.transfer_private(
         decryptedRecord,
         receiptAddress,
-        amount
+        amount2
       );
       const [record1, record2] = await tx.wait();
       const decryptedRecord2 = decrypttoken(record1, account);
