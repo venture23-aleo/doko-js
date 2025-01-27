@@ -18,7 +18,7 @@ const ALEO_REGISTRY_DIR = 'artifacts/aleo';
 export function parseJSONLikeString(
   recordString: string
 ): Record<string, unknown> {
-  const json = recordString.replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
+  const json = recordString.replace(/(['"])?([-a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
   const correctJson = json;
   return JSON.parse(correctJson);
 }

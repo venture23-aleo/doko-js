@@ -1,9 +1,16 @@
-
 import credits.aleo;
 
-program types_test.aleo {
+program test_leo_functions.aleo {
 
     const admin_test: address = aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc;
+
+    struct SignedTypeLeo {
+        a: i8,
+        b: i16,
+        c: i32,
+        d: i64,
+        e: i128
+    }
 
     struct Marks {
         english : u32,
@@ -16,9 +23,9 @@ program types_test.aleo {
         mark: Marks
     }
 
-    struct Report {
-        percentage: u32
-        pass: bool,
+    struct Outputs {
+        percentage: u32,
+        pass: bool
     }
     
     record Counts {
@@ -30,7 +37,22 @@ program types_test.aleo {
 
     mapping fetched_balance: address => u64;
 
-    transition invert_bool(public a: bool) -> bool {
+    transition get_signed_type_struct(public a: i8, public b: i16, public c: i32, public d: i64, public e: i128) -> SignedTypeLeo {
+        let signed_type: SignedTypeLeo = SignedTypeLeo {
+            a: a,
+            b: b,
+            c: c,
+            d: d,
+            e: e
+        };
+        return signed_type;
+    }
+
+    transition get_signed_type(public a: i8, public b: i8) -> i8 {
+        return a-b;
+    }
+
+    transition inverse_bool(public a: bool) -> bool {
         if (a ==  true){
             return false;
         }
@@ -45,7 +67,7 @@ program types_test.aleo {
         return c;
     }
 
-    transition mean_array(public in0: [u32; 4]) -> u32 {
+    transition meanArray(public in0: [u32; 4]) -> u32 {
         let mean : u32 = (in0[0u8] + in0[1u8] + in0[2u8] + in0[3u8])/4u32;
         return mean; 
     }
@@ -68,7 +90,7 @@ program types_test.aleo {
         return per;
     }
 
-    transition report(public input: Report_Card) -> Report {
+    transition report(public input: Report_Card) -> Outputs {
         let per: u32 = (input.mark.english + input.mark.math + input.mark.nepali ) / 3u32;
         let pass : bool = true; 
         if (input.attendance < 300u32){
@@ -77,22 +99,22 @@ program types_test.aleo {
         else{
             pass = true;
         }
-        let output: Report = Report {
+        let output: Outputs = Outputs {
             percentage: per,
             pass: pass
         };
         return output;
     }
 
-    transition increase_counter(public increased_by: u64) -> Counts {
+    async transition increase_counter(public increased_by: u64) -> (Counts, Future) {
         let increases: Counts = Counts {
             increased_by: increased_by,
             owner: self.caller
         };
-        return increases then finalize(increased_by);
+        return (increases, finalize_increase_counter(increased_by));
     }
 
-    finalize increase_counter(increased_by: u64) {
+    async function finalize_increase_counter(increased_by: u64) {
         let value: u64 = Mapping::get_or_use(counter, true, 0u64);
         Mapping::set(counter, true, value+increased_by);
     }
@@ -101,15 +123,20 @@ program types_test.aleo {
         return admin_test;
     }
 
-    transition fund_us(sender: credits.aleo/credits, amount: u64) {
-        credits.aleo/transfer_private(sender, admin(), amount);
+    async transition fund_us(sender: credits.aleo/credits, amount: u64) -> (credits.aleo/credits, Future) {
+        let (left_credits, credits_future): (credits.aleo/credits, Future) = credits.aleo/transfer_private_to_public(sender, test_leo_functions.aleo, amount);
+        return (left_credits, finalize_fund_us(credits_future));
     }
 
-    transition get_balance(public user: address) {
-        return then finalize(user);
+    async function finalize_fund_us(f0: Future) {
+        f0.await();
     }
 
-    finalize get_balance(public user: address) {
+    async transition get_balance(public user: address) -> Future{
+        return  (finalize_get_balance(user));
+    }
+
+    async function finalize_get_balance(public user: address) {
        let balance: u64 = Mapping::get(credits.aleo/account, user);
         Mapping::set(fetched_balance, user, balance);
     }

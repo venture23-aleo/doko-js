@@ -19,7 +19,12 @@ import {
   LeoArray,
   LeoAddress,
   ExternalRecord,
-  tx
+  tx,
+  leoI8Schema,
+  leoI16Schema,
+  leoI32Schema,
+  leoI64Schema,
+  leoI128Schema
 } from "@doko-js/core";`;
 
 // Converter function for leo and ts

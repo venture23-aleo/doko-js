@@ -1,12 +1,7 @@
 {
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "lib": ["ES2022"],
-    "types": ["node", "jest"],
+    "lib": ["ES2020"],
     "allowJs": true,
-    "esModuleInterop": true,
-    "outDir": "./dist"
-  },
-  "include": ["**/*.ts", "**/*.js", "setup.ts", "jest.config.json"]
+    "esModuleInterop": true
+  }
 }

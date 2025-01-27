@@ -7,8 +7,8 @@ import {
   TransactionResponse,
   ExecutionContext
 } from '@doko-js/core';
-import { to_address } from 'aleo-program-to-address';
 import networkConfig from '../aleo-config';
+import { to_address } from '@doko-js/wasm';
 
 export class BaseContract {
   // @ts-expect-error Initialized at constructor
@@ -25,6 +25,7 @@ export class BaseContract {
 
     if (!this.config.networkName)
       this.config.networkName = networkConfig.defaultNetwork;
+
     const networkName = this.config.networkName;
     if (networkName) {
       if (!networkConfig?.networks[networkName])
@@ -68,7 +69,7 @@ export class BaseContract {
   }
 
   address(): string {
-    return to_address(`${this.config.appName}.aleo`);
+    return to_address(`${this.config.appName}.aleo`, this.config.networkName);
   }
 
   // TODO: handle properly
@@ -102,7 +103,6 @@ export class BaseContract {
       throw Error(`Account ${account} not found!`);
     } else {
       this.config.privateKey = this.config.network.accounts[accountIndex];
-      this.ctx = CreateExecutionContext(this.config);
     }
   }
 }
