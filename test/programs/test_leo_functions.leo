@@ -4,6 +4,14 @@ program test_leo_functions.aleo {
 
     const admin_test: address = aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc;
 
+    struct SignedTypeLeo {
+        a: i8,
+        b: i16,
+        c: i32,
+        d: i64,
+        e: i128
+    }
+
     struct Marks {
         english : u32,
         math : u32, 
@@ -28,6 +36,21 @@ program test_leo_functions.aleo {
     mapping counter: bool => u64;
 
     mapping fetched_balance: address => u64;
+
+    transition get_signed_type_struct(public a: i8, public b: i16, public c: i32, public d: i64, public e: i128) -> SignedTypeLeo {
+        let signed_type: SignedTypeLeo = SignedTypeLeo {
+            a: a,
+            b: b,
+            c: c,
+            d: d,
+            e: e
+        };
+        return signed_type;
+    }
+
+    transition get_signed_type(public a: i8, public b: i8) -> i8 {
+        return a-b;
+    }
 
     transition inverse_bool(public a: bool) -> bool {
         if (a ==  true){

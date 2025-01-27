@@ -12,7 +12,13 @@ export const execute = (cmd: string) => {
 };
 
 export function formatArgs(params: string[]): string {
-  return params.map((s) => `"${s}"`).join(' ');
+  const containsInt = params.some((param) =>
+    param.match(/i8|i16|i32|i64|i128/g)
+  );
+  if (containsInt) {
+    return `-- -- ${params.map((s) => `"${s}"`).join(' ')}`;
+  }
+  return params.map((s) => `"${s}"`).join(' ')
 }
 
 export function isDefined(v: any) {

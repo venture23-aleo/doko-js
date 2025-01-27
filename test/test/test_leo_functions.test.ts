@@ -27,6 +27,19 @@ describe('deploy test', () => {
     }
   }, 10000000);
 
+  test('signed_type_leo_struct', async () => {
+    const tx = await test_bool.get_signed_type_struct(-8, -8, -8, BigInt(-8), BigInt(-8));
+    const [data] = await tx.wait();
+    expect(data.a).toBe(-8);
+    expect(data.e).toBe(BigInt(-8))
+  }, TIMEOUT)
+
+  test("sgined_type_leo", async () => {
+    const tx = await test_bool.get_signed_type(10, 20);
+    const [data] = await tx.wait()
+    expect(data).toBe(-10)
+  }, TIMEOUT)
+
   test('inverse_bool', async () => {
     const tx = await test_bool.inverse_bool(true);
     const [data] = await tx.wait();
@@ -40,7 +53,7 @@ describe('deploy test', () => {
   }, TIMEOUT);
 
   test('meanArray', async () => {
-    const tx = await test_bool.meanArray([2,4,6,8]);
+    const tx = await test_bool.meanArray([2, 4, 6, 8]);
     const [data] = await tx.wait();
     expect(data).toBe(5);
   }, TIMEOUT);
@@ -52,14 +65,14 @@ describe('deploy test', () => {
   }, TIMEOUT);
 
   test('multiple_upto_5', async () => {
-        const tx = await test_bool.multiple_upto_5(1);
-        const [data] = await tx.wait();
-        console.log("multiple_upto_5", data);
-        expect(data).toStrictEqual([1, 2, 3, 4, 5]);
-   }, TIMEOUT);
+    const tx = await test_bool.multiple_upto_5(1);
+    const [data] = await tx.wait();
+    console.log("multiple_upto_5", data);
+    expect(data).toStrictEqual([1, 2, 3, 4, 5]);
+  }, TIMEOUT);
 
-   test('check_message_signed', async () => {
-    const signature= "sign14pgmnfa3s56rcn8n249n3rzjct20k4g9uz6hgyqnr556n0w98qqsu5k95vl8g0clrc00mg9hkhtq2zx64mzkxe4fdcxhnx8t0vn8sq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvzs2uuv";
+  test('check_message_signed', async () => {
+    const signature = "sign14pgmnfa3s56rcn8n249n3rzjct20k4g9uz6hgyqnr556n0w98qqsu5k95vl8g0clrc00mg9hkhtq2zx64mzkxe4fdcxhnx8t0vn8sq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvzs2uuv";
     const tx = await test_bool.check_message_signed(BigInt(12345), admin, signature);
     const [data, bools] = await tx.wait();
     expect(data).toBe("4pgmnfa3s56rcn8n249n3rzjct20k4g9uz6hgyqnr556n0w98qqsu5k95vl8g0clrc00mg9hkhtq2zx64mzkxe4fdcxhnx8t0vn8sq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvzs2uuv");
@@ -77,7 +90,7 @@ describe('deploy test', () => {
     expect(data).toBe(100);
   }, TIMEOUT);
 
-  
+
   test('report', async () => {
     const marks: Marks = {
       english: 100,
@@ -102,7 +115,7 @@ describe('deploy test', () => {
     const [data] = await tx.wait();
     expect(await test_bool.counter(true)).toBe(BigInt(1));
   }, TIMEOUT);
-  
+
   test('fund_us', async () => {
     const credits = await credits_contract.transfer_public_to_private(admin, BigInt(100));
     const [record1] = await credits.wait();
