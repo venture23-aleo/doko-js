@@ -552,9 +552,6 @@ This generates TypeScript types for the contracts in the project.
 **run [options] <file>**
 >     Runs a specified file.
 
-+ Options:
-    > ```--debug```: Run the file in debug mode.
-
 Example: ```dokojs run scripts/example.js```
 
 This runs the file scripts/example.js in debug mode.
