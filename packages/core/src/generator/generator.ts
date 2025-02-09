@@ -9,10 +9,10 @@ import { AleoReflection } from '@/parser/parser';
 import {
   FunctionDefinition,
   StructDefinition,
-  IsLeoPrimitiveType,
   IsLeoArray,
   MappingDefinition,
-  IsLeoExternalRecord
+  IsLeoExternalRecord,
+  getNestedType
 } from '@/utils/aleo-utils';
 import { TSInterfaceGenerator } from '@/generator/ts-interface-generator';
 import { ZodObjectGenerator } from '@/generator/zod-object-generator';
@@ -158,9 +158,9 @@ class Generator {
       '\n' +
       (this.refl.customTypes.length > 0
         ? GenerateAsteriskTSImport(
-            `../types/${this.refl.programName}`,
-            'records'
-          ) + '\n'
+          `../types/${this.refl.programName}`,
+          'records'
+        ) + '\n'
         : '') +
       this.generateExternalTransitionsImport(
         this.refl.functions.flatMap((fn) => fn.calls)
@@ -388,13 +388,20 @@ class Generator {
       // Generate argument array
       const isExternalRecord = IsLeoExternalRecord(input.val);
       const leoType = FormatLeoDataType(input.val).split('.')[0];
+      const [nestedType, depth] = getNestedType(leoType);
       const jsType = isExternalRecord
         ? InferExternalRecordInputDataType(input.val)
         : InferJSDataType(leoType);
 
       // Create argument for each parameter of function
       const argName = input.key;
-      args.push({ name: argName, type: jsType });
+      const generateArgType = (type: string, depth: number): string => {
+        for (let i = 0; i < depth; i++) {
+          type = `Array<${type}>`;
+        }
+        return type;
+      };
+      args.push({ name: argName, type: generateArgType(InferJSDataType(nestedType), depth) });
 
       // Can be anything but we just define it as something that ends with leo
       const localVariableName = `${argName}Leo`;
@@ -404,19 +411,23 @@ class Generator {
       // for transition function parameter
       let fnName = isExternalRecord
         ? GenerateExternalRecordConversionStatement(
-            input.val,
-            argName,
-            STRING_LEO
-          )
+          input.val,
+          argName,
+          STRING_LEO
+        )
         : GenerateTypeConversionStatement(leoType, argName, STRING_LEO);
 
       // For custom type that produce object it must be converted to string
       if (this.refl.isCustomType(leoType)) {
         outUsedTypes.add(jsType);
         fnName = `js2leo.json(${fnName})`;
+      } else if (this.refl.isCustomType(nestedType)) {
+        outUsedTypes.add(InferJSDataType(nestedType));
       }
 
-      if (IsLeoArray(leoType)) fnName = `js2leo.arr2string(${fnName})`;
+      if (IsLeoArray(leoType)) {
+        fnName = `JSON.stringify(${fnName}).replace(/"(\w+)":/g, '$1:').replace(/"/g, '')`;
+      }
 
       const conversionCode = `\tconst ${localVariableName} = ${fnName};\n`;
       fnGenerator.addStatement(conversionCode);
@@ -441,6 +452,7 @@ class Generator {
 
         // cast non-custom datatype to string
         const type = formattedOutput.split('.')[0];
+        const [nestedType, depth] = getNestedType(type)
         const isRecordType = this.refl.isRecordType(type);
         const isExternalRecord =
           output.includes('.aleo/') && output.includes('.record');
@@ -450,20 +462,40 @@ class Generator {
 
         if (this.refl.isCustomType(type)) {
           outUsedTypes.add(InferJSDataType(type));
+        } else if (this.refl.isCustomType(nestedType)) {
+          outUsedTypes.add(InferJSDataType(nestedType));
         }
 
         const converterFn = isExternalRecord
           ? [
-              ...GenerateExternalRecordConversionStatement(
-                output,
-                '',
-                STRING_JS
-              )
-            ]
+            ...GenerateExternalRecordConversionStatement(
+              output,
+              '',
+              STRING_JS
+            )
+          ]
           : isRecordType
             ? ['leo2js.record']
-            : GetTypeConversionFunctionsJS(formattedOutput);
+            : (this.refl.isCustomType(nestedType) && nestedType !== type)
+              ? [GetTypeConversionFunctionsJS(formattedOutput)[0], GetTypeConversionFunctionsJS(nestedType)[0]]
+              : GetTypeConversionFunctionsJS(formattedOutput);
 
+        if (depth > 1) {
+          const generateMultiDimensionalArrayConverter = (depth: number): string => {
+            if (depth <= 1) throw new Error("Depth must be at least 2");
+            let mapChain = "arr";
+            for (let i = 1; i < depth; i++) {
+              mapChain += `.map(arr${i} =>`;
+            }
+            mapChain += ` leo2js.array(arr${depth - 1}, converterFn)`;
+            for (let i = 1; i < depth; i++) {
+              mapChain += `)`;
+            }
+            const typeDefinition = `any${"[]".repeat(depth)}`;
+            return `(arr: ${typeDefinition}, converterFn: Function) => { return ${mapChain}; }`;
+          };
+          converterFn[0] = generateMultiDimensionalArrayConverter(depth);
+        }
         const formatConverterFn =
           converterFn.length > 1
             ? `[${converterFn.join(',')}]`
