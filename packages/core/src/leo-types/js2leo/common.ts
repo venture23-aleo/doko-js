@@ -169,6 +169,9 @@ export const array = (value: Array<any>, converterFn: Function): any[] => {
   return value.map((v) => converterFn(v));
 };
 
-export const arr2string = (arr: Array<string>) => {
-  return `[${arr.join(',')}]`;
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const arr2string = (arr: Array<any>) => {
+  return JSON.stringify(arr)
+    .replace(/"(\w+)":/g, '$1:') // Remove quotes from keys
+    .replace(/"/g, ''); // Remove quotes from values if they are not strings
 };
