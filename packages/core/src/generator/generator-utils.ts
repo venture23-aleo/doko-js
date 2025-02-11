@@ -77,16 +77,26 @@ export function GenerateTypeConversionStatement(
       : GetConverterFunctionName(nestedType, conversionTo);
     if (depth === 1) {
       fn = `${namespace}.${conversionFnName}(${inputField}, ${conversionFn})`;
+      if(qualifier && conversionTo === 'leo') {
+        fn = `${namespace}.${conversionFnName}(${fn}, ${namespace}.${qualifier}Field)`;
+      }
     } else {
       for (let i = 1; i < depth; i++) {
         inputField += `.map(element${i} =>`;
       }
-      inputField += ` ${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn})`;
+      if(qualifier && conversionTo === 'leo') {
+        fn = `${namespace}.${conversionFnName}(${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn}), ${namespace}.${qualifier}Field)`;
+      } else {
+        inputField += ` ${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn})`;
+      }
       for (let i = 1; i < depth; i++) {
         inputField += ')';
       }
       fn = inputField;
     }
+    // if(qualifier) {
+    //   fn = `${namespace}.${conversionFnName}(${fn}, ${namespace}.${qualifier}Field)`;
+    // }
   }
   // if this is not a custom type we have to use the
   // conversion function from namespace
