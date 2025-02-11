@@ -372,6 +372,13 @@ class Generator {
     return code;
   }
 
+  private generateArgType = (type: string, depth: number): string => {
+    for (let i = 0; i < depth; i++) {
+      type = `Array<${type}>`;
+    }
+    return type;
+  };
+
   private generateTransitionFunction(
     func: FunctionDefinition,
     outUsedTypes: Set<string>
@@ -392,16 +399,15 @@ class Generator {
       const jsType = isExternalRecord
         ? InferExternalRecordInputDataType(input.val)
         : InferJSDataType(leoType);
-
+ 
       // Create argument for each parameter of function
       const argName = input.key;
-      const generateArgType = (type: string, depth: number): string => {
-        for (let i = 0; i < depth; i++) {
-          type = `Array<${type}>`;
-        }
-        return type;
-      };
-      args.push({ name: argName, type: generateArgType(InferJSDataType(nestedType), depth) });
+
+
+      const argType = isExternalRecord
+        ? InferExternalRecordInputDataType(input.val)
+        : InferJSDataType(nestedType);
+      args.push({ name: argName, type: this.generateArgType(argType, depth) });
 
       // Can be anything but we just define it as something that ends with leo
       const localVariableName = `${argName}Leo`;
@@ -501,12 +507,14 @@ class Generator {
             ? `[${converterFn.join(',')}]`
             : converterFn[0];
 
+        const outputType = isExternalRecord
+          ? `ExternalRecord<'${externaleRecordParts[0]}', '${externaleRecordParts[1]}'>`
+          : isRecordType
+            ? 'LeoRecord'
+            : this.generateArgType(InferJSDataType(nestedType), depth)
+
         returnValues.push({
-          type: isExternalRecord
-            ? `ExternalRecord<'${externaleRecordParts[0]}', '${externaleRecordParts[1]}'>`
-            : isRecordType
-              ? 'LeoRecord'
-              : InferJSDataType(type),
+          type: outputType,
           converterFunction: formatConverterFn
         });
       });
