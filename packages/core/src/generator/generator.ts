@@ -307,7 +307,7 @@ class Generator {
       '\tconst decodedRecord: string = PrivateKey.from_string(privateKey).to_view_key().decrypt(encodedRecord);\n'
     );
     fnGenerator.addStatement(
-      `\tconst result: ${jsType} = get${jsType}(parseJSONLikeString(decodedRecord));\n`
+      `\tconst result: ${jsType} = get${jsType}(parseJSONLikeString(decodedRecord) as ${jsType}Leo);\n`
     );
 
     // Add return statement

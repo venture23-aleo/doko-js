@@ -31,19 +31,20 @@ export class BaseContract {
       this.config.networkName = networkConfig.defaultNetwork;
     const networkName = this.config.networkName;
     if (networkName) {
-      if (!networkConfig?.networks[networkName])
+      const network = (networkConfig?.networks as any)[networkName];
+      if (!network)
         throw Error(
           `Network config not defined for ${networkName}.Please add the config in aleo - config.js file in root directory`
         );
 
       this.config = {
         ...this.config,
-        network: networkConfig.networks[networkName]
+        network
       };
+      if(!this.config.privateKey) {
+        this.config.privateKey = network.accounts[0];
+      }
     }
-
-    if (!this.config.privateKey && networkName)
-      this.config.privateKey = networkConfig.networks[networkName].accounts[0];
 
     this.ctx = CreateExecutionContext(this.config);
   }
