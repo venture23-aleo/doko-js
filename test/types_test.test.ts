@@ -1,24 +1,20 @@
 import { ExecutionMode } from "@doko-js/core";
-import { Types_testContract } from "./artifacts/js/types_test";
 import { PrivateKey } from "@provablehq/sdk";
 import { decryptCounts } from "./artifacts/js/leo2js/types_test";
-import { TokenContract } from "./artifacts/js/token";
-import { decrypttoken } from "./artifacts/js/leo2js/token";
+import { CreditsContract } from "./artifacts/js/credits";
+import { Test_leo_functionsContract } from "./artifacts/js/test_leo_functions";
+import { decryptcredits } from "./artifacts/js/leo2js/credits";
+import { decryptRecordWithArrays } from "./artifacts/js/leo2js/test_leo_functions";
 
-const testContract = new Types_testContract({ mode: ExecutionMode.SnarkExecute });
-const tokenContract = new TokenContract({ mode: ExecutionMode.SnarkExecute })
+const testContract = new Test_leo_functionsContract({ mode: ExecutionMode.SnarkExecute });
+const creditsContract = new CreditsContract({ mode: ExecutionMode.SnarkExecute })
 const timeout = 10000_0000;
 const user = new PrivateKey().to_address().to_string();
 const [admin] = testContract.getAccounts();
-const adminPrivateKey = tokenContract.getPrivateKey(admin) as string;
+const admin_private_key = process.env.ALEO_DEVNET_PRIVATE_KEY1;
 
 describe("test types serialization/deserialization(execute mode)", () => {
-
     beforeAll(async () => {
-        if (!await tokenContract.isDeployed()) {
-            const tx = await tokenContract.deploy();
-            await tx.wait();
-        }
         if (!await testContract.isDeployed()) {
             const tx = await testContract.deploy();
             await tx.wait();
@@ -27,7 +23,7 @@ describe("test types serialization/deserialization(execute mode)", () => {
 
     test("boolean types", async () => {
         let input = true;
-        const tx = await testContract.invert_bool(input);
+        const tx = await testContract.inverse_bool(input);
         const [result] = await tx.wait();
         expect(result).toBe(false);
     }, timeout);
@@ -109,11 +105,12 @@ describe("test types serialization/deserialization(execute mode)", () => {
         const [result] = await tx.wait();
         let expected_owner = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
         if (testContract.config.mode && testContract.config.mode == ExecutionMode.SnarkExecute) {
-            const adminPrivateKey = testContract.getPrivateKey(admin) as string;
-
+            if (!admin_private_key) {
+                throw new Error('ALEO_DEVNET_PRIVATE_KEY1 is not defined');
+            }
             const senderRecord = decryptCounts(
                 result,
-                adminPrivateKey
+                admin_private_key
             );
             expect(senderRecord.owner).toBe(expected_owner);
         } else {
@@ -123,19 +120,52 @@ describe("test types serialization/deserialization(execute mode)", () => {
     }, timeout);
 
     test("external record types", async () => {
-        const tx = await tokenContract.mint_private("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", BigInt(1000000000000));
-        const [stringRecord] = await tx.wait();
-        const record = decrypttoken(stringRecord, adminPrivateKey);
+        const credits = await creditsContract.transfer_public_to_private(admin, BigInt(100));
+        const [stringRecord] = await credits.wait();
+        if (!admin_private_key) {
+            throw new Error('ALEO_DEVNET_PRIVATE_KEY1 is not defined');
+        }
+        const record = decryptcredits(stringRecord, admin_private_key);
         let amount = BigInt(50);
         const tx1 = await testContract.fund_us(record, amount);
         await tx1.wait();
     }, timeout);
 
     test("get mapping", async () => {
-        const tx = await tokenContract.mint_public("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", BigInt(1000000000000));
+        const tx = await creditsContract.transfer_public(admin, BigInt(1000000000000));
         await tx.wait();
         const tx1 = await testContract.get_balance(admin);
         await tx1.wait();
-        expect(await testContract.fetched_balance(admin)).toBe(await tokenContract.account(admin));
+        expect(await testContract.fetched_balance(admin)).toBeGreaterThan(await creditsContract.account(admin));
     }, timeout);
+    test("test records with arrays, input arrays and output arrays", async () => {
+        const fields = [1n, 2n];
+        const multiFields = [fields, fields, fields];
+        const mark = {
+            english: 1,
+            math: 2,
+            nepali: 3
+        }
+        const marks = [mark, mark];
+        const multiMarks = [marks, marks, marks]
+        const tx = await testContract.generateRecordWithArrays(
+            fields,
+            multiFields,
+            marks,
+            multiMarks
+        );
+        const [recordString, outputFields, outputMultiFields, outputMarks, outputMultiMarks] = await tx.wait();
+        if (!admin_private_key) {
+            throw new Error('ALEO_DEVNET_PRIVATE_KEY1 is not defined');
+        }
+        const record = decryptRecordWithArrays(recordString, admin_private_key);
+        expect(fields[0]).toBe(outputFields[0]);
+        expect(record.fields[0]).toBe(outputFields[0]);
+        expect(multiFields[0][0]).toBe(outputMultiFields[0][0]);
+        expect(record.multi_fields[0][0]).toBe(outputMultiFields[0][0]);
+        expect(marks[0].english).toBe(outputMarks[0].english);
+        expect(record.marks[0].english).toBe(outputMarks[0].english);
+        expect(multiMarks[0][0].english).toBe(outputMultiMarks[0][0].english);
+        expect(record.multi_marks[0][0].english).toBe(outputMultiMarks[0][0].english);
+    }, timeout)
 });

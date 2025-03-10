@@ -4,7 +4,6 @@ import { decrypttoken } from '../artifacts/js/leo2js/token';
 import { PrivateKey } from '@provablehq/sdk';
 
 const TIMEOUT = 200_000;
-const amount = BigInt(2);
 
 // Available modes are evaluate | execute (Check README.md for further description)
 const mode = ExecutionMode.SnarkExecute;
@@ -18,18 +17,21 @@ const recipient = process.env.ALEO_DEVNET_PRIVATE_KEY3;
 describe('deploy test', () => {
   test('deploy', async () => {
     if ((mode as ExecutionMode) == ExecutionMode.SnarkExecute) {
-      const tx = await contract.deploy();
-      await tx.wait();
+      const isDeployed = await contract.isDeployed();
+      if (!isDeployed) {
+        const tx = await contract.deploy();
+        await tx.wait();
+      }
     }
   }, 10000000);
 
   test('mint public', async () => {
     const actualAmount = BigInt(100000);
+    const beforeBalance = await contract.account(admin);
     const tx = await contract.mint_public(admin, actualAmount);
     await tx.wait();
-
-    const expected = await contract.account(admin);
-    expect(expected).toBe(actualAmount);
+    const afterBalance = await contract.account(admin);
+    expect(afterBalance - beforeBalance).toBe(actualAmount);
   }, 10000000);
 
   test('mint private', async () => {
@@ -70,7 +72,7 @@ describe('deploy test', () => {
       const tx = await contract.transfer_private(
         decryptedRecord,
         receiptAddress,
-        amount
+        amount2
       );
       const [record1, record2] = await tx.wait();
       const decryptedRecord2 = decrypttoken(record1, account);

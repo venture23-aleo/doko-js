@@ -67,7 +67,7 @@ program test_leo_functions.aleo {
      * @param in0 The array of numbers.
      * @return The mean value.
      */
-    transition meanArray(public in0: [u32; 4]) -> u32 {
+    transition mean_array(public in0: [u32; 4]) -> u32 {
         let mean: u32 = (in0[0u8] + in0[1u8] + in0[2u8] + in0[3u8]) / 4u32;
         return mean;
     }
