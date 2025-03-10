@@ -1,8 +1,8 @@
 import { ExecutionMode } from "@doko-js/core";
-import { Types_testContract } from "./artifacts/js/types_test";
 import { PrivateKey } from "@provablehq/sdk";
+import { Test_leo_functionsContract } from "./artifacts/js/test_leo_functions";
 
-const testContract = new Types_testContract({ mode: ExecutionMode.LeoRun });
+const testContract = new Test_leo_functionsContract({ mode: ExecutionMode.LeoRun });
 const timeout = 100_00;
 const user = new PrivateKey().to_address().to_string();
 
@@ -10,7 +10,7 @@ describe("test types serialization/deserialization(run mode)", () => {
 
   test("boolean types", async () => {
     let input = true;
-    const tx = await testContract.invert_bool(input);
+    const tx = await testContract.inverse_bool(input);
     const [result] = await tx.wait();
     expect(result).toBe(false);
   }, timeout);
