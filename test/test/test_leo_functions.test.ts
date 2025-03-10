@@ -4,6 +4,7 @@ import { CreditsContract } from '../artifacts/js/credits';
 import { decryptcredits } from '../artifacts/js/leo2js/credits';
 import { Test_leo_functionsContract } from '../artifacts/js/test_leo_functions';
 import { Output } from '@doko-js/core/dist/outputs/types/transaction';
+import { decryptRecordWithArrays } from '../artifacts/js/leo2js/types_test';
 
 const TIMEOUT = 200_000;
 
@@ -122,4 +123,34 @@ describe('deploy test', () => {
     expect(await test_bool.fetched_balance(test_bool.address())).toBe(BigInt(50));
   }, TIMEOUT);
 
+  test("test records with arrays, input arrays and output arrays", async () => {
+    const fields = [1n, 2n];
+    const multiFields = [fields, fields, fields];
+    const mark = {
+        english: 1,
+        math: 2,
+        nepali: 3
+    }
+    const marks = [mark, mark];
+    const multiMarks = [marks, marks, marks]
+    const tx = await test_bool.generateRecordWithArrays(
+        fields,
+        multiFields,
+        marks,
+        multiMarks
+    );
+    const [recordString, outputFields, outputMultiFields, outputMarks, outputMultiMarks] = await tx.wait();
+    if (!admin_private_key) {
+      throw new Error('ALEO_DEVNET_PRIVATE_KEY1 is not defined');
+    }
+    const record = decryptRecordWithArrays(recordString, admin_private_key);
+    expect(fields[0]).toBe(outputFields[0]);
+    expect(record.fields[0]).toBe(outputFields[0]);
+    expect(multiFields[0][0]).toBe(outputMultiFields[0][0]);
+    expect(record.multi_fields[0][0]).toBe(outputMultiFields[0][0]);
+    expect(marks[0].english).toBe(outputMarks[0].english);
+    expect(record.marks[0].english).toBe(outputMarks[0].english);
+    expect(multiMarks[0][0].english).toBe(outputMultiMarks[0][0].english);
+    expect(record.multi_marks[0][0].english).toBe(outputMultiMarks[0][0].english);
+}, TIMEOUT)
 });

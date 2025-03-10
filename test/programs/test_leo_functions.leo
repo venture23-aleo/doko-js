@@ -26,6 +26,14 @@ program test_leo_functions.aleo {
         owner: address
     }
 
+    record RecordWithArrays {
+        owner: address,
+        fields: [field; 2],
+        multi_fields: [[field; 2]; 3],
+        marks: [Marks; 2],
+        multi_marks: [[Marks; 2]; 3],
+    }
+
     mapping counter: bool => u64;
 
     mapping fetched_balance: address => u64;
@@ -178,5 +186,21 @@ program test_leo_functions.aleo {
     async function finalize_get_balance(public user: address) {
         let balance: u64 = Mapping::get(credits.aleo/account, user);
         Mapping::set(fetched_balance, user, balance);
+    }
+
+    transition generateRecordWithArrays(
+        fields: [field; 2],
+        multi_fields: [[field; 2]; 3],
+        marks: [Marks; 2],
+        multi_marks: [[Marks; 2]; 3],
+    ) -> (RecordWithArrays, [field; 2], [[field; 2]; 3], [Marks; 2], [[Marks; 2]; 3]) {
+        let recordWithArrays: RecordWithArrays = RecordWithArrays {
+            owner: self.caller,
+            fields: fields,
+            multi_fields: multi_fields,
+            marks: marks,
+            multi_marks: multi_marks,
+        };
+        return (recordWithArrays, fields, multi_fields, marks, multi_marks);
     }
 }
