@@ -372,13 +372,6 @@ class Generator {
     return code;
   }
 
-  private generateArgType = (type: string, depth: number): string => {
-    for (let i = 0; i < depth; i++) {
-      type = `Array<${type}>`;
-    }
-    return type;
-  };
-
   private generateTransitionFunction(
     func: FunctionDefinition,
     outUsedTypes: Set<string>
@@ -395,7 +388,7 @@ class Generator {
       // Generate argument array
       const isExternalRecord = IsLeoExternalRecord(input.val);
       const leoType = FormatLeoDataType(input.val).split('.')[0];
-      const [nestedType, depth] = getNestedType(leoType);
+      const [nestedType] = getNestedType(leoType);
       const jsType = isExternalRecord
         ? InferExternalRecordInputDataType(input.val)
         : InferJSDataType(leoType);
@@ -406,8 +399,9 @@ class Generator {
 
       const argType = isExternalRecord
         ? InferExternalRecordInputDataType(input.val)
-        : InferJSDataType(nestedType);
-      args.push({ name: argName, type: this.generateArgType(argType, depth) });
+        : InferJSDataType(leoType);
+
+      args.push({ name: argName, type: argType });
 
       // Can be anything but we just define it as something that ends with leo
       const localVariableName = `${argName}Leo`;
@@ -511,7 +505,7 @@ class Generator {
           ? `ExternalRecord<'${externaleRecordParts[0]}', '${externaleRecordParts[1]}'>`
           : isRecordType
             ? 'LeoRecord'
-            : this.generateArgType(InferJSDataType(nestedType), depth)
+            : InferJSDataType(type)
 
         returnValues.push({
           type: outputType,
@@ -580,7 +574,7 @@ class Generator {
       'result',
       STRING_JS
     );
-
+ 
     fnGenerator.addStatement(`
     if (result != null)
       return ${result};

@@ -10,10 +10,21 @@ import { GetConverterFunctionName } from './leo-naming';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
 import { STRING_JS } from './string-constants';
 
+export function generateArgType(type: string, depth: number): string {
+  for (let i = 0; i < depth; i++) {
+    type = `Array<${type}>`;
+  }
+  return type;
+};
 export function InferJSDataType(type: string): string {
+  if(IsLeoArray(type)) {
+    const [nestedType, depth] = getNestedType(type);
+    const tsType = ConvertToJSType(nestedType) || nestedType;
+    const argType = generateArgType(tsType, depth);
+    return argType;
+  }
   if (
     IsLeoPrimitiveType(type) ||
-    IsLeoArray(type) ||
     IsLeoExternalRecord(type)
   ) {
     const tsType = ConvertToJSType(type);
@@ -85,7 +96,7 @@ export function GenerateTypeConversionStatement(
         inputField += `.map(element${i} =>`;
       }
       if(qualifier && conversionTo === 'leo') {
-        fn = `${namespace}.${conversionFnName}(${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn}), ${namespace}.${qualifier}Field)`;
+        inputField += `${namespace}.${conversionFnName}(${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn}), ${namespace}.${qualifier}Field)`;
       } else {
         inputField += ` ${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn})`;
       }
