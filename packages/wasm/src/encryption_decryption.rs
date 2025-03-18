@@ -22,6 +22,15 @@ impl<N: Network> NetworkCtx<N> {
         Ok(tvk.to_x_coordinate())
     }
 
+    fn get_tvk_using_view_key(vk: &str, tpk: &str) -> Result<Field<N>> {
+        let view_key =
+            ViewKey::<N>::from_str(vk).context("failed to parse view key")?;
+        let tpk = Group::<N>::from_str(tpk).context("failed to group tpk")?;
+
+        let tvk = *view_key * tpk;
+        Ok(tvk.to_x_coordinate())
+    }
+
     fn get_fn_id(program: &str, fn_name: &str) -> Result<Field<N>> {
         let program_id = ProgramID::<N>::try_from(program).context("failed to parse program id")?;
         let fn_name =
@@ -40,6 +49,19 @@ impl<N: Network> NetworkCtx<N> {
     ) -> Result<Field<N>> {
         let fn_id = Self::get_fn_id(program, fn_name)?;
         let tvk = Self::get_tvk(pk, tpk)?;
+        let index = Field::<N>::from_u16(input_index);
+        N::hash_psd4(&[fn_id, tvk, index]).context("hasihing to psd4 failed")
+    }
+
+    fn get_input_vk_using_view_key(
+        program: &str,
+        fn_name: &str,
+        input_index: u16,
+        vk: &str,
+        tpk: &str,
+    ) -> Result<Field<N>> {
+        let fn_id = Self::get_fn_id(program, fn_name)?;
+        let tvk = Self::get_tvk_using_view_key(vk, tpk)?;
         let index = Field::<N>::from_u16(input_index);
         N::hash_psd4(&[fn_id, tvk, index]).context("hasihing to psd4 failed")
     }
@@ -70,6 +92,22 @@ impl<N: Network> NetworkCtx<N> {
     ) -> Result<String> {
         let cipher = Ciphertext::<N>::from_str(cipher).context("failed to parse ciphertext")?;
         let input_vk = Self::get_input_vk(program, fn_name, input_index, pk, tpk)?;
+        let decrypted = cipher
+            .decrypt_symmetric(input_vk)
+            .context("failed to decryt symmetric")?;
+        Ok(decrypted.to_string())
+    }
+
+    fn decrypt_ciphertext_using_view_key(
+        cipher: &str,
+        program: &str,
+        fn_name: &str,
+        input_index: u16,
+        vk: &str,
+        tpk: &str,
+    ) -> Result<String> {
+        let cipher = Ciphertext::<N>::from_str(cipher).context("failed to parse ciphertext")?;
+        let input_vk = Self::get_input_vk_using_view_key(program, fn_name, input_index, vk, tpk)?;
         let decrypted = cipher
             .decrypt_symmetric(input_vk)
             .context("failed to decryt symmetric")?;
@@ -155,6 +193,41 @@ impl Decrypter {
             Err(e) => JsValue::from_str(&e.to_string()),
         }
     }
+
+    pub fn get_decrypted_value_using_view_key(
+        cipher: &str,
+        program: &str,
+        fn_name: &str,
+        input_index: u16,
+        vk: &str,
+        tpk: &str,
+        network: AleoNetwork,
+    ) -> JsValue {
+        let res = match network {
+            AleoNetwork::Testnet => NetworkCtx::<TestnetV0>::decrypt_ciphertext_using_view_key(
+                cipher,
+                program,
+                fn_name,
+                input_index,
+                vk,
+                tpk,
+            ),
+            AleoNetwork::Mainnet => NetworkCtx::<MainnetV0>::decrypt_ciphertext_using_view_key(
+                cipher,
+                program,
+                fn_name,
+                input_index,
+                vk,
+                tpk,
+            ),
+            _ => Err(anyhow::Error::msg("Invalid Network")),
+        };
+
+        match res {
+            Ok(r) => JsValue::from_str(&r),
+            Err(e) => JsValue::from_str(&e.to_string()),
+        }
+    }
 }
 
 #[test]
@@ -174,6 +247,28 @@ fn test_decryption2() {
         function_name,
         input_index,
         private_key,
+        tpk,
+        AleoNetwork::Testnet,
+    );
+    assert_eq!(plain, val);
+}
+
+fn test_decryption3() {
+    let val = "3u32";
+    let program_name = "types_test.aleo";
+    let function_name = "sum";
+    let input_index = 2;
+    let view_key = "AViewKey1mSnpFFC8Mj4fXbK5YiWgZ3mjiV8CxA79bYNa8ymUpTrw";
+    let tpk = "4894085870840878070008938887517642593787940398952348563490477594935969679255group";
+    let cipher =
+        String::from("ciphertext1qyqv5fj8jc4enpvl8xdkxllvdhxe49qz3mn72xmr574ve5n4qtuawpgs4egw3"); //get_encrypted_value(val, program_name, function_name, input_index, private_key, tpk);\
+
+    let plain = Decrypter::get_decrypted_value_using_view_key(
+        cipher.as_str(),
+        program_name,
+        function_name,
+        input_index,
+        view_key,
         tpk,
         AleoNetwork::Testnet,
     );
