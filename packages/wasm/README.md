@@ -42,13 +42,25 @@ To use the `@doko-js/wasm` library in your JavaScript project, import the WebAss
   - **Returns:** The encrypted ciphertext as a string.
 
 - **`Decrypter.get_decrypted_value(cipher, program, fn_name, input_index, pk, tpk, network)`**
-  - Decrypts a ciphertext using the provided parameters.
+  - Decrypts a ciphertext using the provided parameters and wallet private key.
   - **Parameters:**
     - `cipher` - The ciphertext to decrypt.
     - `program` - The program name.
     - `fn_name` - The function name.
     - `input_index` - The index of the input in the function.
     - `pk` - The private key.
+    - `tpk` - The transaction public key (tpk).
+    - `network` - The Aleo network (Testnet or Mainnet).
+  - **Returns:** The decrypted plaintext as a string.
+
+- **`Decrypter.get_decrypted_value_using_view_key(cipher, program, fn_name, input_index, vk, tpk, network)`**
+  - Decrypts a ciphertext using the provided parameters and wallet view key.
+  - **Parameters:**
+    - `cipher` - The ciphertext to decrypt.
+    - `program` - The program name.
+    - `fn_name` - The function name.
+    - `input_index` - The index of the input in the function.
+    - `vk` - The view key.
     - `tpk` - The transaction public key (tpk).
     - `network` - The Aleo network (Testnet or Mainnet).
   - **Returns:** The decrypted plaintext as a string.
@@ -71,7 +83,7 @@ const encryptedValue = Encrypter.get_encrypted_value(
 console.log("Encrypted value:", encryptedValue);
 
 // Decryption Example
-const decryptedValue = Decrypter.get_decrypted_value(
+const decryptedValuePK = Decrypter.get_decrypted_value(
   "ciphertext1qyqv5fj8jc4enpvl8xdkxllvdhxe49qz3mn72xmr574ve5n4qtuawpgs4egw3",
   "types_test.aleo",
   "sum",
@@ -80,7 +92,18 @@ const decryptedValue = Decrypter.get_decrypted_value(
   "4894085870840878070008938887517642593787940398952348563490477594935969679255group",
   "testnet" // or "mainnet"
 );
-console.log("Decrypted value:", decryptedValue);
+console.log("Decrypted value using private key:", decryptedValuePK);
+
+const decryptedValueVK = Decrypter.get_decrypted_value_using_view_key(
+  "ciphertext1qyqv5fj8jc4enpvl8xdkxllvdhxe49qz3mn72xmr574ve5n4qtuawpgs4egw3",
+  "types_test.aleo",
+  "sum",
+  2, // input index
+    "AViewKey1mSnpFFC8Mj4fXbK5YiWgZ3mjiV8CxA79bYNa8ymUpTrw",
+  "4894085870840878070008938887517642593787940398952348563490477594935969679255group",
+  "testnet" // or "mainnet"
+);
+console.log("Decrypted value using view key:", decryptedValueVK);
 ```
 
 ### Hashing
