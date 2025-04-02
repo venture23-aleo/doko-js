@@ -8,17 +8,17 @@ export const useDokoJsWASM = () => {
     const [dokoWasmInstance, setDokoWasmInstance] = useState(loadedSDK);
     const [loading, setLoading] = useState(!loadedSDK);
 
-    useEffect(() => {
+    const loadWasm = async () => {
         if (loadedSDK) {
             setDokoWasmInstance(loadedSDK);
             setLoading(false);
             return;
         }
         if (typeof window !== 'undefined') {
-
             if (!loadingPromise) {
                 loadingPromise = import("@doko-js/wasm")
-                    .then((sdk) => {
+                    .then(async (sdk) => {
+                        console.log("SDK loaded:", sdk.Decrypter);
                         loadedSDK = sdk;
                         setDokoWasmInstance(sdk);
                         setLoading(false);
@@ -34,6 +34,10 @@ export const useDokoJsWASM = () => {
                 });
             }
         }
+    }
+
+    useEffect(() => {
+        loadWasm();
     }, []);
 
     return [dokoWasmInstance, loading];

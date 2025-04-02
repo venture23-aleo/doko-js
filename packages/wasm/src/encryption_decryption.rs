@@ -253,6 +253,7 @@ fn test_decryption2() {
     assert_eq!(plain, val);
 }
 
+#[test]
 fn test_decryption3() {
     let val = "3u32";
     let program_name = "types_test.aleo";

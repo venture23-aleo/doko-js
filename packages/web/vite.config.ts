@@ -9,4 +9,7 @@ export default defineConfig({
     outDir: './dist',
     ssrManifest: true,
   },
+  optimizeDeps: {
+    exclude: ['@doko-js/wasm']
+  }
 })
