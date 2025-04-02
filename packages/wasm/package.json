@@ -1,29 +1,23 @@
 {
   "name": "@doko-js/wasm",
-  "version": "1.0.0",
-  "description": "Wasm Build for doko tools",
+  "version": "1.2.0",
   "type": "module",
-  "main": "./dist/wasm.js",
-  "types": "./dist/wasm.d.ts",
-  "exports": {
-    ".": "./dist/wasm.js"
-  },
+  "main": "./dist/pkg-node/wasm.cjs",
+  "module": "./dist/pkg-bundler/wasm.js",
+  "browser": "./dist/pkg-web/wasm.js",
   "scripts": {
-    "build": "wasm-pack build --scope doko-js --target nodejs --out-dir=./dist --release"
+    "build": "./build-package.sh"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/venture23-aleo/doko-js.git"
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/pkg-bundler/wasm.js",
+        "require": "./dist/pkg-node/wasm.cjs"
+      },
+      "browser": "./dist/pkg-web/wasm.js",
+      "default": "./dist/pkg-bundler/wasm.js"
+    }
   },
-  "keywords": [
-    "doko",
-    "dokojs",
-    "doko-cli"
-  ],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/venture23-aleo/doko-js/issues"
-  },
-  "homepage": "https://github.com/venture23-aleo/doko-js#readme"
+  "files": ["dist/", "package.json", "README.md"],
+  "sideEffects": false
 }

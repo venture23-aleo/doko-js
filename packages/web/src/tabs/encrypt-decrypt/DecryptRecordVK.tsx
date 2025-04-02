@@ -10,11 +10,11 @@ const DEFAULT_VALUES = {
     programName: "",
     methodName: "",
     inputIndex: "",
-    privateKey: "",
+    viewKey: "",
     tpk: ""
 }
 
-export const DecryptRecord = () => {
+export const DecryptRecordVK = () => {
     const [formValues, setFormValues] = useState(DEFAULT_VALUES)
     const [plaintext, setPlaintext] = useState(null);
     const [_isOwner, setIsOwner] = useState(null);
@@ -31,16 +31,17 @@ export const DecryptRecord = () => {
 
     const tryDecrypt = () => {
         setPlaintext(null);
-        const { privateKey, cipherText, programName, methodName, inputIndex, tpk } = formValues;
+        const { viewKey, cipherText, programName, methodName, inputIndex, tpk } = formValues;
 
         try {
-            if (privateKey && cipherText && programName && methodName && inputIndex && tpk) {
-                const decryptedValue = dokoJsWasm.Decrypter.get_decrypted_value(
+            if (viewKey && cipherText && programName && methodName && inputIndex && tpk) {
+                console.log("Decrypting...", Object.keys(dokoJsWasm.Decrypter));
+                const decryptedValue = dokoJsWasm.Decrypter.get_decrypted_value_using_view_key(
                     cipherText,
                     programName,
                     methodName,
                     inputIndex,
-                    privateKey,
+                    viewKey,
                     tpk,
                     "testnet"
                 )
@@ -69,7 +70,7 @@ export const DecryptRecord = () => {
             programName: "types_test.aleo",
             methodName: "sum",
             inputIndex: 2,
-            privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH",
+            viewKey: "AViewKey1mSnpFFC8Mj4fXbK5YiWgZ3mjiV8CxA79bYNa8ymUpTrw",
             tpk: "4894085870840878070008938887517642593787940398952348563490477594935969679255group"
         })
 
@@ -88,7 +89,7 @@ export const DecryptRecord = () => {
         return (
             <div className="container">
                 <Card
-                    title="Decrypt Data (Private Key)"
+                    title="Decrypt Data (View Key)"
                     style={{ width: "100%" }}
                     extra={
                         <>

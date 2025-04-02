@@ -10,6 +10,7 @@ import { DokoIDE } from "./components/Editor/DokoIDE";
 
 import "./index.css";
 import Docs from "./pages/Docs";
+import { DecryptRecordVK } from "./tabs/encrypt-decrypt/DecryptRecordVK";
 
 const App = () => {
     return (
@@ -22,6 +23,8 @@ const App = () => {
                 <Route path="/encrypt-decrypt" element={
                     <>
                         <DecryptRecord />
+                        <br />
+                        <DecryptRecordVK />
                         <br />
                         <EncryptRecord />
                     </>

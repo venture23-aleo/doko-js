@@ -35,7 +35,7 @@ export const EncryptRecord = () => {
 
         try {
             if (privateKey && plainText && programName && methodName && inputIndex && tpk) {
-                const encryptedValue = dokoJsWasm.Encryter.get_encrypted_value(
+                const encryptedValue = dokoJsWasm.Encrypter.get_encrypted_value(
                     plainText,
                     programName,
                     methodName,
