@@ -1,6 +1,7 @@
 import {
   ConvertToJSType,
   GetLeoArrTypeAndSize,
+  getNestedType,
   IsLeoArray,
   IsLeoPrimitiveType,
   IsLeoExternalRecord
@@ -9,10 +10,21 @@ import { GetConverterFunctionName } from './leo-naming';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
 import { STRING_JS } from './string-constants';
 
+export function generateArgType(type: string, depth: number): string {
+  for (let i = 0; i < depth; i++) {
+    type = `Array<${type}>`;
+  }
+  return type;
+};
 export function InferJSDataType(type: string): string {
+  if(IsLeoArray(type)) {
+    const [nestedType, depth] = getNestedType(type);
+    const tsType = ConvertToJSType(nestedType) || nestedType;
+    const argType = generateArgType(tsType, depth);
+    return argType;
+  }
   if (
     IsLeoPrimitiveType(type) ||
-    IsLeoArray(type) ||
     IsLeoExternalRecord(type)
   ) {
     const tsType = ConvertToJSType(type);
@@ -67,22 +79,45 @@ export function GenerateTypeConversionStatement(
 
   const namespace = conversionTo === 'js' ? 'leo2js' : 'js2leo';
 
-  const isArray = IsLeoArray(type);
-  if (isArray) {
-    // Pass additional conversion function
-    const [dataType, size] = GetLeoArrTypeAndSize(type);
-    inputField = inputField.concat(`, ${namespace}.${dataType}`);
-  }
-
   let fn = `${conversionFnName}(${inputField})`;
 
+  if (IsLeoArray(type)) {
+    const [nestedType, depth] = getNestedType(type);
+    const conversionFn = IsLeoPrimitiveType(nestedType)
+      ? `${namespace}.${nestedType}`
+      : GetConverterFunctionName(nestedType, conversionTo);
+    if (depth === 1) {
+      fn = `${namespace}.${conversionFnName}(${inputField}, ${conversionFn})`;
+      if(qualifier && conversionTo === 'leo') {
+        fn = `${namespace}.${conversionFnName}(${fn}, ${namespace}.${qualifier}Field)`;
+      }
+    } else {
+      for (let i = 1; i < depth; i++) {
+        inputField += `.map(element${i} =>`;
+      }
+      if(qualifier && conversionTo === 'leo') {
+        inputField += `${namespace}.${conversionFnName}(${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn}), ${namespace}.${qualifier}Field)`;
+      } else {
+        inputField += ` ${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn})`;
+      }
+      for (let i = 1; i < depth; i++) {
+        inputField += ')';
+      }
+      fn = inputField;
+    }
+    // if(qualifier) {
+    //   fn = `${namespace}.${conversionFnName}(${fn}, ${namespace}.${qualifier}Field)`;
+    // }
+  }
   // if this is not a custom type we have to use the
   // conversion function from namespace
-  if (IsLeoPrimitiveType(type) || isArray) {
+  else if (IsLeoPrimitiveType(type)) {
     fn = `${namespace}.${fn}`;
 
     if (conversionTo === 'leo') {
-      if (qualifier) fn = `${namespace}.${qualifier}Field(${fn})`;
+      if (qualifier) {
+        fn = `${namespace}.${qualifier}Field(${fn})`;
+      }
     }
   }
 

@@ -3,7 +3,7 @@ import { Marks, Outputs, Report_Card } from '../artifacts/js/types/test_leo_func
 import { CreditsContract } from '../artifacts/js/credits';
 import { decryptcredits } from '../artifacts/js/leo2js/credits';
 import { Test_leo_functionsContract } from '../artifacts/js/test_leo_functions';
-import { Output } from '@doko-js/core/dist/outputs/types/transaction';
+import { decryptRecordWithArrays } from '../artifacts/js/leo2js/types_test';
 
 const TIMEOUT = 200_000;
 
@@ -21,9 +21,11 @@ const recipient = process.env.ALEO_DEVNET_PRIVATE_KEY3;
 describe('deploy test', () => {
   test('deploy', async () => {
     if ((mode as ExecutionMode) == ExecutionMode.SnarkExecute) {
-      await test_bool.isDeployed();
-      const tx = await test_bool.deploy();
-      await tx.wait();
+      const isDeployed = await test_bool.isDeployed();
+      if (!isDeployed) {
+        const tx = await test_bool.deploy();
+        await tx.wait();
+      }
     }
   }, 10000000);
 
@@ -39,8 +41,8 @@ describe('deploy test', () => {
     expect(data).toBe(3);
   }, TIMEOUT);
 
-  test('meanArray', async () => {
-    const tx = await test_bool.meanArray([2,4,6,8]);
+  test('mean_array', async () => {
+    const tx = await test_bool.mean_array([2, 4, 6, 8]);
     const [data] = await tx.wait();
     expect(data).toBe(5);
   }, TIMEOUT);
@@ -52,14 +54,13 @@ describe('deploy test', () => {
   }, TIMEOUT);
 
   test('multiple_upto_5', async () => {
-        const tx = await test_bool.multiple_upto_5(1);
-        const [data] = await tx.wait();
-        console.log("multiple_upto_5", data);
-        expect(data).toStrictEqual([1, 2, 3, 4, 5]);
-   }, TIMEOUT);
+    const tx = await test_bool.multiple_upto_5(1);
+    const [data] = await tx.wait();
+    expect(data).toStrictEqual([1, 2, 3, 4, 5]);
+  }, TIMEOUT);
 
-   test('check_message_signed', async () => {
-    const signature= "sign14pgmnfa3s56rcn8n249n3rzjct20k4g9uz6hgyqnr556n0w98qqsu5k95vl8g0clrc00mg9hkhtq2zx64mzkxe4fdcxhnx8t0vn8sq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvzs2uuv";
+  test('check_message_signed', async () => {
+    const signature = "sign14pgmnfa3s56rcn8n249n3rzjct20k4g9uz6hgyqnr556n0w98qqsu5k95vl8g0clrc00mg9hkhtq2zx64mzkxe4fdcxhnx8t0vn8sq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvzs2uuv";
     const tx = await test_bool.check_message_signed(BigInt(12345), admin, signature);
     const [data, bools] = await tx.wait();
     expect(data).toBe("4pgmnfa3s56rcn8n249n3rzjct20k4g9uz6hgyqnr556n0w98qqsu5k95vl8g0clrc00mg9hkhtq2zx64mzkxe4fdcxhnx8t0vn8sq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvzs2uuv");
@@ -77,7 +78,6 @@ describe('deploy test', () => {
     expect(data).toBe(100);
   }, TIMEOUT);
 
-  
   test('report', async () => {
     const marks: Marks = {
       english: 100,
@@ -98,11 +98,13 @@ describe('deploy test', () => {
   }, TIMEOUT);
 
   test('increase_counter', async () => {
+    const beforeCounter = await test_bool.counter(true);
     const tx = await test_bool.increase_counter(BigInt(1));
-    const [data] = await tx.wait();
-    expect(await test_bool.counter(true)).toBe(BigInt(1));
+    await tx.wait();
+    const afterCounter = await test_bool.counter(true);
+    expect(afterCounter - beforeCounter).toBe(BigInt(1));
   }, TIMEOUT);
-  
+
   test('fund_us', async () => {
     const credits = await credits_contract.transfer_public_to_private(admin, BigInt(100));
     const [record1] = await credits.wait();
@@ -110,16 +112,48 @@ describe('deploy test', () => {
       throw new Error('ALEO_DEVNET_PRIVATE_KEY1 is not defined');
     }
     const decryptedCredits = decryptcredits(record1, admin_private_key);
-
+    const beforeBalance = await credits_contract.account(test_bool.address());
     const tx = await test_bool.fund_us(decryptedCredits, BigInt(50));
     await tx.wait();
-    expect(await credits_contract.account(test_bool.address())).toBe(BigInt(50));
+    const afterBalance = await credits_contract.account(test_bool.address());
+    expect(afterBalance - beforeBalance).toBe(BigInt(50));
   }, TIMEOUT);
 
   test('get_balance', async () => {
     const tx = await test_bool.get_balance(test_bool.address());
     await tx.wait();
-    expect(await test_bool.fetched_balance(test_bool.address())).toBe(BigInt(50));
+    const creditsBalance = await credits_contract.account(test_bool.address());
+    expect(await test_bool.fetched_balance(test_bool.address())).toBe(creditsBalance);
   }, TIMEOUT);
 
+  test("test records with arrays, input arrays and output arrays", async () => {
+    const fields = [1n, 2n];
+    const multiFields = [fields, fields, fields];
+    const mark = {
+      english: 1,
+      math: 2,
+      nepali: 3
+    }
+    const marks = [mark, mark];
+    const multiMarks = [marks, marks, marks]
+    const tx = await test_bool.generateRecordWithArrays(
+      fields,
+      multiFields,
+      marks,
+      multiMarks
+    );
+    const [recordString, outputFields, outputMultiFields, outputMarks, outputMultiMarks] = await tx.wait();
+    if (!admin_private_key) {
+      throw new Error('ALEO_DEVNET_PRIVATE_KEY1 is not defined');
+    }
+    const record = decryptRecordWithArrays(recordString, admin_private_key);
+    expect(fields[0]).toBe(outputFields[0]);
+    expect(record.fields[0]).toBe(outputFields[0]);
+    expect(multiFields[0][0]).toBe(outputMultiFields[0][0]);
+    expect(record.multi_fields[0][0]).toBe(outputMultiFields[0][0]);
+    expect(marks[0].english).toBe(outputMarks[0].english);
+    expect(record.marks[0].english).toBe(outputMarks[0].english);
+    expect(multiMarks[0][0].english).toBe(outputMultiMarks[0][0].english);
+    expect(record.multi_marks[0][0].english).toBe(outputMultiMarks[0][0].english);
+  }, TIMEOUT)
 });

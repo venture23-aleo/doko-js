@@ -107,10 +107,22 @@ const IsLeoExternalRecord = (type: string) => {
   return type.includes('.aleo/') && !type.includes('.future');
 };
 
+const extractArraySizes = (type: string) => {
+  return (type.match(/\b\d+(?=u\d+|\b)/g) || []).map(Number);
+}
+
+const getNestedType = (type: string, depth: number = 0): [string, number] => {
+  if (type.startsWith("[")) {
+    const endIndex = type.indexOf(" ") > -1 ? type.indexOf(" ") : type.length;
+    return getNestedType(type.slice(1, endIndex), depth + 1);
+  } else {
+    return [type, depth]
+  }
+}
 const GetLeoArrTypeAndSize = (arrDef: string) => {
   const arrComponents = arrDef.substring(1, arrDef.length - 1).split(' ');
-  if (arrComponents.length !== 2)
-    DokoJSLogger.error(`Invalid array definition: ${arrDef}`);
+
+  arrComponents[0] = (getNestedType(arrComponents[0]))[0]
   return arrComponents;
 };
 
@@ -161,6 +173,8 @@ export {
   ConvertToJSType,
   IsLeoArray,
   GetLeoArrTypeAndSize,
+  extractArraySizes,
+  getNestedType,
   IsLeoPrimitiveType,
   IsLeoExternalRecord,
   trimAleoPostfix,
