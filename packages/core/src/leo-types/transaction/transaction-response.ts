@@ -4,14 +4,14 @@ import { TransactionParams } from '@/execution';
 import { get } from '@/utils/httpRequests';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
 import { Optional } from '@/execution';
-import { TransactionModel } from '@provablehq/sdk';
+import { Transaction } from '@provablehq/sdk';
 
 type Tuple = Optional<Array<unknown>>;
 type ConverterFn = (val: any, rest?: any) => any;
 type ConverterFnDefinition = [ConverterFn, ...string[]];
 
 export abstract class TransactionResponse<
-  TransactionDefinition extends TransactionModel = TransactionModel,
+  TransactionDefinition extends Transaction = Transaction,
   Result = Tuple
 > {
   // Outputs for the transition for which this object is returned
@@ -63,7 +63,7 @@ export abstract class TransactionResponse<
 }
 
 export class LeoRunResponse<
-  TransactionDefinition extends TransactionModel,
+  TransactionDefinition extends Transaction,
   Result extends Tuple = Tuple
 > extends TransactionResponse<TransactionDefinition, Result> {
   constructor(outputs: Record<string, unknown>[]) {
@@ -77,7 +77,7 @@ export class LeoRunResponse<
 }
 
 export class LeoExecuteResponse<
-  TransactionDefinition extends TransactionModel = TransactionModel,
+  TransactionDefinition extends Transaction = Transaction,
   Result extends Tuple = Tuple
 > extends TransactionResponse<TransactionDefinition, Result> {
   transaction: TransactionDefinition;
@@ -114,7 +114,7 @@ export class LeoExecuteResponse<
 }
 
 export class SnarkExecuteResponse<
-  TransactionDefinition extends TransactionModel = TransactionModel,
+  TransactionDefinition extends Transaction = Transaction,
   Result extends Tuple = Tuple
 > extends TransactionResponse<TransactionDefinition, Result> {
   protected transaction: TransactionDefinition | null;
@@ -178,7 +178,7 @@ export class SnarkExecuteResponse<
 }
 
 export class SnarkDeployResponse<
-  TransactionDefinition extends TransactionModel = TransactionModel,
+  TransactionDefinition extends Transaction = Transaction,
   Result extends Tuple = Tuple
 > extends SnarkExecuteResponse<TransactionDefinition, Result> {
   constructor(transactionId: string, transactionParams: TransactionParams) {

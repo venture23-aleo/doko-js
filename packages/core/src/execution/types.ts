@@ -1,4 +1,4 @@
-import { TransactionModel } from '@provablehq/sdk';
+import { Transaction } from '@provablehq/sdk';
 import { tx } from '@/outputs';
 import { TransactionResponse } from '@/leo-types/transaction/transaction-response';
 
@@ -15,7 +15,7 @@ interface NetworkConfig {
 
 export interface ExecutionOutput {
   data: any;
-  transaction?: (TransactionModel & tx.Receipt) | string;
+  transaction?: (Transaction & tx.Receipt) | string;
 }
 
 export interface BaseConfig {
