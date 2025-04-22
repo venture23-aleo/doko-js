@@ -485,7 +485,7 @@ class Generator {
       (returnValues) => returnValues.converterFunction
     );
 
-    const returnType = `Promise<TransactionResponse<TransactionModel & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}, [${types.join(',')}]>>`;
+    const returnType = `Promise<TransactionResponse<Transaction & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}, [${types.join(',')}]>>`;
     if (converterFns.length > 0) {
       fnGenerator.addStatement(
         `result.set_converter_fn([${converterFns.join(', ')}]);\n`
@@ -629,7 +629,7 @@ class Generator {
         '@doko-js/core'
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
-      GenerateTSImport(['TransactionModel'], '@provablehq/sdk'),
+      GenerateTSImport(['Transaction'], '@provablehq/sdk'),
       GenerateAsteriskTSImport(`./transitions/${programName}`, 'receipt'),
       '\n\n'
     );
