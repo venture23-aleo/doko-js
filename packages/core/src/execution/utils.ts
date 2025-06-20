@@ -106,10 +106,14 @@ async function makeProjectForDeploy(
   await fs.mkdir(join(projectDir, 'build'));
   await fs.writeFile(join(`${projectDir}/build`, 'main.aleo'), aleoCode);
   await fs.copy(importsDir, join(`${projectDir}/build`, 'imports'), {});
+  await fs.copy(
+    join(projectDir, 'program.json'),
+    join(`${projectDir}/build`, 'program.json'),
+    {}
+  );
 
   return projectDir;
 }
-
 async function deployAleo(
   aleoCode: string,
   config: ContractConfig,

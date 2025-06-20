@@ -15,7 +15,7 @@
         "require": "./dist/pkg-node/wasm.cjs"
       },
       "browser": "./dist/pkg-web/wasm.js",
-      "default": "./dist/pkg-bundler/wasm.js"
+      "default": "./dist/pkg-node/wasm.js"
     }
   },
   "files": ["dist/", "package.json", "README.md"],
