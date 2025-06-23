@@ -34,6 +34,7 @@ export const zkGetMapping = async (
       value: 'network'
     });
   }
+  await new Promise((resolve => setTimeout(resolve, 2000)));
   const url = `${config.network.endpoint}/${config.networkName}/program/${config.appName}.aleo/mapping/${mappingName}/${key}`;
   DokoJSLogger.debug(url);
 
@@ -246,7 +247,7 @@ export const leoDeployCommand = (
   priorityFee: number = 0,
   noBuild: boolean = false
 ) => {
-  return `cd ${path} && leo deploy --home ${ALEO_REGISTRY_DIR} --priority-fee ${priorityFee}  --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes ${noBuild ? '--no-build' : ''}`;
+  return `cd ${path} && leo deploy --priority-fee ${priorityFee}  --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes ${noBuild ? '--no-build' : ''}`;
 };
 
 export const transactionHashToTransactionResponseObject = (
@@ -263,8 +264,8 @@ export const validateBroadcast = async (
   networkName: string
 ): Promise<TransactionModel | null> => {
   const pollUrl = `${nodeEndpoint}/${networkName}/transaction/${transactionId}`;
-  const timeoutMs = 60_000;
-  const pollInterval = 1000; // 1 second
+  const timeoutMs = 180_000;
+  const pollInterval = 5000; // 1 second
   const startTime = Date.now();
 
   DokoJSLogger.info(`Validating transaction: ${pollUrl}`);
