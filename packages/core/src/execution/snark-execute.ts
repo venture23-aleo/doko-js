@@ -14,7 +14,7 @@ export class SnarkExecuteContext implements ExecutionContext {
   constructor(
     public params: SnarkExecuteTransactionParams,
     public parser: SnarkStdoutResponseParser = new SnarkStdoutResponseParser()
-  ) {}
+  ) { }
   /*
   private async broadcast(transaction: TransactionModel, endpoint: string) {
     try {
@@ -32,10 +32,7 @@ export class SnarkExecuteContext implements ExecutionContext {
     }
   }
   */
-  async execute(
-    transitionName: string,
-    args: string[]
-  ): Promise<TransactionResponse> {
+  async execute(transitionName: string, args: string[]): Promise<TransactionResponse> {
     const nodeEndPoint = this.params.network?.endpoint;
     if (!nodeEndPoint) {
       throw new DokoJSError(ERRORS.VARS.VALUE_NOT_FOUND_FOR_VAR, {
@@ -49,11 +46,11 @@ export class SnarkExecuteContext implements ExecutionContext {
       : `cd ${this.params.contractPath} && `;
 
     const programName = this.params.appName + '.aleo';
-    const cmd = `${cdCmd}leo execute --program ${programName} ${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes`;
+    const cmd = `leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8`;
     DokoJSLogger.debug(cmd);
 
     const { stdout } = await execute(cmd);
-    const { transaction } = this.parser.parse(stdout);
+    const transaction = extractTransactionId(stdout);
     if (transaction) {
       return new SnarkExecuteResponse(
         transaction as string,
@@ -66,3 +63,19 @@ export class SnarkExecuteContext implements ExecutionContext {
       });
   }
 }
+
+export function extractTransactionId(output: string): string | null {
+  const regex = /transaction ID:\s*['"]([^'"]+)['"]/i;
+  const match = output.match(regex);
+  return match ? match[1] : null;
+}
+
+// export const waitTransaction = async (
+//   transactionId: string,
+//   endpoint: string,
+//   networkName: string
+// ) => {
+//   if (transactionId)
+//     return await validateBroadcast(transactionId, endpoint, networkName);
+//   return null;
+// };

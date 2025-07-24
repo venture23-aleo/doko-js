@@ -51,21 +51,49 @@ export const zkGetMapping = async (
 };
 
 export const checkDeployment = async (endpoint: string): Promise<boolean> => {
+  DokoJSLogger.info(`Checking deployment: ${endpoint}`);
+
+  let response: Response;
   try {
-    DokoJSLogger.info(`Checking deployment: ${endpoint}`);
-    const response = await get(endpoint);
-    await response.json();
-
-    return true;
-  } catch (e: any) {
-    if (e?.message?.includes('Missing program for ID')) {
-      DokoJSLogger.info('Deployment not found');
-
+    response = await get(endpoint);
+  } catch (networkErr: any) {
+    const networkErrorMessage = JSON.parse(networkErr.message);
+    if (networkErrorMessage.statusCode == 404) {
+      DokoJSLogger.info('Deployment not found (404)');
       return false;
     }
-
-    throw new DokoJSError(ERRORS.NETWORK.DEPLOYMENT_CHECK_FAIL, {}, e);
+    response = networkErrorMessage;
   }
+
+  // if the program isn't there, backend now returns a 404 + JSON
+  if (response.status === 404) {
+    let body: any;
+    try {
+      body = await response.json();
+    } catch {
+      // fallback if JSON parse fails
+      DokoJSLogger.info('Deployment not found (404)');
+      return false;
+    }
+    if (body.message === 'Program not found') {
+      DokoJSLogger.info(`Deployment not found: ${body.message}`);
+      return false;
+    }
+  }
+
+  // any other non-2xx status is a failure
+  if (!response.ok) {
+    const text = await response.text();
+    throw new DokoJSError(
+      ERRORS.NETWORK.DEPLOYMENT_CHECK_FAIL,
+      { endpoint, status: response.status },
+      new Error(`Unexpected response: ${response.status} – ${text}`)
+    );
+  }
+
+  // 2xx → deployed
+  await response.json(); // or strip this if you don't need the payload
+  return true;
 };
 
 export const broadcastTransaction = async (
@@ -222,9 +250,10 @@ export const snarkDeploy = async ({
 
   const { stdout } = await execute(cmd);
   const result = transactionHashToTransactionResponseObject(
-    stdout.split('Deployment')[2].split(' ')[1],
+    extractTransactionId(stdout)!,
     'deploy'
   );
+  // const result = extractTransactionId(stdout);
   // // @TODO check it later
   // await broadcastTransaction(
   //   result as TransactionModel,
@@ -242,7 +271,7 @@ export const leoDeployCommand = (
   priorityFee: number = 0,
   noBuild: boolean = false
 ) => {
-  return `cd ${path} && leo deploy --home ${ALEO_REGISTRY_DIR} --priority-fee ${priorityFee}  --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes ${noBuild ? '--no-build' : ''}`;
+  return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes`;
 };
 
 export const transactionHashToTransactionResponseObject = (
@@ -252,6 +281,12 @@ export const transactionHashToTransactionResponseObject = (
   const transaction = { id: transactionHash, type, execution: { edition: 1 } };
   return transaction;
 };
+
+export function extractTransactionId(output: string): string | null {
+  const regex = /transaction ID:\s*['"]([^'"]+)['"]/i;
+  const match = output.match(regex);
+  return match ? match[1] : null;
+}
 
 export const validateBroadcast = async (
   transactionId: string,
