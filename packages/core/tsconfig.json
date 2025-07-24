@@ -4,7 +4,8 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "inlineSourceMap": true
   },
   "include": ["src", "../cli/template/contract/base-contract.ts"],
   "exclude": []
