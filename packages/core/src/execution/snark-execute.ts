@@ -49,7 +49,7 @@ export class SnarkExecuteContext implements ExecutionContext {
       : `cd ${this.params.contractPath} && `;
 
     const programName = this.params.appName + '.aleo';
-    const cmd = `leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8`;
+    const cmd = `leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8 --print`;
     DokoJSLogger.debug(cmd);
     let stdoutG: string;
     const id: string | null = null;
