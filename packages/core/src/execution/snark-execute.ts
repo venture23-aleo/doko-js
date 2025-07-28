@@ -14,7 +14,7 @@ export class SnarkExecuteContext implements ExecutionContext {
   constructor(
     public params: SnarkExecuteTransactionParams,
     public parser: SnarkStdoutResponseParser = new SnarkStdoutResponseParser()
-  ) { }
+  ) {}
   /*
   private async broadcast(transaction: TransactionModel, endpoint: string) {
     try {
@@ -32,7 +32,10 @@ export class SnarkExecuteContext implements ExecutionContext {
     }
   }
   */
-  async execute(transitionName: string, args: string[]): Promise<TransactionResponse> {
+  async execute(
+    transitionName: string,
+    args: string[]
+  ): Promise<TransactionResponse> {
     const nodeEndPoint = this.params.network?.endpoint;
     if (!nodeEndPoint) {
       throw new DokoJSError(ERRORS.VARS.VALUE_NOT_FOUND_FOR_VAR, {
@@ -48,9 +51,16 @@ export class SnarkExecuteContext implements ExecutionContext {
     const programName = this.params.appName + '.aleo';
     const cmd = `leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8`;
     DokoJSLogger.debug(cmd);
+    let stdoutG: string;
+    const id: string | null = null;
+    try {
+      const { stdout } = await execute(cmd);
+      stdoutG = stdout;
+    } catch (error: any) {
+      stdoutG = error.message;
+    }
 
-    const { stdout } = await execute(cmd);
-    const transaction = extractTransactionId(stdout);
+    const transaction = extractTransactionId(stdoutG);
     if (transaction) {
       return new SnarkExecuteResponse(
         transaction as string,

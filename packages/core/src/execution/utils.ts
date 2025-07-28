@@ -34,7 +34,7 @@ export const zkGetMapping = async (
       value: 'network'
     });
   }
-  await new Promise((resolve => setTimeout(resolve, 2000)));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
   const url = `${config.network.endpoint}/${config.networkName}/program/${config.appName}.aleo/mapping/${mappingName}/${key}`;
   DokoJSLogger.debug(url);
 
@@ -51,50 +51,60 @@ export const zkGetMapping = async (
   }
 };
 
-export const checkDeployment = async (endpoint: string): Promise<boolean> => {
+export const checkDeployment = async (
+  endpoint: string
+): Promise<boolean | undefined> => {
   DokoJSLogger.info(`Checking deployment: ${endpoint}`);
 
   let response: Response;
   try {
     response = await get(endpoint);
   } catch (networkErr: any) {
-    const networkErrorMessage = JSON.parse(networkErr.message);
-    if (networkErrorMessage.statusCode == 404) {
-      DokoJSLogger.info('Deployment not found (404)');
-      return false;
-    }
-    response = networkErrorMessage;
-  }
-
-  // if the program isn't there, backend now returns a 404 + JSON
-  if (response.status === 404) {
-    let body: any;
     try {
-      body = await response.json();
-    } catch {
-      // fallback if JSON parse fails
-      DokoJSLogger.info('Deployment not found (404)');
-      return false;
+      const networkErrorMessage = JSON.parse(networkErr.message);
+      response = networkErrorMessage;
+      if (networkErrorMessage.statusCode == 404) {
+        DokoJSLogger.info('Deployment not found (404)');
+        return false;
+      }
+    } catch (e: any) {
+      response = networkErr;
+      if (networkErr?.message?.includes('Missing program for ID')) {
+        DokoJSLogger.info('Deployment not found');
+        return false;
+      }
     }
-    if (body.message === 'Program not found') {
-      DokoJSLogger.info(`Deployment not found: ${body.message}`);
-      return false;
+
+    // if the program isn't there, backend now returns a 404 + JSON
+    if (response.status === 404) {
+      let body: any;
+      try {
+        body = await response.json();
+      } catch {
+        // fallback if JSON parse fails
+        DokoJSLogger.info('Deployment not found (404)');
+        return false;
+      }
+      if (body.message === 'Program not found') {
+        DokoJSLogger.info(`Deployment not found: ${body.message}`);
+        return false;
+      }
     }
-  }
 
-  // any other non-2xx status is a failure
-  if (!response.ok) {
-    const text = await response.text();
-    throw new DokoJSError(
-      ERRORS.NETWORK.DEPLOYMENT_CHECK_FAIL,
-      { endpoint, status: response.status },
-      new Error(`Unexpected response: ${response.status} – ${text}`)
-    );
-  }
+    // any other non-2xx status is a failure
+    if (!response.ok) {
+      const text = await response.text();
+      throw new DokoJSError(
+        ERRORS.NETWORK.DEPLOYMENT_CHECK_FAIL,
+        { endpoint, status: response.status },
+        new Error(`Unexpected response: ${response.status} – ${text}`)
+      );
+    }
 
-  // 2xx → deployed
-  await response.json(); // or strip this if you don't need the payload
-  return true;
+    // 2xx → deployed
+    await response.json(); // or strip this if you don't need the payload
+    return true;
+  }
 };
 
 export const broadcastTransaction = async (
@@ -276,6 +286,9 @@ export const leoDeployCommand = (
   priorityFee: number = 0,
   noBuild: boolean = false
 ) => {
+  if (endpoint == 'http://localhost:3030') {
+    return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --twice`;
+  }
   return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes`;
 };
 
@@ -324,16 +337,5 @@ export const validateBroadcast = async (
   }
 
   DokoJSLogger.info('Broadcast validation timeout');
-  return null;
-};
-
-export const waitTransaction = async (
-  transaction: TransactionModel,
-  endpoint: string,
-  networkName: string
-) => {
-  const transactionId = transaction.id;
-  if (transactionId)
-    return await validateBroadcast(transactionId, endpoint, networkName);
   return null;
 };
