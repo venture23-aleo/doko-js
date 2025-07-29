@@ -24,7 +24,7 @@ const IMPORTS_DIRECTORY = './imports/';
 async function getFileImports(filePath: string) {
   const code = fs.readFileSync(filePath, 'utf-8');
 
-  const regex = /import\s+([\w.]+);/g;
+  const regex = /^(?!\s*\/\/).*import\s+([\w.]+);/gm;
   const matches = [];
   let match;
 
