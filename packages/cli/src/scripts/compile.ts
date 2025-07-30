@@ -168,10 +168,16 @@ async function createImportConfig(
           }
           break;
         case 'execute':
-          config.location = 'network';
-          config.endpoint = networkConfig.endpoint || '';
-          config.network = defaultNetwork;
-          break;
+          if (resolvedDependency.source === "imports") {
+            config.location = "local"
+            config.path = "../../../imports/" + fileImport;
+            break;
+          } else {
+            config.location = "network";
+            config.endpoint = networkConfig.endpoint || "";
+            config.network = defaultNetwork;
+            break;
+          }
         default:
           throw new Error(`Unrecognized execution mode ${executionMode}`);
       }
