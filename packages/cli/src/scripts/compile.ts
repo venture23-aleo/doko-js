@@ -168,13 +168,13 @@ async function createImportConfig(
           }
           break;
         case 'execute':
-          if (resolvedDependency.source === "imports") {
-            config.location = "local"
-            config.path = "../../../imports/" + fileImport;
+          if (resolvedDependency.source === 'imports') {
+            config.location = 'local';
+            config.path = '../../../imports/' + fileImport;
             break;
           } else {
-            config.location = "network";
-            config.endpoint = networkConfig.endpoint || "";
+            config.location = 'network';
+            config.endpoint = networkConfig.endpoint || '';
             config.network = defaultNetwork;
             break;
           }

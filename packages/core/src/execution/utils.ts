@@ -76,35 +76,35 @@ export const checkDeployment = async (
     }
 
     // if the program isn't there, backend now returns a 404 + JSON
-    if (response.status === 404) {
-      let body: any;
-      try {
-        body = await response.json();
-      } catch {
-        // fallback if JSON parse fails
-        DokoJSLogger.info('Deployment not found (404)');
-        return false;
-      }
-      if (body.message === 'Program not found') {
-        DokoJSLogger.info(`Deployment not found: ${body.message}`);
-        return false;
-      }
-    }
-
-    // any other non-2xx status is a failure
-    if (!response.ok) {
-      const text = await response.text();
-      throw new DokoJSError(
-        ERRORS.NETWORK.DEPLOYMENT_CHECK_FAIL,
-        { endpoint, status: response.status },
-        new Error(`Unexpected response: ${response.status} – ${text}`)
-      );
-    }
-
-    // 2xx → deployed
-    await response.json(); // or strip this if you don't need the payload
-    return true;
   }
+  if (response.status === 404) {
+    let body: any;
+    try {
+      body = await response.json();
+    } catch {
+      // fallback if JSON parse fails
+      DokoJSLogger.info('Deployment not found (404)');
+      return false;
+    }
+    if (body.message === 'Program not found') {
+      DokoJSLogger.info(`Deployment not found: ${body.message}`);
+      return false;
+    }
+  }
+
+  // any other non-2xx status is a failure
+  if (!response.ok) {
+    const text = await response.text();
+    throw new DokoJSError(
+      ERRORS.NETWORK.DEPLOYMENT_CHECK_FAIL,
+      { endpoint, status: response.status },
+      new Error(`Unexpected response: ${response.status} – ${text}`)
+    );
+  }
+
+  // 2xx → deployed
+  await response.json(); // or strip this if you don't need the payload
+  return true;
 };
 
 export const broadcastTransaction = async (
@@ -251,6 +251,29 @@ export const snarkDeploy = async ({
   }
 
   DokoJSLogger.info(`Deploying program ${config.appName}`);
+  const programJson = await fs.readJSON(`${config.contractPath}/program.json`);
+  if (programJson.dependencies) {
+    const dependencies: any = [];
+    for (const dependency of programJson.dependencies) {
+      const isDeployed = await checkDeployment(
+        `${nodeEndPoint}/${config.networkName}/program/${dependency.name}`
+      );
+      if (isDeployed) {
+        dependency.location = 'network';
+        dependency.endpoint = nodeEndPoint;
+        dependency.network = config.networkName;
+        dependency.path = undefined;
+      } else {
+        dependency.location = 'local';
+        dependency.endpoint = undefined;
+        dependency.network = undefined;
+        dependency.path = `../../../imports/${dependency.name}`;
+      }
+      dependencies.push(dependency);
+    }
+    programJson.dependencies = dependencies;
+    await fs.writeJSON(`${config.contractPath}/program.json`, programJson);
+  }
 
   // const cmd = `cd ${config.contractPath}/build && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName}`;
   // const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
