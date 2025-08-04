@@ -17,6 +17,7 @@ import { exec } from 'child_process';
 const GENERATE_FILE_OUT_DIR = 'artifacts';
 const LEO_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/leo`;
 const ALEO_DEPS_REGISTRY = `${GENERATE_FILE_OUT_DIR}/aleo/registry`;
+const ALEO_REGISTRY = `${GENERATE_FILE_OUT_DIR}/aleo`;
 const JS_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/js`;
 const PROGRAM_DIRECTORY = './programs/';
 const IMPORTS_DIRECTORY = './imports/';
@@ -216,6 +217,7 @@ async function buildProgram(programName: string, leoVersion: string) {
   const parsedProgramName = toSnakeCase(programName);
   const projectRoot = getProjectRoot();
   const artifactDir = `${projectRoot}/${LEO_ARTIFACTS}`;
+  const localRegistryDir = `${projectRoot}/${ALEO_REGISTRY}`;
   const programDir = `${artifactDir}/${parsedProgramName}`;
   const registryDir = path.normalize(
     path.join(projectRoot, ALEO_DEPS_REGISTRY)
@@ -261,7 +263,7 @@ async function buildProgram(programName: string, leoVersion: string) {
       ? `--network ${defaultNetwork}`
       : '';
 
-  const leoBuildCommand = `cd "${programDir}" && leo build ${networkFlag}`;
+  const leoBuildCommand = `cd "${programDir}" && leo build ${networkFlag} --home ${localRegistryDir}`;
   const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
 
