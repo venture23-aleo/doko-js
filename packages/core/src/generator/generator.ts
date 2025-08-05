@@ -304,7 +304,8 @@ class Generator {
       `\tconst encodedRecord: string = typeof ${argName} === 'string'? ${argName}: ${argName}.value;\n`
     );
     fnGenerator.addStatement(
-      '\tconst decodedRecord: string = PrivateKey.from_string(privateKey).to_view_key().decrypt(encodedRecord);\n'
+      '\tconst decodedRecord: string = RecordCiphertext.fromString(encodedRecord).decrypt(new Account({privateKey}).viewKey()).toString();\n'
+      // PrivateKey.from_string(privateKey).to_view_key().decrypt(encodedRecord);\n'
     );
     fnGenerator.addStatement(
       `\tconst result: ${jsType} = get${jsType}(parseJSONLikeString(decodedRecord));\n`
