@@ -1,4 +1,4 @@
-import { PrivateKey } from '@provablehq/sdk';
+import { PrivateKey, Account, RecordCiphertext } from '@provablehq/sdk';
 import {
   ContractConfig,
   snarkDeploy,
