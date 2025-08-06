@@ -1,4 +1,4 @@
-import { TransactionModel } from '@provablehq/sdk';
+import { Transaction } from '@provablehq/sdk';
 import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
 
 import { SnarkExecuteTransactionParams, ExecutionContext } from './types';
@@ -16,7 +16,7 @@ export class SnarkExecuteContext implements ExecutionContext {
     public parser: SnarkStdoutResponseParser = new SnarkStdoutResponseParser()
   ) {}
   /*
-  private async broadcast(transaction: TransactionModel, endpoint: string) {
+  private async broadcast(transaction: Transaction, endpoint: string) {
     try {
       return await post(
         `${endpoint}/${this.params.networkName}/transaction/broadcast`,

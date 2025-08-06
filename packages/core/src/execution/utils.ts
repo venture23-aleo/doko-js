@@ -1,6 +1,6 @@
 import { get, post } from '@/utils/httpRequests';
 import { ContractConfig } from './types';
-import { TransactionModel } from '@provablehq/sdk';
+import { Transaction } from '@provablehq/sdk';
 import { execute } from './execution-helper';
 import {
   SnarkDeployResponse,
@@ -108,7 +108,7 @@ export const checkDeployment = async (
 };
 
 export const broadcastTransaction = async (
-  transaction: TransactionModel,
+  transaction: Transaction,
   endpoint: string,
   networkName: string
 ) => {
@@ -185,12 +185,12 @@ async function deployAleo(
   // const { stdout } = await execute(cmd);
   // const result = new SnarkStdoutResponseParser().parse(stdout);
   // await broadcastTransaction(
-  //   result.transaction as TransactionModel,
+  //   result.transaction as Transaction,
   //   nodeEndPoint,
   //   config.networkName!
   // );
   // return new SnarkDeployResponse(
-  //   result.transaction as TransactionModel,
+  //   result.transaction as Transaction,
   //   config
   // );
   const cmd = leoDeployCommand(
@@ -294,7 +294,7 @@ export const snarkDeploy = async ({
   // const result = extractTransactionId(stdout);
   // // @TODO check it later
   // await broadcastTransaction(
-  //   result as TransactionModel,
+  //   result as Transaction,
   //   nodeEndPoint,
   //   config.networkName!
   // );
@@ -318,7 +318,7 @@ export const leoDeployCommand = (
 export const transactionHashToTransactionResponseObject = (
   transactionHash: string,
   type: 'deploy' | 'execute'
-): TransactionModel | null => {
+): Transaction | null => {
   const transaction = { id: transactionHash, type, execution: { edition: 1 } };
   return transaction;
 };
@@ -333,7 +333,7 @@ export const validateBroadcast = async (
   transactionId: string,
   nodeEndpoint: string,
   networkName: string
-): Promise<TransactionModel | null> => {
+): Promise<Transaction | null> => {
   const pollUrl = `${nodeEndpoint}/${networkName}/transaction/${transactionId}`;
   const timeoutMs = 180_000;
   const pollInterval = 5000; // 1 second
@@ -345,7 +345,7 @@ export const validateBroadcast = async (
   while (Date.now() - startTime < timeoutMs) {
     try {
       const response = await get(pollUrl);
-      const data = (await response.json()) as TransactionModel & {
+      const data = (await response.json()) as Transaction & {
         deployment: any;
       };
       if (!data.execution && !data.deployment) {

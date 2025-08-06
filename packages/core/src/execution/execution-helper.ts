@@ -1,5 +1,5 @@
 // @TODO replace this with shell
-import { Output, TransactionModel } from '@provablehq/sdk';
+import { Output, Transaction } from '@provablehq/sdk';
 import { Decrypter } from '@doko-js/wasm';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -20,7 +20,7 @@ export function isDefined(v: any) {
 }
 
 export function decryptOutput(
-  transaction: TransactionModel,
+  transaction: Transaction,
   transitionName: string,
   programName: string,
   privateKey: string,
