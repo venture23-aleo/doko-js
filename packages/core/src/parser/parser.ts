@@ -199,8 +199,9 @@ class Parser {
             aleoReflection.customTypes.push(this.parseStruct(token));
           else if (token.value == KEYWORDS.RECORD) {
             const recordDef = this.parseStruct(token);
-            // Add additional member _nonce if it is record
+            // Add additional member _nonce and _version if it is record
             recordDef.members.push({ key: '_nonce', val: 'group.public' });
+            recordDef.members.push({ key: '_version', val: 'u8.public' });
             aleoReflection.customTypes.push(recordDef);
           } else if (
             token.value === KEYWORDS.FUNCTION ||
