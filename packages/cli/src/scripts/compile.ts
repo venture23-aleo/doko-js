@@ -123,7 +123,6 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
   const defaultNetwork = aleoConfig['defaultNetwork'];
 
   const registryDirWithNetwork = path.join(registryDir, defaultNetwork);
-  const srcFiles = path.join(importsDir, '*.aleo');
 
   const importDirExists = await fs.exists(importsDir);
   if (!importDirExists) return;
@@ -132,11 +131,19 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
   const importFileExists =
     files.filter((file) => file.endsWith('.aleo')).length > 0;
   if (!importFileExists) return;
-
-  const cpCommand = `mkdir -p ${registryDirWithNetwork} && cp ${srcFiles} ${registryDirWithNetwork}`;
-
-  const cpShellCommand = new Shell(cpCommand);
-  return cpShellCommand.asyncExec();
+  for (const file of files) {
+    if (file.endsWith('.aleo')) {
+      const dstFilePath = path.join(
+        registryDirWithNetwork,
+        file.split('.')[0],
+        '0'
+      );
+      const srcFile = path.join(importsDir, file);
+      const cpCommand = `mkdir -p ${dstFilePath} && cp ${srcFile} ${dstFilePath}`;
+      const cpShellCommand = new Shell(cpCommand);
+      await cpShellCommand.asyncExec();
+    }
+  }
 }
 
 async function createImportConfig(
@@ -197,7 +204,8 @@ async function cachePrograms(
 ) {
   const homeDir = os.homedir();
   const srcFilePath = `${programDir}/build/main.aleo`;
-  const dstFolder = registryDir || `${homeDir}/.aleo/registry/${networkName}`;
+  let dstFolder = registryDir || `${homeDir}/.aleo/registry/${networkName}`; // todo: only temporary fix
+  dstFolder = `${dstFolder}/${programName}/0`;
   const dstFilePath = `${dstFolder}/${programName}.aleo`;
 
   const createLeoCommand = `mkdir -p "${dstFolder}" && cp "${srcFilePath}" "${dstFilePath}"`;
@@ -263,7 +271,10 @@ async function buildProgram(programName: string, leoVersion: string) {
       ? `--network ${defaultNetwork}`
       : '';
 
-  const leoBuildCommand = `cd "${programDir}" && leo build ${networkFlag} --home ${localRegistryDir}`;
+  let leoBuildCommand: string;
+  if (aleoConfig.networks[defaultNetwork].endpoint == 'http://localhost:3030')
+    leoBuildCommand = `cd "${programDir}" && leo build ${networkFlag} --devnet`;
+  else leoBuildCommand = `cd "${leoHomeDir}" && leo build ${networkFlag}`;
   const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
 

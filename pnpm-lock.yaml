@@ -105,8 +105,8 @@ importers:
         specifier: workspace:*
         version: link:../wasm
       '@provablehq/sdk':
-        specifier: 0.6.9
-        version: 0.6.9
+        specifier: 0.9.4
+        version: 0.9.4
       fs-extra:
         specifier: ^11.1.1
         version: 11.2.0
@@ -1286,8 +1286,14 @@ packages:
   '@provablehq/sdk@0.6.9':
     resolution: {integrity: sha512-Hf3zTBUzVJyZj1l6BDC3KhMVsHFm7M2v8nnrYyL3npiENvY4AtMZUxHWdfEEyRlU/RK44aTE09cYyjs4DM89sA==}
 
+  '@provablehq/sdk@0.9.4':
+    resolution: {integrity: sha512-RUZXDb4rcN0Fy3CQU+fF+fIX5zWYabWTicwJxxRB1M8v8a303m5R4yFUH7SdUqzPErHicEmViguBlOCtY1KMOQ==}
+
   '@provablehq/wasm@0.6.13':
     resolution: {integrity: sha512-M7H0kM240xtYryENXVbRUpW07+LOsnpt+s+X7Q7i/4lbEMWDB9lInLs987AF3EsRdRwx+eiz2ul9jraBvZ0jcg==}
+
+  '@provablehq/wasm@0.9.5':
+    resolution: {integrity: sha512-AmzUAP0DU4rAPAdoTRn3+TbzjAJ+0PMTVEfSOGpG4ez5Pk0euMQC74DWTT26Il4BC2UVYH6tG0ftk2XKaWiXvg==}
 
   '@rc-component/async-validator@5.0.4':
     resolution: {integrity: sha512-qgGdcVIF604M9EqjNF0hbUTz42bz/RDtxWdWuU5EQe3hi7M8ob54B6B35rOsvX5eSvIHIzT9iH1R3n+hk3CGfg==}
@@ -2148,6 +2154,9 @@ packages:
   comlink@4.4.1:
     resolution: {integrity: sha512-+1dlx0aY5Jo1vHy/tSsIGpSkN4tS9rZSW8FIhG0JH/crs9wwweswIo/POr451r7bZww3hFbPAKnTpimzL/mm4Q==}
 
+  comlink@4.4.2:
+    resolution: {integrity: sha512-OxGdvBmJuNKSCMO4NTl1L47VRp6xn2wG4F/2hYzB6tiCb709otOxtEYCSvK80PtjODfXXZu8ds+Nw5kVCjqd2g==}
+
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
 
@@ -2220,6 +2229,9 @@ packages:
 
   core-js-compat@3.38.1:
     resolution: {integrity: sha512-JRH6gfXxGmrzF3tZ57lFx97YARxCXPaMzPo6jELZhv88pBH5VXpQ+y0znKGlFnzuaihqhLbefxSJxWJMPtfDzw==}
+
+  core-js@3.45.0:
+    resolution: {integrity: sha512-c2KZL9lP4DjkN3hk/an4pWn5b5ZefhRJnAc42n6LJ19kSnbeRbdQZE5dSeE2LBol1OwJD3X1BQvFTAsa8ReeDA==}
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -3612,6 +3624,11 @@ packages:
     engines: {node: '>=10.0.0'}
     hasBin: true
 
+  mime@4.0.7:
+    resolution: {integrity: sha512-2OfDPL+e03E0LrXaGYOtTFIYhiuzep94NSsuhrNULq+stylcJedcHdzHtz0atMUuGwJfFYs0YL5xeC/Ca2x0eQ==}
+    engines: {node: '>=16'}
+    hasBin: true
+
   mimic-fn@2.1.0:
     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
     engines: {node: '>=6'}
@@ -4977,6 +4994,10 @@ packages:
   write-file-atomic@4.0.2:
     resolution: {integrity: sha512-7KxauUdBmSdWnmpaGFg+ppNjKF8uNLry8LyzjauQDOVONfFLNKrKvQOxZ/VuTIcS/gge/YNahf5RIIQWTSarlg==}
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
+
+  xmlhttprequest-ssl@3.1.0:
+    resolution: {integrity: sha512-UsofFE/khRRAcM9c3FGDEUSwupaQQC3Kme1brtz+B3N+RZHXGbD6AG6QzgWcunHzszqtOSMiZoPNrmHEBB2DjA==}
+    engines: {node: '>=12.0.0'}
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -6383,7 +6404,18 @@ snapshots:
       mime: 3.0.0
       sync-request: 6.1.0
 
+  '@provablehq/sdk@0.9.4':
+    dependencies:
+      '@provablehq/wasm': 0.9.5
+      comlink: 4.4.2
+      core-js: 3.45.0
+      mime: 4.0.7
+      sync-request: 6.1.0
+      xmlhttprequest-ssl: 3.1.0
+
   '@provablehq/wasm@0.6.13': {}
+
+  '@provablehq/wasm@0.9.5': {}
 
   '@rc-component/async-validator@5.0.4':
     dependencies:
@@ -7384,6 +7416,8 @@ snapshots:
 
   comlink@4.4.1: {}
 
+  comlink@4.4.2: {}
+
   comma-separated-tokens@2.0.3: {}
 
   commander@10.0.1: {}
@@ -7459,6 +7493,8 @@ snapshots:
   core-js-compat@3.38.1:
     dependencies:
       browserslist: 4.24.0
+
+  core-js@3.45.0: {}
 
   core-util-is@1.0.3: {}
 
@@ -9397,6 +9433,8 @@ snapshots:
 
   mime@3.0.0: {}
 
+  mime@4.0.7: {}
+
   mimic-fn@2.1.0: {}
 
   minimalistic-assert@1.0.1: {}
@@ -10974,6 +11012,8 @@ snapshots:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 3.0.7
+
+  xmlhttprequest-ssl@3.1.0: {}
 
   xtend@4.0.2: {}
 
