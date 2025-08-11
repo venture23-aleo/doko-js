@@ -131,8 +131,11 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
   const importFileExists =
     files.filter((file) => file.endsWith('.aleo')).length > 0;
   if (!importFileExists) return;
+  const homeDir = os.homedir();
+  let dstFolder = `${homeDir}/.aleo/registry/${defaultNetwork}`;
   for (const file of files) {
     if (file.endsWith('.aleo')) {
+      dstFolder = `${dstFolder}/${file.split('.')[0]}/0`;
       const dstFilePath = path.join(
         registryDirWithNetwork,
         file.split('.')[0],
@@ -140,6 +143,9 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
       );
       const srcFile = path.join(importsDir, file);
       const cpCommand = `mkdir -p ${dstFilePath} && cp ${srcFile} ${dstFilePath}`;
+      const cpCommandToRegistry = `mkdir -p ${dstFolder} && cp ${srcFile} ${dstFolder}`;
+      const cpShellToRegistryCommand = new Shell(cpCommandToRegistry);
+      await cpShellToRegistryCommand.asyncExec();
       const cpShellCommand = new Shell(cpCommand);
       await cpShellCommand.asyncExec();
     }
