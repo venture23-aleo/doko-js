@@ -132,9 +132,10 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
     files.filter((file) => file.endsWith('.aleo')).length > 0;
   if (!importFileExists) return;
   const homeDir = os.homedir();
-  let dstFolder = `${homeDir}/.aleo/registry/${defaultNetwork}`;
+
   for (const file of files) {
     if (file.endsWith('.aleo')) {
+      let dstFolder = `${homeDir}/.aleo/registry/${defaultNetwork}`;
       dstFolder = `${dstFolder}/${file.split('.')[0]}/0`;
       const dstFilePath = path.join(
         registryDirWithNetwork,
