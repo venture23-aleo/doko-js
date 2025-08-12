@@ -309,6 +309,8 @@ export const leoDeployCommand = (
   priorityFee: number = 0,
   noBuild: boolean = false
 ) => {
+  if (endpoint == 'http://localhost:3030')
+    return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print --devnet --consensus-version 0,1,2,3,4,5,6,7,8,999999`; // todo: change this hardcode consenssus value
   return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print`;
 };
 
