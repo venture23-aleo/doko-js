@@ -154,26 +154,16 @@ async function createImportConfig(
       const config: Record<string, string> = {};
       config.name = fileImport;
       const resolvedDependency = await resolveImport(fileImport);
-      switch (executionMode) {
-        case 'evaluate':
-          if (resolvedDependency.source === 'programs') {
-            config.location = 'local';
-            config.path = path.relative(
-              programDir,
-              `${artifactDir}/${fileImport.split('.aleo')[0]}`
-            );
-          } else {
-            config.location = 'network';
-            config.network = defaultNetwork;
-          }
-          break;
-        case 'execute':
-          config.location = 'network';
-          config.endpoint = networkConfig.endpoint || '';
-          config.network = defaultNetwork;
-          break;
-        default:
-          throw new Error(`Unrecognized execution mode ${executionMode}`);
+      if (resolvedDependency.source === 'programs') {
+        config.location = 'local';
+        config.path = path.relative(
+          programDir,
+          `${artifactDir}/${fileImport.split('.aleo')[0]}`
+        );
+        (config as any).edition = null;
+      } else {
+        config.location = 'network';
+        config.network = defaultNetwork;
       }
       return config;
     })
