@@ -281,7 +281,7 @@ async function buildProgram(programName: string, leoVersion: string) {
   let leoBuildCommand: string;
   if (aleoConfig.networks[defaultNetwork].endpoint == 'http://localhost:3030')
     leoBuildCommand = `cd "${programDir}" && leo build ${networkFlag} --devnet`;
-  else leoBuildCommand = `cd "${leoHomeDir}" && leo build ${networkFlag}`;
+  else leoBuildCommand = `cd "${programDir}" && leo build ${networkFlag}`;
   const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
 
