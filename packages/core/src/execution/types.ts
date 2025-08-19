@@ -31,6 +31,7 @@ export interface ContractConfig extends BaseConfig {
   mode?: ExecutionMode;
   priorityFee?: number;
   isImportedAleo?: boolean;
+  isDevnet?: boolean; // Added to indicate if the execution is on devnet
 }
 
 export interface ExecutionContext {
@@ -48,6 +49,6 @@ export type LeoTransactionParams = Omit<
 >;
 
 export type SnarkExecuteTransactionParams = TransactionParams &
-  Pick<ContractConfig, 'isImportedAleo'>;
+  Pick<ContractConfig, 'isImportedAleo' | 'isDevnet'>;
 
 export type Optional<T> = T | undefined;

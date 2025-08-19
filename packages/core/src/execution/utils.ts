@@ -198,8 +198,7 @@ async function deployAleo(
     config.privateKey,
     nodeEndPoint,
     config.networkName,
-    priorityFee,
-    true
+    config.isDevnet
   );
   DokoJSLogger.debug(cmd);
   const { stdout } = await execute(cmd);
@@ -282,7 +281,7 @@ export const snarkDeploy = async ({
     config.privateKey,
     nodeEndPoint,
     config.networkName,
-    priorityFee
+    config.isDevnet
   );
   DokoJSLogger.debug(cmd);
 
@@ -306,12 +305,9 @@ export const leoDeployCommand = (
   privateKey: string,
   endpoint: string,
   network: string = 'testnet',
-  priorityFee: number = 0,
-  noBuild: boolean = false
+  isDevnet: boolean = false
 ) => {
-  if (endpoint == 'http://localhost:3030')
-    return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print --devnet`;
-  return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print`;
+  return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print ${isDevnet && '--devnet'}`;
 };
 
 export const transactionHashToTransactionResponseObject = (

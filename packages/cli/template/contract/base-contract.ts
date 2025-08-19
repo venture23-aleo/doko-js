@@ -35,7 +35,8 @@ export class BaseContract {
 
       this.config = {
         ...this.config,
-        network: networkConfig.networks[networkName]
+        network: networkConfig.networks[networkName],
+        isDevnet: networkConfig.devnet || false
       };
     }
 

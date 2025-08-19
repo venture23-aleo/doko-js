@@ -14,7 +14,7 @@ export class SnarkExecuteContext implements ExecutionContext {
   constructor(
     public params: SnarkExecuteTransactionParams,
     public parser: SnarkStdoutResponseParser = new SnarkStdoutResponseParser()
-  ) { }
+  ) {}
   /*
   private async broadcast(transaction: Transaction, endpoint: string) {
     try {
@@ -49,11 +49,7 @@ export class SnarkExecuteContext implements ExecutionContext {
       : `cd ${this.params.contractPath} && `;
 
     const programName = this.params.appName + '.aleo';
-    let cmd = '';
-    if (nodeEndPoint === 'http://localhost:3030')
-      cmd = `${cdCmd}leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8 --print --devnet`;
-    else
-      cmd = `${cdCmd}leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8 --print`;
+    const cmd = `${cdCmd}leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8 --print ${this.params.isDevnet && '--devnet'}`;
     DokoJSLogger.debug(cmd);
     let stdoutG: string;
     const id: string | null = null;
