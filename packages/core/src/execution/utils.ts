@@ -307,7 +307,7 @@ export const leoDeployCommand = (
   network: string = 'testnet',
   isDevnet: boolean = false
 ) => {
-  return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print ${isDevnet && '--devnet'}`;
+  return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print ${isDevnet ? '--devnet' : ''}`;
 };
 
 export const transactionHashToTransactionResponseObject = (

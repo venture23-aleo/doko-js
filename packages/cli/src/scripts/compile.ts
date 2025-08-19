@@ -278,7 +278,7 @@ async function buildProgram(programName: string, leoVersion: string) {
       ? `--network ${defaultNetwork}`
       : '';
   const isDevnet = aleoConfig.devnet || false;
-  const leoBuildCommand: string = `cd "${programDir}" && leo build ${networkFlag} ${isDevnet && '--devnet'}`;
+  const leoBuildCommand: string = `cd "${programDir}" && leo build ${networkFlag} ${isDevnet ? '--devnet' : ''}`;
   const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
 
