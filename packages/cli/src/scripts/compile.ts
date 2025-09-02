@@ -206,7 +206,10 @@ async function buildProgram(programName: string, leoVersion: string) {
   );
   const leoHomeDir = path.normalize(path.join(registryDir, '..'));
 
-  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
+  const aleoConfig = await getAleoConfig();
+  const defaultNetwork = aleoConfig['defaultNetwork'];
+
+  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} --endpoint ${aleoConfig.networks[defaultNetwork].endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
   const leoShellCommand = new Shell(createLeoCommand);
   await leoShellCommand.asyncExec();
 
@@ -227,8 +230,6 @@ async function buildProgram(programName: string, leoVersion: string) {
   }
 
   // Update private key on environment
-  const aleoConfig = await getAleoConfig();
-  const defaultNetwork = aleoConfig['defaultNetwork'];
   if (defaultNetwork) {
     const networkConfig = aleoConfig.networks[defaultNetwork];
     if (networkConfig?.accounts && networkConfig.accounts.length > 0) {
@@ -243,7 +244,6 @@ async function buildProgram(programName: string, leoVersion: string) {
     defaultNetwork && leoVersion.startsWith('2.')
       ? `--network ${defaultNetwork}`
       : '';
-
   const leoBuildCommand = `cd "${programDir}" && leo build --home ${leoHomeDir} ${networkFlag}`;
   const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
