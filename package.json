@@ -1,7 +1,7 @@
 {
   "name": "dokojs",
   "scripts": {
-    "build": "pnpm lint:fix && pnpm run --r --filter \"./packages/**\" build",
+    "build": "pnpm lint && pnpm run --r --filter \"./packages/**\" build",
     "pkg:publish": "pnpm build && pnpm -r publish --access=public",
     "install:cli": "pnpm --filter cli build:install",
     "lint": "pnpm run --r --filter \"./packages/**\" lint",

@@ -13,6 +13,7 @@ import {
 import { Node, NodeImport, sort } from '@/utils/graph';
 import { promisify } from 'util';
 import { exec } from 'child_process';
+import { getEdition } from '@/utils/edition';
 
 const GENERATE_FILE_OUT_DIR = 'artifacts';
 const LEO_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/leo`;
@@ -25,7 +26,7 @@ const IMPORTS_DIRECTORY = './imports/';
 async function getFileImports(filePath: string) {
   const code = fs.readFileSync(filePath, 'utf-8');
 
-  const regex = /^(?!\s*\/\/).*import\s+([\w.]+);/gm;
+  const regex = /^(?!\s*\/\/).*import\s+([\w.]+);/gm; // this checks for imports in the leo file and also discards commented imports
   const matches = [];
   let match;
 
@@ -121,7 +122,7 @@ async function createGraph(
 async function prepareImportsRegistry(importsDir: string, registryDir: string) {
   const aleoConfig = await getAleoConfig();
   const defaultNetwork = aleoConfig['defaultNetwork'];
-
+  const endpoint = aleoConfig.networks[defaultNetwork].endpoint;
   const registryDirWithNetwork = path.join(registryDir, defaultNetwork);
 
   const importDirExists = await fs.exists(importsDir);
@@ -136,11 +137,12 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
   for (const file of files) {
     if (file.endsWith('.aleo')) {
       let dstFolder = `${homeDir}/.aleo/registry/${defaultNetwork}`;
-      dstFolder = `${dstFolder}/${file.split('.')[0]}/0`;
+      const edition = await getEdition(file, defaultNetwork, endpoint);
+      dstFolder = `${dstFolder}/${file.split('.')[0]}/${edition}`;
       const dstFilePath = path.join(
         registryDirWithNetwork,
         file.split('.')[0],
-        '0'
+        edition
       );
       const srcFile = path.join(importsDir, file);
       const cpCommand = `mkdir -p ${dstFilePath} && cp ${srcFile} ${dstFilePath}`;
@@ -207,12 +209,13 @@ async function cachePrograms(
   programName: string,
   programDir: string,
   networkName: string,
+  edition: string,
   registryDir?: string
 ) {
   const homeDir = os.homedir();
   const srcFilePath = `${programDir}/build/main.aleo`;
   let dstFolder = registryDir || `${homeDir}/.aleo/registry/${networkName}`; // todo: only temporary fix
-  dstFolder = `${dstFolder}/${programName}/0`;
+  dstFolder = `${dstFolder}/${programName}/${edition}`;
   const dstFilePath = `${dstFolder}/${programName}.aleo`;
 
   const createLeoCommand = `mkdir -p "${dstFolder}" && cp "${srcFilePath}" "${dstFilePath}"`;
@@ -240,8 +243,14 @@ async function buildProgram(programName: string, leoVersion: string) {
   const aleoConfig = await getAleoConfig();
   const defaultNetwork = aleoConfig['defaultNetwork'];
   const leoHomeDir = path.normalize(path.join(registryDir, '..'));
+  const endpoint = aleoConfig.networks[defaultNetwork].endpoint;
+  const edition = await getEdition(
+    programName + '.aleo',
+    defaultNetwork,
+    endpoint
+  );
 
-  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} --endpoint ${aleoConfig.networks[defaultNetwork].endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
+  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} --endpoint ${endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
   const leoShellCommand = new Shell(createLeoCommand);
   await leoShellCommand.asyncExec();
 
@@ -283,12 +292,12 @@ async function buildProgram(programName: string, leoVersion: string) {
   const res = await shellCommand.asyncExec();
 
   if (aleoConfig['mode'] === 'execute' && defaultNetwork) {
-    await cachePrograms(programName, programDir, defaultNetwork);
+    await cachePrograms(programName, programDir, defaultNetwork, edition);
     await cachePrograms(
       programName,
       programDir,
       defaultNetwork,
-      path.join(registryDir, defaultNetwork)
+      path.join(registryDir, defaultNetwork, edition)
     );
     DokoJSLogger.debug(`Program ${programName}.aleo cached to aleo registry`);
   }
