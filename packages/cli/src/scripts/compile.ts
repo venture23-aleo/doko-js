@@ -229,15 +229,31 @@ async function buildProgram(programName: string, leoVersion: string) {
     fs.writeFileSync(configFilePath, JSON.stringify(configs));
   }
 
-  // Update private key on environment
-  if (defaultNetwork) {
-    const networkConfig = aleoConfig.networks[defaultNetwork];
-    if (networkConfig?.accounts && networkConfig.accounts.length > 0) {
-      const privateKey = networkConfig.accounts[0];
-      if (!privateKey)
-        throw new Error('Invalid private key, check aleo-config.js ...');
-      replacePrivateKeyInFile(`${programDir}/.env`, privateKey);
+  const envPath = path.join(programDir, '.env');
+  const isEnvFileExists = await fs
+    .stat(envPath)
+    .then(() => true)
+    .catch(() => false);
+
+  if (isEnvFileExists) {
+    if (defaultNetwork) {
+      const networkConfig = aleoConfig.networks[defaultNetwork];
+      if (networkConfig?.accounts && networkConfig.accounts.length > 0) {
+        const privateKey = networkConfig.accounts[0];
+        if (!privateKey)
+          throw new Error('Invalid private key, check aleo-config.js ...');
+        replacePrivateKeyInFile(`${programDir}/.env`, privateKey);
+      }
     }
+  } else {
+    const defaultNetwork = aleoConfig['defaultNetwork'] || 'testnet';
+    const privateKey =
+      aleoConfig.networks[defaultNetwork].accounts[0] ||
+      'APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH';
+    const endpoint =
+      aleoConfig.networks[defaultNetwork].endpoint || 'http://localhost:3030';
+    const envContent = `NETWORK=${defaultNetwork}\nPRIVATE_KEY=${privateKey}\nENDPOINT=${endpoint}`;
+    await fs.writeFile(envPath, envContent);
   }
 
   const networkFlag =
