@@ -249,8 +249,21 @@ async function buildProgram(programName: string, leoVersion: string) {
     defaultNetwork,
     endpoint
   );
-
-  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} --endpoint ${endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
+  // Update private key on environment
+  let privateKey = '';
+  if (defaultNetwork) {
+    const networkConfig = aleoConfig.networks[defaultNetwork];
+    if (networkConfig?.accounts && networkConfig.accounts.length > 0) {
+      privateKey = networkConfig.accounts[0];
+      if (!privateKey)
+        throw new Error('Invalid private key, check aleo-config.js ...');
+      // replacePrivateKeyInFile(`${programDir}/.env`, privateKey);
+    }
+  }
+  const envContent = `NETWORK=${defaultNetwork}
+PRIVATE_KEY=${privateKey}
+ENDPOINT=${endpoint}`;
+  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} --endpoint ${endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo" && echo '${envContent}' > "${programDir}/.env"`;
   const leoShellCommand = new Shell(createLeoCommand);
   await leoShellCommand.asyncExec();
 
@@ -268,18 +281,6 @@ async function buildProgram(programName: string, leoVersion: string) {
       fileImports
     );
     fs.writeFileSync(configFilePath, JSON.stringify(configs));
-  }
-
-  // Update private key on environment
-
-  if (defaultNetwork) {
-    const networkConfig = aleoConfig.networks[defaultNetwork];
-    if (networkConfig?.accounts && networkConfig.accounts.length > 0) {
-      const privateKey = networkConfig.accounts[0];
-      if (!privateKey)
-        throw new Error('Invalid private key, check aleo-config.js ...');
-      replacePrivateKeyInFile(`${programDir}/.env`, privateKey);
-    }
   }
 
   const networkFlag =
