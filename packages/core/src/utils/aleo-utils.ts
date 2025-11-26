@@ -114,10 +114,15 @@ const GetLeoArrTypeAndSize = (arrDef: string) => {
   return arrComponents;
 };
 
-const ConvertToJSType = (type: string) => {
+const ConvertToJSType = (
+  type: string,
+  isArrayOfCustomType: boolean = false
+) => {
   if (IsLeoArray(type)) {
     const [arrType, arrSize] = GetLeoArrTypeAndSize(type);
-    const jsType = ALEO_TO_JS_TYPE_MAPPING.get(arrType);
+    const jsType = isArrayOfCustomType
+      ? arrType
+      : ALEO_TO_JS_TYPE_MAPPING.get(arrType);
     return `Array<${jsType}>`;
   }
   if (IsLeoExternalRecord(type)) {

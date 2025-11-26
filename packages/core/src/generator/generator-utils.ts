@@ -9,13 +9,16 @@ import { GetConverterFunctionName } from './leo-naming';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
 import { STRING_JS } from './string-constants';
 
-export function InferJSDataType(type: string): string {
+export function InferJSDataType(
+  type: string,
+  isArrayOfCustomType: boolean = false
+): string {
   if (
     IsLeoPrimitiveType(type) ||
     IsLeoArray(type) ||
     IsLeoExternalRecord(type)
   ) {
-    const tsType = ConvertToJSType(type);
+    const tsType = ConvertToJSType(type, isArrayOfCustomType);
     if (tsType) return tsType;
     else
       throw new DokoJSError(ERRORS.ARTIFACTS.UNDECLARED_TYPE, {
@@ -57,7 +60,8 @@ export function GenerateTSImport(
 export function GenerateTypeConversionStatement(
   leoType: string,
   inputField: string,
-  conversionTo: string
+  conversionTo: string,
+  isArrayOfCustomType: boolean = false
 ) {
   // Split qualifier private/public
   const [type, qualifier] = leoType.split('.');
@@ -71,7 +75,15 @@ export function GenerateTypeConversionStatement(
   if (isArray) {
     // Pass additional conversion function
     const [dataType, size] = GetLeoArrTypeAndSize(type);
-    inputField = inputField.concat(`, ${namespace}.${dataType}`);
+    if (isArrayOfCustomType) {
+      const converstionFnName = GetConverterFunctionName(
+        dataType,
+        conversionTo
+      );
+      inputField = inputField.concat(`, ${converstionFnName}`);
+    } else {
+      inputField = inputField.concat(`, ${namespace}.${dataType}`);
+    }
   }
 
   let fn = `${conversionFnName}(${inputField})`;
@@ -86,6 +98,9 @@ export function GenerateTypeConversionStatement(
     }
   }
 
+  if (isArrayOfCustomType) {
+    fn = `${fn}.map(item=> js2leo.json(item))`;
+  }
   return fn;
 }
 
