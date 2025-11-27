@@ -426,6 +426,9 @@ class Generator {
         outUsedTypes.add(jsType);
         fnName = `js2leo.json(${fnName})`;
       }
+      if (isArrayOfCustomType) {
+        outUsedTypes.add(dataType);
+      }
 
       if (IsLeoArray(leoType)) fnName = `js2leo.arr2string(${fnName})`;
 
