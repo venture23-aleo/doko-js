@@ -13,7 +13,8 @@ import {
   IsLeoArray,
   MappingDefinition,
   IsLeoExternalRecord,
-  GetLeoArrTypeAndSize
+  GetLeoArrTypeAndSize,
+  GetLeoTypeAndDepth
 } from '@/utils/aleo-utils';
 import { TSInterfaceGenerator } from '@/generator/ts-interface-generator';
 import { ZodObjectGenerator } from '@/generator/zod-object-generator';
@@ -390,13 +391,19 @@ class Generator {
       // Generate argument array
       const isExternalRecord = IsLeoExternalRecord(input.val);
       const leoType = FormatLeoDataType(input.val).split('.')[0];
-      const [dataType, size] = GetLeoArrTypeAndSize(leoType);
-      const isArrayOfCustomType =
-        IsLeoArray(leoType) && this.refl.isCustomType(dataType);
+      const isArray = IsLeoArray(leoType);
+      let dataType = leoType;
+      let isCustomType = false;
+      let depth = 0;
+      if (isArray) {
+        [dataType, depth] = GetLeoTypeAndDepth(leoType);
+        // const [dataType, size] = GetLeoArrTypeAndSize(leoType);
+        isCustomType = this.refl.isCustomType(dataType);
+      }
 
       const jsType = isExternalRecord
         ? InferExternalRecordInputDataType(input.val)
-        : InferJSDataType(leoType, isArrayOfCustomType);
+        : InferJSDataType(leoType, isCustomType);
 
       // Create argument for each parameter of function
       const argName = input.key;
@@ -418,7 +425,7 @@ class Generator {
             leoType,
             argName,
             STRING_LEO,
-            isArrayOfCustomType
+            isCustomType
           );
 
       // For custom type that produce object it must be converted to string
@@ -426,7 +433,7 @@ class Generator {
         outUsedTypes.add(jsType);
         fnName = `js2leo.json(${fnName})`;
       }
-      if (isArrayOfCustomType) {
+      if (isCustomType) {
         outUsedTypes.add(dataType);
       }
 

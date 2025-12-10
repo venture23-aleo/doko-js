@@ -3,7 +3,8 @@ import {
   GetLeoArrTypeAndSize,
   IsLeoArray,
   IsLeoPrimitiveType,
-  IsLeoExternalRecord
+  IsLeoExternalRecord,
+  GetLeoTypeAndDepth
 } from '@/utils/aleo-utils';
 import { GetConverterFunctionName } from './leo-naming';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
@@ -11,14 +12,15 @@ import { STRING_JS } from './string-constants';
 
 export function InferJSDataType(
   type: string,
-  isArrayOfCustomType: boolean = false
+  isCustomType: boolean = false
 ): string {
   if (
     IsLeoPrimitiveType(type) ||
     IsLeoArray(type) ||
     IsLeoExternalRecord(type)
   ) {
-    const tsType = ConvertToJSType(type, isArrayOfCustomType);
+    const [dataType, depth] = GetLeoTypeAndDepth(type);
+    const tsType = ConvertToJSType(dataType, isCustomType, depth);
     if (tsType) return tsType;
     else
       throw new DokoJSError(ERRORS.ARTIFACTS.UNDECLARED_TYPE, {
@@ -61,21 +63,22 @@ export function GenerateTypeConversionStatement(
   leoType: string,
   inputField: string,
   conversionTo: string,
-  isArrayOfCustomType: boolean = false
+  isCustomType: boolean = false
 ) {
   // Split qualifier private/public
   const [type, qualifier] = leoType.split('.');
+  const inputFieldOriginal = inputField;
 
   // Determine member conversion function
   const conversionFnName = GetConverterFunctionName(type, conversionTo);
 
   const namespace = conversionTo === 'js' ? 'leo2js' : 'js2leo';
-
+  const [dataType, depth] = GetLeoTypeAndDepth(type);
   const isArray = IsLeoArray(type);
   if (isArray) {
     // Pass additional conversion function
-    const [dataType, size] = GetLeoArrTypeAndSize(type);
-    if (isArrayOfCustomType) {
+
+    if (isCustomType) {
       const converstionFnName = GetConverterFunctionName(
         dataType,
         conversionTo
@@ -98,8 +101,13 @@ export function GenerateTypeConversionStatement(
     }
   }
 
-  if (isArrayOfCustomType) {
+  if (isCustomType) {
     fn = `${fn}.map(item=> js2leo.json(item))`;
+  }
+  if (depth > 1) {
+    for (let i = 1; i < depth; i++) {
+      fn = `${inputFieldOriginal}.map(${inputFieldOriginal}=> js2leo.arr2string(${fn}))`;
+    }
   }
   return fn;
 }

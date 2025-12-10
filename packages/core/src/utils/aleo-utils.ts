@@ -114,16 +114,40 @@ const GetLeoArrTypeAndSize = (arrDef: string) => {
   return arrComponents;
 };
 
+/**
+ * @param s The array depth string, e.g., "[[[CustomType 2u32] 2u32] 2u32]"
+ * @returns A tuple of [baseType, depth]
+ */
+const GetLeoTypeAndDepth = (arrDef: string): [string, number] => {
+  // 1. Regular Expression for single-pass extraction
+  // Pattern:
+  // ^      -> Start of the string
+  // (\[*)  -> Group 1: Capture all leading '[' characters (this gives us the depth)
+  // (\w+)  -> Group 2: Capture the word immediately following the brackets (this is the base type)
+  const match = arrDef.match(/^(\[*)\s*(\w+)/);
+
+  if (match && match.length >= 3) {
+    const leadingBrackets = match[1]; // e.g., "[[["
+    const baseType = match[2]; // e.g., "CustomType"
+
+    // The length of the captured bracket string is the depth.
+    const depth = leadingBrackets.length;
+
+    return [baseType, depth];
+  }
+
+  // Fallback for malformed or empty strings
+  return [arrDef, 0];
+};
+
 const ConvertToJSType = (
   type: string,
-  isArrayOfCustomType: boolean = false
+  isCustomType: boolean = false,
+  depth: number = 0
 ) => {
-  if (IsLeoArray(type)) {
-    const [arrType, arrSize] = GetLeoArrTypeAndSize(type);
-    const jsType = isArrayOfCustomType
-      ? arrType
-      : ALEO_TO_JS_TYPE_MAPPING.get(arrType);
-    return `Array<${jsType}>`;
+  if (depth > 0) {
+    const jsType = isCustomType ? type : ALEO_TO_JS_TYPE_MAPPING.get(type);
+    return 'Array<'.repeat(depth) + jsType + '>'.repeat(depth);
   }
   if (IsLeoExternalRecord(type)) {
     const typeParts = type.split('.aleo/');
@@ -166,6 +190,7 @@ export {
   ConvertToJSType,
   IsLeoArray,
   GetLeoArrTypeAndSize,
+  GetLeoTypeAndDepth,
   IsLeoPrimitiveType,
   IsLeoExternalRecord,
   trimAleoPostfix,
