@@ -10,17 +10,22 @@ import { GetConverterFunctionName } from './leo-naming';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
 import { STRING_JS } from './string-constants';
 
-export function InferJSDataType(
-  type: string,
-  isCustomType: boolean = false
-): string {
-  if (
-    IsLeoPrimitiveType(type) ||
-    IsLeoArray(type) ||
-    IsLeoExternalRecord(type)
-  ) {
-    const [dataType, depth] = GetLeoTypeAndDepth(type);
-    const tsType = ConvertToJSType(dataType, isCustomType, depth);
+export function generateArgType(type: string, depth: number): string {
+  for (let i = 0; i < depth; i++) {
+    type = `Array<${type}>`;
+  }
+  return type;
+}
+
+export function InferJSDataType(type: string): string {
+  if (IsLeoArray(type)) {
+    const [nestedType, depth] = GetLeoTypeAndDepth(type);
+    const tsType = ConvertToJSType(nestedType) || nestedType;
+    const argType = generateArgType(tsType, depth);
+    return argType;
+  }
+  if (IsLeoPrimitiveType(type) || IsLeoExternalRecord(type)) {
+    const tsType = ConvertToJSType(type);
     if (tsType) return tsType;
     else
       throw new DokoJSError(ERRORS.ARTIFACTS.UNDECLARED_TYPE, {
@@ -62,54 +67,88 @@ export function GenerateTSImport(
 export function GenerateTypeConversionStatement(
   leoType: string,
   inputField: string,
-  conversionTo: string,
-  isCustomType: boolean = false
+  conversionTo: string
 ) {
   // Split qualifier private/public
   const [type, qualifier] = leoType.split('.');
-  const inputFieldOriginal = inputField;
 
   // Determine member conversion function
   const conversionFnName = GetConverterFunctionName(type, conversionTo);
 
   const namespace = conversionTo === 'js' ? 'leo2js' : 'js2leo';
-  const [dataType, depth] = GetLeoTypeAndDepth(type);
-  const isArray = IsLeoArray(type);
-  if (isArray) {
-    // Pass additional conversion function
-
-    if (isCustomType) {
-      const converstionFnName = GetConverterFunctionName(
-        dataType,
-        conversionTo
-      );
-      inputField = inputField.concat(`, ${converstionFnName}`);
-    } else {
-      inputField = inputField.concat(`, ${namespace}.${dataType}`);
-    }
-  }
 
   let fn = `${conversionFnName}(${inputField})`;
-
-  // if this is not a custom type we have to use the
-  // conversion function from namespace
-  if (IsLeoPrimitiveType(type) || isArray) {
+  if (IsLeoArray(type)) {
+    const [nestedType, depth] = GetLeoTypeAndDepth(type);
+    const conversionFn = IsLeoPrimitiveType(nestedType)
+      ? `${namespace}.${nestedType}`
+      : GetConverterFunctionName(nestedType, conversionTo);
+    if (depth === 1) {
+      fn = `${namespace}.${conversionFnName}(${inputField}, ${conversionFn})`;
+      if (qualifier && conversionTo === 'leo') {
+        fn = `${namespace}.${conversionFnName}(${fn}, ${namespace}.${qualifier}Field)`;
+      }
+    } else {
+      for (let i = 1; i < depth; i++) {
+        inputField += `.map(element${i} =>`;
+      }
+      if (qualifier && conversionTo === 'leo') {
+        inputField += `${namespace}.${conversionFnName}(${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn}), ${namespace}.${qualifier}Field)`;
+      } else {
+        inputField += ` ${namespace}.${conversionFnName}(element${depth - 1}, ${conversionFn})`;
+      }
+      for (let i = 1; i < depth; i++) {
+        inputField += ')';
+      }
+      fn = inputField;
+    }
+  } else if (IsLeoPrimitiveType(type)) {
     fn = `${namespace}.${fn}`;
-
     if (conversionTo === 'leo') {
       if (qualifier) fn = `${namespace}.${qualifier}Field(${fn})`;
     }
-  }
-
-  if (isCustomType) {
-    fn = `${fn}.map(item=> js2leo.json(item))`;
-  }
-  if (depth > 1) {
-    for (let i = 1; i < depth; i++) {
-      fn = `${inputFieldOriginal}.map(${inputFieldOriginal}=> js2leo.arr2string(${fn}))`;
-    }
+    // if(qualifier) {
+    //   fn = `${namespace}.${conversionFnName}(${fn}, ${namespace}.${qualifier}Field)`;
+    // }
   }
   return fn;
+
+  // const isArray = IsLeoArray(type);
+  // if (isArray) {
+  //   // Pass additional conversion function
+
+  //   if (isCustomType) {
+  //     const converstionFnName = GetConverterFunctionName(
+  //       dataType,
+  //       conversionTo
+  //     );
+  //     inputField = inputField.concat(`, ${converstionFnName}`);
+  //   } else {
+  //     inputField = inputField.concat(`, ${namespace}.${dataType}`);
+  //   }
+  // }
+
+  // let fn = `${conversionFnName}(${inputField})`;
+
+  // // if this is not a custom type we have to use the
+  // // conversion function from namespace
+  // if (IsLeoPrimitiveType(type) || isArray) {
+  //   fn = `${namespace}.${fn}`;
+
+  //   if (conversionTo === 'leo') {
+  //     if (qualifier) fn = `${namespace}.${qualifier}Field(${fn})`;
+  //   }
+  // }
+
+  // if (isCustomType) {
+  //   fn = `${fn}.map(item=> js2leo.json(item))`;
+  // }
+  // if (depth > 1) {
+  //   for (let i = 1; i < depth; i++) {
+  //     fn = `${inputFieldOriginal}.map(${inputFieldOriginal}=> js2leo.arr2string(${fn}))`;
+  //   }
+  // }
+  // return fn;
 }
 
 // Return list of function involved in conversion of the given type

@@ -310,7 +310,7 @@ class Generator {
       // PrivateKey.from_string(privateKey).to_view_key().decrypt(encodedRecord);\n'
     );
     fnGenerator.addStatement(
-      `\tconst result: ${jsType} = get${jsType}(parseJSONLikeString(decodedRecord));\n`
+      `\tconst result: ${jsType} = get${jsType}(parseJSONLikeString(decodedRecord) as ${jsType}Leo);\n`
     );
 
     // Add return statement
@@ -392,23 +392,19 @@ class Generator {
       const isExternalRecord = IsLeoExternalRecord(input.val);
       const leoType = FormatLeoDataType(input.val).split('.')[0];
       const isArray = IsLeoArray(leoType);
-      let dataType = leoType;
-      let isCustomType = false;
-      let depth = 0;
-      if (isArray) {
-        [dataType, depth] = GetLeoTypeAndDepth(leoType);
-        // const [dataType, size] = GetLeoArrTypeAndSize(leoType);
-        isCustomType = this.refl.isCustomType(dataType);
-      }
+      const [nestedType] = GetLeoTypeAndDepth(leoType);
 
       const jsType = isExternalRecord
         ? InferExternalRecordInputDataType(input.val)
-        : InferJSDataType(leoType, isCustomType);
+        : InferJSDataType(leoType);
 
       // Create argument for each parameter of function
       const argName = input.key;
-      args.push({ name: argName, type: jsType });
+      const argType = isExternalRecord
+        ? InferExternalRecordInputDataType(input.val)
+        : InferJSDataType(leoType);
 
+      args.push({ name: argName, type: argType });
       // Can be anything but we just define it as something that ends with leo
       const localVariableName = `${argName}Leo`;
       localVariables.push(localVariableName);
@@ -421,20 +417,14 @@ class Generator {
             argName,
             STRING_LEO
           )
-        : GenerateTypeConversionStatement(
-            leoType,
-            argName,
-            STRING_LEO,
-            isCustomType
-          );
+        : GenerateTypeConversionStatement(leoType, argName, STRING_LEO);
 
       // For custom type that produce object it must be converted to string
       if (this.refl.isCustomType(leoType)) {
         outUsedTypes.add(jsType);
         fnName = `js2leo.json(${fnName})`;
-      }
-      if (isCustomType) {
-        outUsedTypes.add(dataType);
+      } else if (this.refl.isCustomType(nestedType)) {
+        outUsedTypes.add(InferJSDataType(nestedType));
       }
 
       if (IsLeoArray(leoType)) fnName = `js2leo.arr2string(${fnName})`;
@@ -462,6 +452,7 @@ class Generator {
 
         // cast non-custom datatype to string
         const type = formattedOutput.split('.')[0];
+        const [nestedType, depth] = GetLeoTypeAndDepth(type);
         const isRecordType = this.refl.isRecordType(type);
         const isExternalRecord =
           output.includes('.aleo/') && output.includes('.record');
@@ -471,6 +462,8 @@ class Generator {
 
         if (this.refl.isCustomType(type)) {
           outUsedTypes.add(InferJSDataType(type));
+        } else if (this.refl.isCustomType(nestedType)) {
+          outUsedTypes.add(InferJSDataType(nestedType));
         }
 
         const converterFn = isExternalRecord
@@ -483,19 +476,44 @@ class Generator {
             ]
           : isRecordType
             ? ['leo2js.record']
-            : GetTypeConversionFunctionsJS(formattedOutput);
+            : this.refl.isCustomType(nestedType) && nestedType !== type
+              ? [
+                  GetTypeConversionFunctionsJS(formattedOutput)[0],
+                  GetTypeConversionFunctionsJS(nestedType)[0]
+                ]
+              : GetTypeConversionFunctionsJS(formattedOutput);
 
+        if (depth > 1) {
+          const generateMultiDimensionalArrayConverter = (
+            depth: number
+          ): string => {
+            if (depth <= 1) throw new Error('Depth must be at least 2');
+            let mapChain = 'arr';
+            for (let i = 1; i < depth; i++) {
+              mapChain += `.map(arr${i} =>`;
+            }
+            mapChain += ` leo2js.array(arr${depth - 1}, converterFn)`;
+            for (let i = 1; i < depth; i++) {
+              mapChain += ')';
+            }
+            const typeDefinition = `any${'[]'.repeat(depth)}`;
+            return `(arr: ${typeDefinition}, converterFn: Function) => { return ${mapChain}; }`;
+          };
+          converterFn[0] = generateMultiDimensionalArrayConverter(depth);
+        }
         const formatConverterFn =
           converterFn.length > 1
             ? `[${converterFn.join(',')}]`
             : converterFn[0];
 
+        const outputType = isExternalRecord
+          ? `ExternalRecord<'${externaleRecordParts[0]}', '${externaleRecordParts[1]}'>`
+          : isRecordType
+            ? 'LeoRecord'
+            : InferJSDataType(type);
+
         returnValues.push({
-          type: isExternalRecord
-            ? `ExternalRecord<'${externaleRecordParts[0]}', '${externaleRecordParts[1]}'>`
-            : isRecordType
-              ? 'LeoRecord'
-              : InferJSDataType(type),
+          type: outputType,
           converterFunction: formatConverterFn
         });
       });
