@@ -49,6 +49,27 @@ function replacePrivateKeyInFile(envFile: string, privateKey: string) {
   fs.writeFileSync(envFile, envVariables.join('\n'));
 }
 
+function createEnvFile(envFile: string, variables: Record<string, string>) {
+  // create .env file if not exists
+  if (!fs.existsSync(envFile)) {
+    fs.writeFileSync(envFile, '');
+  }
+  // add variables to .env file
+  const envData = fs.readFileSync(envFile, 'utf-8').trim();
+  const envVariables = envData.split('\n');
+  for (const [key, value] of Object.entries(variables)) {
+    const existingVarIndex = envVariables.findIndex((v) =>
+      v.startsWith(`${key}=`)
+    );
+    if (existingVarIndex !== -1) {
+      envVariables[existingVarIndex] = `${key}=${value}`;
+    } else {
+      envVariables.push(`${key}=${value}`);
+    }
+  }
+  fs.writeFileSync(envFile, envVariables.join('\n'));
+}
+
 async function resolveImport(importName: string): Promise<NodeImport> {
   const nameWithoutExtension = importName.replace('.aleo', '');
   const programsPath = path.join(
@@ -123,7 +144,8 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
   const aleoConfig = await getAleoConfig();
   const defaultNetwork = aleoConfig['defaultNetwork'];
   const endpoint = aleoConfig.networks[defaultNetwork].endpoint;
-  const registryDirWithNetwork = path.join(registryDir, defaultNetwork);
+  const network = aleoConfig.networks[defaultNetwork].network;
+  const registryDirWithNetwork = path.join(registryDir, network);
 
   const importDirExists = await fs.exists(importsDir);
   if (!importDirExists) return;
@@ -133,11 +155,11 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
     files.filter((file) => file.endsWith('.aleo')).length > 0;
   if (!importFileExists) return;
   const homeDir = os.homedir();
-
+  const commands = [];
   for (const file of files) {
     if (file.endsWith('.aleo')) {
-      let dstFolder = `${homeDir}/.aleo/registry/${defaultNetwork}`;
-      const edition = await getEdition(file, defaultNetwork, endpoint);
+      let dstFolder = `${homeDir}/.aleo/registry/${network}`;
+      const edition = await getEdition(file, network, endpoint);
       dstFolder = `${dstFolder}/${file.split('.')[0]}/${edition}`;
       const dstFilePath = path.join(
         registryDirWithNetwork,
@@ -147,11 +169,11 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
       const srcFile = path.join(importsDir, file);
       const cpCommand = `mkdir -p ${dstFilePath} && cp ${srcFile} ${dstFilePath}`;
       const cpCommandToRegistry = `mkdir -p ${dstFolder} && cp ${srcFile} ${dstFolder}`;
-      const cpShellToRegistryCommand = new Shell(cpCommandToRegistry);
-      await cpShellToRegistryCommand.asyncExec();
-      const cpShellCommand = new Shell(cpCommand);
-      await cpShellCommand.asyncExec();
+      commands.push(cpCommandToRegistry);
+      commands.push(cpCommand);
     }
+    const shellCommand = new Shell(commands.join(' && '));
+    await shellCommand.asyncExec();
   }
 }
 
@@ -165,7 +187,7 @@ async function createImportConfig(
   const executionMode = aleoConfig['mode'];
   const defaultNetwork = aleoConfig['defaultNetwork'];
   const networkConfig = aleoConfig.networks[defaultNetwork];
-
+  const projectRoot = getProjectRoot();
   const importConfigs = await Promise.all(
     fileImports.map(async (fileImport) => {
       const config: Record<string, string> = {};
@@ -181,18 +203,18 @@ async function createImportConfig(
             );
           } else {
             config.location = 'network';
-            config.network = defaultNetwork;
+            config.network = networkConfig.network;
           }
           break;
         case 'execute':
           if (resolvedDependency.source === 'imports') {
             config.location = 'local';
-            config.path = '../../../imports/' + fileImport;
+            config.path = `${projectRoot}/imports/` + fileImport;
             break;
           } else {
             config.location = 'network';
             config.endpoint = networkConfig.endpoint || '';
-            config.network = defaultNetwork;
+            config.network = networkConfig.network;
             break;
           }
         default:
@@ -214,7 +236,7 @@ async function cachePrograms(
 ) {
   const homeDir = os.homedir();
   const srcFilePath = `${programDir}/build/main.aleo`;
-  let dstFolder = registryDir || `${homeDir}/.aleo/registry/${networkName}`; // todo: only temporary fix
+  let dstFolder = registryDir || `${homeDir}/.aleo/registry/${networkName}`;
   dstFolder = `${dstFolder}/${programName}/${edition}`;
   const dstFilePath = `${dstFolder}/${programName}.aleo`;
 
@@ -244,28 +266,27 @@ async function buildProgram(programName: string, leoVersion: string) {
   const defaultNetwork = aleoConfig['defaultNetwork'];
   const leoHomeDir = path.normalize(path.join(registryDir, '..'));
   const endpoint = aleoConfig.networks[defaultNetwork].endpoint;
-  const edition = await getEdition(
-    programName + '.aleo',
-    defaultNetwork,
-    endpoint
-  );
+  const network = aleoConfig.networks[defaultNetwork].network;
+  const edition = await getEdition(programName + '.aleo', network, endpoint);
   // Update private key on environment
   let privateKey = '';
-  if (defaultNetwork) {
-    const networkConfig = aleoConfig.networks[defaultNetwork];
+  if (network) {
+    const networkConfig = aleoConfig.networks[network];
     if (networkConfig?.accounts && networkConfig.accounts.length > 0) {
       privateKey = networkConfig.accounts[0];
       if (!privateKey)
         throw new Error('Invalid private key, check aleo-config.js ...');
-      // replacePrivateKeyInFile(`${programDir}/.env`, privateKey);
     }
   }
-  const envContent = `NETWORK=${defaultNetwork}
-PRIVATE_KEY=${privateKey}
-ENDPOINT=${endpoint}`;
-  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} --endpoint ${endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo" && echo '${envContent}' > "${programDir}/.env"`;
+  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} --endpoint ${endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
+
   const leoShellCommand = new Shell(createLeoCommand);
   await leoShellCommand.asyncExec();
+  createEnvFile(`${programDir}/.env`, {
+    NETWORK: network || '',
+    PRIVATE_KEY: privateKey,
+    ENDPOINT: endpoint
+  });
 
   // Update import dependencies on program.json
   const fileImports = await getFileImports(
@@ -284,21 +305,19 @@ ENDPOINT=${endpoint}`;
   }
 
   const networkFlag =
-    defaultNetwork && leoVersion.startsWith('2.')
-      ? `--network ${defaultNetwork}`
-      : '';
-  const isDevnet = aleoConfig.devnet || false;
+    network && leoVersion.startsWith('2.') ? `--network ${network}` : '';
+  const isDevnet = defaultNetwork === 'devnet';
   const leoBuildCommand: string = `cd "${programDir}" && leo build ${networkFlag} ${isDevnet ? '--devnet' : ''}`;
   const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
 
-  if (aleoConfig['mode'] === 'execute' && defaultNetwork) {
-    await cachePrograms(programName, programDir, defaultNetwork, edition);
+  if (aleoConfig['mode'] === 'execute' && network) {
+    await cachePrograms(programName, programDir, network, edition);
     await cachePrograms(
       programName,
       programDir,
-      defaultNetwork,
-      path.join(registryDir, defaultNetwork, edition)
+      network,
+      path.join(registryDir, network, edition)
     );
     DokoJSLogger.debug(`Program ${programName}.aleo cached to aleo registry`);
   }

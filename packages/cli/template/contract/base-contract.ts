@@ -36,7 +36,7 @@ export class BaseContract {
       this.config = {
         ...this.config,
         network: networkConfig.networks[networkName],
-        isDevnet: networkConfig.devnet || false
+        isDevnet: networkName === 'devnet'
       };
     }
 
@@ -47,7 +47,7 @@ export class BaseContract {
   }
 
   async isDeployed(): Promise<boolean> {
-    const endpoint = `${this.config.network.endpoint}/${this.config.networkName}/program/${this.config.appName}.aleo`;
+    const endpoint = `${this.config.network.endpoint}/${this.config.network.network}/program/${this.config.appName}.aleo`;
     return checkDeployment(endpoint);
   }
 
@@ -70,7 +70,10 @@ export class BaseContract {
   }
 
   address(): string {
-    return to_address(`${this.config.appName}.aleo`, this.config.networkName);
+    return to_address(
+      `${this.config.appName}.aleo`,
+      this.config.network.network
+    );
   }
 
   // TODO: handle properly

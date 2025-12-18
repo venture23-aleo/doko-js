@@ -9,6 +9,7 @@ export enum ExecutionMode {
 }
 
 interface NetworkConfig {
+  network: string;
   endpoint: string;
   accounts: string[];
 }
@@ -31,7 +32,7 @@ export interface ContractConfig extends BaseConfig {
   mode?: ExecutionMode;
   priorityFee?: number;
   isImportedAleo?: boolean;
-  isDevnet?: boolean; // Added to indicate if the execution is on devnet
+  isDevnet?: boolean;
 }
 
 export interface ExecutionContext {

@@ -79,13 +79,3 @@ export function extractTransactionId(output: string): string | null {
   const match = output.match(regex);
   return match ? match[1] : null;
 }
-
-// export const waitTransaction = async (
-//   transactionId: string,
-//   endpoint: string,
-//   networkName: string
-// ) => {
-//   if (transactionId)
-//     return await validateBroadcast(transactionId, endpoint, networkName);
-//   return null;
-// };

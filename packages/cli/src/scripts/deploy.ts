@@ -50,7 +50,7 @@ async function deploy(
   const privateKey = networkConfig.accounts[privateKeyIndex];
   const nodeEndPoint = networkConfig.endpoint;
   const deployPath = getBuildPath(programName);
-  const isDevnet = networkConfig.devnet || false;
+  const isDevnet = network === 'devnet';
 
   const command = leoDeployCommand(
     deployPath,

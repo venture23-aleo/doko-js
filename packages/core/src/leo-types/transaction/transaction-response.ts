@@ -136,7 +136,7 @@ export class SnarkExecuteResponse<
     this.transaction = (await validateBroadcast(
       this.transactionId,
       endpoint,
-      this.transactionParams.networkName
+      this.transactionParams.network.network
     )) as any;
 
     if (this.transaction) {
@@ -171,7 +171,7 @@ export class SnarkExecuteResponse<
     this.transaction = (await validateBroadcast(
       this.transactionId,
       this.transactionParams.network.endpoint,
-      this.transactionParams.networkName
+      this.transactionParams.network.network
     )) as any;
     return this.transaction;
   }
@@ -194,7 +194,7 @@ export class SnarkDeployResponse<
       this.transaction = (await validateBroadcast(
         this.transactionId,
         endpoint,
-        this.transactionParams.networkName
+        this.transactionParams.network.network
       )) as any;
     }
     return undefined as Result;
@@ -216,7 +216,7 @@ export class SnarkDeployResponse<
     this.transaction = await validateBroadcast(
       this.transactionId,
       this.transactionParams.network.endpoint,
-      this.transactionParams.networkName
+      this.transactionParams.network.network
     );
     return this.transaction;
   }

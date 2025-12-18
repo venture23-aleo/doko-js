@@ -35,7 +35,7 @@ export const zkGetMapping = async (
     });
   }
   await new Promise((resolve) => setTimeout(resolve, 2000));
-  const url = `${config.network.endpoint}/${config.networkName}/program/${config.appName}.aleo/mapping/${mappingName}/${key}`;
+  const url = `${config.network.endpoint}/${config.network.network}/program/${config.appName}.aleo/mapping/${mappingName}/${key}`;
   DokoJSLogger.debug(url);
 
   try {
@@ -165,7 +165,7 @@ async function deployAleo(
   }
 
   const isProgramDeployed = await checkDeployment(
-    `${nodeEndPoint}/${config.networkName}/program/${config.appName}.aleo`
+    `${nodeEndPoint}/${config.network.network}/program/${config.appName}.aleo`
   );
 
   if (isProgramDeployed) {
@@ -187,7 +187,7 @@ async function deployAleo(
   // await broadcastTransaction(
   //   result.transaction as Transaction,
   //   nodeEndPoint,
-  //   config.networkName!
+  //   config.network.network
   // );
   // return new SnarkDeployResponse(
   //   result.transaction as Transaction,
@@ -197,7 +197,7 @@ async function deployAleo(
     projectDir,
     config.privateKey,
     nodeEndPoint,
-    config.networkName,
+    config.network.network,
     config.isDevnet
   );
   DokoJSLogger.debug(cmd);
@@ -240,7 +240,7 @@ export const snarkDeploy = async ({
   const priorityFee = config.priorityFee || 0;
 
   const isProgramDeployed = await checkDeployment(
-    `${nodeEndPoint}/${config.networkName}/program/${config.appName}.aleo`
+    `${nodeEndPoint}/${config.network.network}/program/${config.appName}.aleo`
   );
 
   if (isProgramDeployed) {
@@ -255,12 +255,12 @@ export const snarkDeploy = async ({
     const dependencies: any = [];
     for (const dependency of programJson.dependencies) {
       const isDeployed = await checkDeployment(
-        `${nodeEndPoint}/${config.networkName}/program/${dependency.name}`
+        `${nodeEndPoint}/${config.network.network}/program/${dependency.name}`
       );
       if (isDeployed) {
         dependency.location = 'network';
         dependency.endpoint = nodeEndPoint;
-        dependency.network = config.networkName;
+        dependency.network = config.network.network;
         dependency.path = undefined;
       } else {
         dependency.location = 'local';
@@ -274,13 +274,11 @@ export const snarkDeploy = async ({
     await fs.writeJSON(`${config.contractPath}/program.json`, programJson);
   }
 
-  // const cmd = `cd ${config.contractPath}/build && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName}`;
-  // const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
   const cmd = leoDeployCommand(
     config.contractPath,
     config.privateKey,
     nodeEndPoint,
-    config.networkName,
+    config.network.network,
     config.isDevnet
   );
   DokoJSLogger.debug(cmd);
@@ -295,7 +293,7 @@ export const snarkDeploy = async ({
   // await broadcastTransaction(
   //   result as Transaction,
   //   nodeEndPoint,
-  //   config.networkName!
+  //   config.network.network
   // );
   return new SnarkDeployResponse(result?.id || '', config);
 };
