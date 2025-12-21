@@ -15,7 +15,6 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
-  "dependencies": {},
   "scripts": {
     "build": "pnpm lint && pnpm run --r --filter \"./packages/**\" build",
     "build:bundle": "rimraf packages/cli/dist && rollup -c rollup.config.bundle.js && mkdir -p packages/cli/dist/template && cp -r packages/cli/template/* packages/cli/dist/template/ && chmod +x packages/cli/dist/index.js",
@@ -33,7 +32,7 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/fs-extra": "^11.0.2",
     "@types/js-beautify": "^1.14.3",
-    "@types/node": "^20.8.0",
+    "@types/node": "^20.19.27",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
     "copyfiles": "^2.4.1",
@@ -44,12 +43,12 @@
     "eslint-plugin-n": "^16.1.0",
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-promise": "^6.1.1",
-    "prettier": "^3.0.3",
-    "rimraf": "^5.0.5",
-    "rollup": "^4.9.6",
+    "prettier": "^3.7.4",
+    "rimraf": "^5.0.10",
+    "rollup": "^4.54.0",
     "test": "^3.3.0",
-    "tsc-alias": "^1.8.8",
-    "tslib": "^2.6.2",
-    "typescript": "^5.3.3"
+    "tsc-alias": "^1.8.16",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3"
   }
 }
