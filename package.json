@@ -1,7 +1,12 @@
 {
   "name": "@sealance-io/dokojs",
   "version": "1.0.0",
+  "type": "module",
   "description": "DokoJS CLI - TypeScript toolkit for Aleo blockchain development",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@10.11.0",
   "bin": {
     "dokojs": "packages/cli/dist/index.js"
   },
