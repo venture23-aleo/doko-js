@@ -81,6 +81,12 @@ export class LeoExecuteResponse<
   Result extends Tuple = Tuple
 > extends TransactionResponse<TransactionDefinition, Result> {
   transaction: TransactionDefinition;
+  private decryptionParams: {
+    transitionName: string;
+    program: string;
+    privateKey: string;
+    networkName: string;
+  };
 
   constructor(
     transaction: TransactionDefinition,
@@ -89,18 +95,25 @@ export class LeoExecuteResponse<
   ) {
     super();
     this.transaction = transaction;
-
-    const program = transactionParam.appName + '.aleo';
-    this.outputs = decryptOutput(
-      transaction,
+    // Store params for deferred decryption (async)
+    this.decryptionParams = {
       transitionName,
-      program,
-      transactionParam.privateKey,
-      transactionParam.networkName
-    );
+      program: transactionParam.appName + '.aleo',
+      privateKey: transactionParam.privateKey,
+      networkName: transactionParam.networkName
+    };
   }
 
   async wait(): Promise<Result> {
+    if (!this.outputs) {
+      this.outputs = await decryptOutput(
+        this.transaction,
+        this.decryptionParams.transitionName,
+        this.decryptionParams.program,
+        this.decryptionParams.privateKey,
+        this.decryptionParams.networkName
+      );
+    }
     return this.apply_converters();
   }
 
@@ -142,7 +155,7 @@ export class SnarkExecuteResponse<
     if (this.transaction) {
       const program = this.transactionParams.appName + '.aleo';
       const { privateKey, networkName } = this.transactionParams;
-      this.outputs = decryptOutput(
+      this.outputs = await decryptOutput(
         this.transaction,
         this.transitionName,
         program,

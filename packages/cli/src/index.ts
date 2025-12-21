@@ -14,11 +14,9 @@ import { buildPrograms } from '@/scripts/compile';
 import { runTest } from '@/scripts/test';
 import { deploy } from '@/scripts/deploy';
 import { leoExecute } from '@/scripts/execute';
-import { readFileSync } from 'fs';
 
-const pkg = JSON.parse(
-  readFileSync(new URL('../package.json', import.meta.url), 'utf8')
-);
+// Hardcode version to avoid runtime file read issues with bundled distribution
+const pkg = { version: '1.0.0' };
 
 const setLogLevel = (logLevel: string | number) => {
   DokoJSLogger.setLogLevel(logLevel || DokoJSLogger.LogLevels.INFO);

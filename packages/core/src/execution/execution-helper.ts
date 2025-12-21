@@ -1,10 +1,18 @@
 // @TODO replace this with shell
 import { Transaction } from '@provablehq/sdk';
-import { Decrypter } from '@doko-js/wasm';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { parseJSONLikeString } from './utils';
 import { Optional } from './types';
+
+// Lazy-load WASM module only when needed (for deploy/execute, not compile)
+let wasmModule: typeof import('@doko-js/wasm') | null = null;
+async function loadWasm() {
+  if (!wasmModule) {
+    wasmModule = await import('@doko-js/wasm');
+  }
+  return wasmModule;
+}
 
 const _execute = promisify(exec);
 export const execute = (cmd: string) => {
@@ -19,13 +27,13 @@ export function isDefined(v: any) {
   return v !== null && v !== undefined;
 }
 
-export function decryptOutput(
+export async function decryptOutput(
   transaction: Transaction,
   transitionName: string,
   programName: string,
   privateKey: string,
   network: string
-): Optional<Array<Record<string, unknown>>> {
+): Promise<Optional<Array<Record<string, unknown>>>> {
   if (!transaction.execution.transitions) return [];
   const transitions = transaction.execution.transitions.filter(
     (transition) => transition.function == transitionName
@@ -39,6 +47,7 @@ export function decryptOutput(
 
   const offset = transition[0].inputs ? transition[0].inputs.length : 0;
   if (transition[0].outputs) {
+    const { Decrypter } = await loadWasm();
     const outputs = transition[0].outputs.map(
       (output: Output, index: number) => {
         let val = output.value;

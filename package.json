@@ -1,7 +1,24 @@
 {
-  "name": "dokojs",
+  "name": "@sealance-io/dokojs",
+  "version": "1.0.0",
+  "description": "DokoJS CLI - TypeScript toolkit for Aleo blockchain development",
+  "bin": {
+    "dokojs": "packages/cli/dist/index.js"
+  },
+  "files": [
+    "packages/cli/dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sealance-io/doko-js.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "dependencies": {},
   "scripts": {
     "build": "pnpm lint && pnpm run --r --filter \"./packages/**\" build",
+    "build:bundle": "rimraf packages/cli/dist && rollup -c rollup.config.bundle.js && mkdir -p packages/cli/dist/template && cp -r packages/cli/template/* packages/cli/dist/template/ && chmod +x packages/cli/dist/index.js",
     "pkg:publish": "pnpm build && pnpm -r publish --access=public",
     "install:cli": "pnpm --filter cli build:install",
     "lint": "pnpm run --r --filter \"./packages/**\" lint",
@@ -9,7 +26,9 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
+    "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/fs-extra": "^11.0.2",

@@ -1,7 +1,7 @@
 import { ContractConfig, TransactionParams } from './types';
 import { ExecutionContext } from './types';
 import { ExecutionOutputParser, StdoutResponseParser } from './output-parser';
-import { formatArgs, execute, decryptOutput } from './execution-helper';
+import { formatArgs, execute } from './execution-helper';
 import {
   LeoExecuteResponse,
   TransactionResponse
