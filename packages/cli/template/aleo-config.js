@@ -6,6 +6,7 @@ export default {
   mode: 'execute',
   networks: {
     devnet: {
+      network: 'testnet',
       endpoint: 'http://localhost:3030',
       accounts: [
         process.env.ALEO_PRIVATE_KEY_DEVNET,
@@ -14,6 +15,7 @@ export default {
       priorityFee: 0.01
     },
     testnet: {
+      network: 'testnet',
       endpoint: 'https://api.explorer.provable.com/v1',
       accounts: [
         process.env.ALEO_PRIVATE_KEY_TESTNET3,
@@ -22,6 +24,7 @@ export default {
       priorityFee: 0.01
     },
     mainnet: {
+      network: 'mainnet',
       endpoint: 'https://api.explorer.provable.com/v1',
       accounts: [process.env.ALEO_PRIVATE_KEY_MAINNET],
       priorityFee: 0.001

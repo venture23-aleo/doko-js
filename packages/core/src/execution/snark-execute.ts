@@ -9,6 +9,7 @@ import {
   SnarkExecuteResponse,
   TransactionResponse
 } from '@/leo-types/transaction/transaction-response';
+import { extractTransactionId } from './utils';
 
 export class SnarkExecuteContext implements ExecutionContext {
   constructor(
@@ -49,18 +50,16 @@ export class SnarkExecuteContext implements ExecutionContext {
       : `cd ${this.params.contractPath} && `;
 
     const programName = this.params.appName + '.aleo';
-    const cmd = `${cdCmd}leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8 --print ${this.params.isDevnet ? '--devnet' : ''}`;
+    const cmd = `${cdCmd}leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.network.network} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8 --print ${this.params.isDevnet ? '--devnet' : ''}`;
     DokoJSLogger.debug(cmd);
-    let stdoutG: string;
-    const id: string | null = null;
+    let stdout: any;
     try {
-      const { stdout } = await execute(cmd);
-      stdoutG = stdout;
+      ({ stdout } = await execute(cmd));
     } catch (error: any) {
-      stdoutG = error.message;
+      stdout = error.message;
     }
 
-    const transaction = extractTransactionId(stdoutG);
+    const transaction = extractTransactionId(stdout);
     if (transaction) {
       return new SnarkExecuteResponse(
         transaction as string,
@@ -72,10 +71,4 @@ export class SnarkExecuteContext implements ExecutionContext {
         transitionName
       });
   }
-}
-
-export function extractTransactionId(output: string): string | null {
-  const regex = /transaction ID:\s*['"]([^'"]+)['"]/i;
-  const match = output.match(regex);
-  return match ? match[1] : null;
 }

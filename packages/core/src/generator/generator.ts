@@ -394,17 +394,13 @@ class Generator {
       const isArray = IsLeoArray(leoType);
       const [nestedType] = GetLeoTypeAndDepth(leoType);
 
+      // Create argument for each parameter of function
+      const argName = input.key;
       const jsType = isExternalRecord
         ? InferExternalRecordInputDataType(input.val)
         : InferJSDataType(leoType);
 
-      // Create argument for each parameter of function
-      const argName = input.key;
-      const argType = isExternalRecord
-        ? InferExternalRecordInputDataType(input.val)
-        : InferJSDataType(leoType);
-
-      args.push({ name: argName, type: argType });
+      args.push({ name: argName, type: jsType });
       // Can be anything but we just define it as something that ends with leo
       const localVariableName = `${argName}Leo`;
       localVariables.push(localVariableName);

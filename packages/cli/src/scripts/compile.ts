@@ -172,9 +172,9 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
       commands.push(cpCommandToRegistry);
       commands.push(cpCommand);
     }
-    const shellCommand = new Shell(commands.join(' && '));
-    await shellCommand.asyncExec();
   }
+  const shellCommand = new Shell(commands.join(' && '));
+  await shellCommand.asyncExec();
 }
 
 async function createImportConfig(
