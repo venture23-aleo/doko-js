@@ -96,7 +96,7 @@ export class LeoExecuteResponse<
       transitionName,
       program,
       transactionParam.privateKey,
-      transactionParam.networkName
+      transactionParam.network.network
     );
   }
 
@@ -141,13 +141,13 @@ export class SnarkExecuteResponse<
 
     if (this.transaction) {
       const program = this.transactionParams.appName + '.aleo';
-      const { privateKey, networkName } = this.transactionParams;
+      const { privateKey, networkName, network } = this.transactionParams;
       this.outputs = decryptOutput(
         this.transaction,
         this.transitionName,
         program,
         privateKey,
-        networkName
+        network.network
       );
     }
     return this.apply_converters();
