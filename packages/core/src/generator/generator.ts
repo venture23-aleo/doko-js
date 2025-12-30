@@ -160,9 +160,9 @@ class Generator {
       '\n' +
       (this.refl.customTypes.length > 0
         ? GenerateAsteriskTSImport(
-            `../types/${this.refl.programName}`,
-            'records'
-          ) + '\n'
+          `../types/${this.refl.programName}`,
+          'records'
+        ) + '\n'
         : '') +
       this.generateExternalTransitionsImport(
         this.refl.functions.flatMap((fn) => fn.calls)
@@ -409,10 +409,10 @@ class Generator {
       // for transition function parameter
       let fnName = isExternalRecord
         ? GenerateExternalRecordConversionStatement(
-            input.val,
-            argName,
-            STRING_LEO
-          )
+          input.val,
+          argName,
+          STRING_LEO
+        )
         : GenerateTypeConversionStatement(leoType, argName, STRING_LEO);
 
       // For custom type that produce object it must be converted to string
@@ -464,19 +464,19 @@ class Generator {
 
         const converterFn = isExternalRecord
           ? [
-              ...GenerateExternalRecordConversionStatement(
-                output,
-                '',
-                STRING_JS
-              )
-            ]
+            ...GenerateExternalRecordConversionStatement(
+              output,
+              '',
+              STRING_JS
+            )
+          ]
           : isRecordType
             ? ['leo2js.record']
             : this.refl.isCustomType(nestedType) && nestedType !== type
               ? [
-                  GetTypeConversionFunctionsJS(formattedOutput)[0],
-                  GetTypeConversionFunctionsJS(nestedType)[0]
-                ]
+                GetTypeConversionFunctionsJS(formattedOutput)[0],
+                GetTypeConversionFunctionsJS(nestedType)[0]
+              ]
               : GetTypeConversionFunctionsJS(formattedOutput);
 
         if (depth > 1) {
@@ -558,6 +558,8 @@ class Generator {
       fnName = `js2leo.json(${fnName})`;
       // @NOTE can we use custom type as key for mapping?
       usedTypes.add(jsType);
+    } else if (IsLeoArray(leoType)) {
+      fnName = `js2leo.arr2string(${fnName})`;
     }
 
     const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
