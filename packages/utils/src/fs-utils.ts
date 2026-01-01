@@ -50,7 +50,7 @@ async function writeToFile(filename: string, data: string) {
       fileStream.on('finish', () => {
         DokoJSLogger.log('Generated file: ', filename);
       });
-      fileStream.on('close', resolve);
+      fileStream.on('close', () => resolve(undefined));
     });
   } catch (error) {
     DokoJSLogger.error(error);

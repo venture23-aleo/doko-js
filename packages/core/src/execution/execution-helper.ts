@@ -4,6 +4,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { parseJSONLikeString } from './utils';
 import { Optional } from './types';
+import { Output } from '@/outputs/types/transaction';
 
 // Lazy-load WASM module only when needed (for deploy/execute, not compile)
 let wasmModule: typeof import('@doko-js/wasm') | null = null;

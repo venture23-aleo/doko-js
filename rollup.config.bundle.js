@@ -4,6 +4,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { builtinModules } from 'module';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,12 +25,27 @@ function aliasResolver() {
       // Determine which package the importer is in
       const relativePath = source.replace('@/', '');
 
+      let baseDir;
       if (importer.includes('/packages/cli/')) {
-        return path.resolve(__dirname, 'packages/cli/src', relativePath + '.ts');
+        baseDir = path.resolve(__dirname, 'packages/cli/src');
       } else if (importer.includes('/packages/core/')) {
-        return path.resolve(__dirname, 'packages/core/src', relativePath + '.ts');
+        baseDir = path.resolve(__dirname, 'packages/core/src');
       } else if (importer.includes('/packages/utils/')) {
-        return path.resolve(__dirname, 'packages/utils/src', relativePath + '.ts');
+        baseDir = path.resolve(__dirname, 'packages/utils/src');
+      } else {
+        return null;
+      }
+
+      // Try direct .ts file first
+      const directPath = path.resolve(baseDir, relativePath + '.ts');
+      if (fs.existsSync(directPath)) {
+        return directPath;
+      }
+
+      // Try directory with index.ts
+      const indexPath = path.resolve(baseDir, relativePath, 'index.ts');
+      if (fs.existsSync(indexPath)) {
+        return indexPath;
       }
 
       return null;
@@ -66,7 +82,22 @@ export default {
       outDir: 'packages/cli/dist',
       rootDir: '.',
       include: ['packages/*/src/**/*.ts'],
-      exclude: ['**/node_modules/**', '**/dist/**', '**/test/**', '**/web/**']
+      exclude: ['**/node_modules/**', '**/dist/**', '**/test/**', '**/web/**'],
+      compilerOptions: {
+        // Path aliases - these are resolved by aliasResolver plugin,
+        // but TypeScript needs to know about them for type checking
+        baseUrl: '.',
+        paths: {
+          '@/*': [
+            'packages/cli/src/*',
+            'packages/core/src/*',
+            'packages/utils/src/*'
+          ]
+        },
+        // Relax strict checks for bundling (some legacy code has implicit any)
+        noImplicitAny: false,
+        strict: false
+      }
     })
   ],
   // Treat missing exports as warnings, not errors (for tree-shaking)
