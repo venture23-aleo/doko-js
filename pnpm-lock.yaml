@@ -105,8 +105,8 @@ importers:
         specifier: workspace:*
         version: link:../wasm
       '@provablehq/sdk':
-        specifier: 0.9.4
-        version: 0.9.4
+        specifier: ^0.9.12
+        version: 0.9.14
       fs-extra:
         specifier: ^11.1.1
         version: 11.2.0
@@ -1286,14 +1286,14 @@ packages:
   '@provablehq/sdk@0.6.9':
     resolution: {integrity: sha512-Hf3zTBUzVJyZj1l6BDC3KhMVsHFm7M2v8nnrYyL3npiENvY4AtMZUxHWdfEEyRlU/RK44aTE09cYyjs4DM89sA==}
 
-  '@provablehq/sdk@0.9.4':
-    resolution: {integrity: sha512-RUZXDb4rcN0Fy3CQU+fF+fIX5zWYabWTicwJxxRB1M8v8a303m5R4yFUH7SdUqzPErHicEmViguBlOCtY1KMOQ==}
+  '@provablehq/sdk@0.9.14':
+    resolution: {integrity: sha512-8xVL7tMTnu4bc1D8axXOy1tvjVIBjYXkjXCBw2yr26UjvNVX4snXMVPcVeJ+srtUOcwk+6WUcz1VT7HTx1tAGQ==}
 
   '@provablehq/wasm@0.6.13':
     resolution: {integrity: sha512-M7H0kM240xtYryENXVbRUpW07+LOsnpt+s+X7Q7i/4lbEMWDB9lInLs987AF3EsRdRwx+eiz2ul9jraBvZ0jcg==}
 
-  '@provablehq/wasm@0.9.5':
-    resolution: {integrity: sha512-AmzUAP0DU4rAPAdoTRn3+TbzjAJ+0PMTVEfSOGpG4ez5Pk0euMQC74DWTT26Il4BC2UVYH6tG0ftk2XKaWiXvg==}
+  '@provablehq/wasm@0.9.14':
+    resolution: {integrity: sha512-Pkfo65bNJkW/UYoF+2+ZMF94N5YVOuh0jM1ZHMdk5kI78kQWoeYlZcGp/kadLsMgz9BcwSB/ZwvLYgDGozjGVA==}
 
   '@rc-component/async-validator@5.0.4':
     resolution: {integrity: sha512-qgGdcVIF604M9EqjNF0hbUTz42bz/RDtxWdWuU5EQe3hi7M8ob54B6B35rOsvX5eSvIHIzT9iH1R3n+hk3CGfg==}
@@ -1485,6 +1485,9 @@ packages:
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
+
+  '@scure/base@2.0.0':
+    resolution: {integrity: sha512-3E1kpuZginKkek01ovG8krQ0Z44E3DHPjc5S2rjJw9lZn3KSQOs8S7wqikF/AH7iRanHypj85uGyxk0XAyC37w==}
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -6404,9 +6407,10 @@ snapshots:
       mime: 3.0.0
       sync-request: 6.1.0
 
-  '@provablehq/sdk@0.9.4':
+  '@provablehq/sdk@0.9.14':
     dependencies:
-      '@provablehq/wasm': 0.9.5
+      '@provablehq/wasm': 0.9.14
+      '@scure/base': 2.0.0
       comlink: 4.4.2
       core-js: 3.45.0
       mime: 4.0.7
@@ -6415,7 +6419,7 @@ snapshots:
 
   '@provablehq/wasm@0.6.13': {}
 
-  '@provablehq/wasm@0.9.5': {}
+  '@provablehq/wasm@0.9.14': {}
 
   '@rc-component/async-validator@5.0.4':
     dependencies:
@@ -6576,6 +6580,8 @@ snapshots:
     optional: true
 
   '@rtsao/scc@1.1.0': {}
+
+  '@scure/base@2.0.0': {}
 
   '@sinclair/typebox@0.27.8': {}
 

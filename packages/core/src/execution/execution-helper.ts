@@ -7,7 +7,7 @@ import { parseJSONLikeString } from './utils';
 import { Optional } from './types';
 
 import { Ciphertext, PrivateKey, Group } from '@provablehq/sdk';
-export async function decrypter(
+export function decrypter(
   cipherText: string,
   transitionPublicKey: string,
   privateKey: string,
@@ -16,14 +16,14 @@ export async function decrypter(
   index: number
 ) {
   const pk = PrivateKey.from_string(privateKey);
-  const tpk = Group.fromString(transitionName);
+  const tpk = Group.fromString(transitionPublicKey);
   const newCipher = Ciphertext.fromString(cipherText);
   const vk = pk.to_view_key();
   const decrypted = newCipher.decryptWithTransitionInfo(
     vk,
     tpk,
     programName,
-    transitionPublicKey,
+    transitionName,
     index
   );
   return decrypted.toString();
