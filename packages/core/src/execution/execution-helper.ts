@@ -6,6 +6,29 @@ import { promisify } from 'util';
 import { parseJSONLikeString } from './utils';
 import { Optional } from './types';
 
+import { Ciphertext, PrivateKey, Group } from '@provablehq/sdk';
+export async function decrypter(
+  cipherText: string,
+  transitionPublicKey: string,
+  privateKey: string,
+  programName: string,
+  transitionName: string,
+  index: number
+) {
+  const pk = PrivateKey.from_string(privateKey);
+  const tpk = Group.fromString(transitionName);
+  const newCipher = Ciphertext.fromString(cipherText);
+  const vk = pk.to_view_key();
+  const decrypted = newCipher.decryptWithTransitionInfo(
+    vk,
+    tpk,
+    programName,
+    transitionPublicKey,
+    index
+  );
+  return decrypted.toString();
+}
+
 const _execute = promisify(exec);
 export const execute = (cmd: string) => {
   return _execute(cmd, { maxBuffer: undefined });
@@ -43,15 +66,23 @@ export function decryptOutput(
       (output: Output, index: number) => {
         let val = output.value;
         if (output.type == 'private') {
-          val = Decrypter.get_decrypted_value(
+          val = decrypter(
             output.value,
+            transition[0].tpk,
+            privateKey,
             programName,
             transitionName,
-            offset + index,
-            privateKey,
-            transition[0].tpk,
-            network
+            offset + index
           );
+          // Decrypter.get_decrypted_value(
+          //   output.value,
+          //   programName,
+          //   transitionName,
+          //   offset + index,
+          //   privateKey,
+          //   transition[0].tpk,
+          //   network
+          // );
         } else if (output.type == 'record') {
           val = output.value;
         } else if (output.type == 'external_record') {
