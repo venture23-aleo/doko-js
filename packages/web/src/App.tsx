@@ -9,16 +9,22 @@ import { HashMessage } from "./tabs/hashing/Hashing";
 import { DokoIDE } from "./components/Editor/DokoIDE";
 
 import "./index.css";
+import Docs from "./pages/Docs";
+import { DecryptRecordVK } from "./tabs/encrypt-decrypt/DecryptRecordVK";
 
 const App = () => {
     return (
         <Routes>
             <Route path="/" element={<Homepage />} />
+            <Route path="/docs" element={<Docs />} />
+
             <Route element={<Main />}>
                 <Route path="/demo" element={<DokoIDE />} />
                 <Route path="/encrypt-decrypt" element={
                     <>
                         <DecryptRecord />
+                        <br />
+                        <DecryptRecordVK />
                         <br />
                         <EncryptRecord />
                     </>

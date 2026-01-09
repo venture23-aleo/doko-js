@@ -109,9 +109,33 @@ const IsLeoExternalRecord = (type: string) => {
 
 const GetLeoArrTypeAndSize = (arrDef: string) => {
   const arrComponents = arrDef.substring(1, arrDef.length - 1).split(' ');
-  if (arrComponents.length !== 2)
-    DokoJSLogger.error(`Invalid array definition: ${arrDef}`);
+  arrComponents[0] = GetLeoTypeAndDepth(arrComponents[0])[0];
   return arrComponents;
+};
+
+/**
+ * @param s The array depth string, e.g., "[[[CustomType 2u32] 2u32] 2u32]"
+ * @returns A tuple of [baseType, depth, sizes[]]
+ */
+const GetLeoTypeAndDepth = (arrDef: string): [string, number, number[]] => {
+  // Extract leading brackets for depth
+  const match = arrDef.match(/^(\[*)\s*(\w+)/);
+
+  if (!match || match.length < 3) {
+    return [arrDef, 0, []];
+  }
+
+  const leadingBrackets = match[1];
+  const baseType = match[2];
+  const depth = leadingBrackets.length;
+
+  // Extract all occurrences of size values like `2u32`
+  const sizeMatches = arrDef.match(/(\d+)u\d+/g) || [];
+
+  // Convert ["2u32", "2u32", "2u32"] → [2, 2, 2]
+  const sizes = sizeMatches.map((s) => parseInt(s));
+
+  return [baseType, depth, sizes];
 };
 
 const ConvertToJSType = (type: string) => {
@@ -161,6 +185,7 @@ export {
   ConvertToJSType,
   IsLeoArray,
   GetLeoArrTypeAndSize,
+  GetLeoTypeAndDepth,
   IsLeoPrimitiveType,
   IsLeoExternalRecord,
   trimAleoPostfix,

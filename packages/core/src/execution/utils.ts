@@ -1,12 +1,17 @@
 import { get, post } from '@/utils/httpRequests';
 import { ContractConfig } from './types';
-import { TransactionModel } from '@provablehq/sdk';
+import { Transaction } from '@provablehq/sdk';
 import { execute } from './execution-helper';
 import {
   SnarkDeployResponse,
   TransactionResponse
 } from '@/leo-types/transaction';
-import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
+import {
+  DokoJSError,
+  DokoJSLogger,
+  ERRORS,
+  getProjectRoot
+} from '@doko-js/utils';
 import fs from 'fs-extra';
 import path, { join } from 'path';
 import { tmpdir } from 'os';
@@ -23,6 +28,10 @@ export function parseJSONLikeString(
   return JSON.parse(correctJson);
 }
 
+export const sleep = async (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
 export const zkGetMapping = async (
   config: ContractConfig,
   mappingName: string,
@@ -34,7 +43,8 @@ export const zkGetMapping = async (
       value: 'network'
     });
   }
-  const url = `${config.network.endpoint}/${config.networkName}/program/${config.appName}.aleo/mapping/${mappingName}/${key}`;
+  await sleep(2000);
+  const url = `${config.network.endpoint}/${config.network.network}/program/${config.appName}.aleo/mapping/${mappingName}/${key}`;
   DokoJSLogger.debug(url);
 
   try {
@@ -50,26 +60,64 @@ export const zkGetMapping = async (
   }
 };
 
-export const checkDeployment = async (endpoint: string): Promise<boolean> => {
+export const checkDeployment = async (
+  endpoint: string
+): Promise<boolean | undefined> => {
+  DokoJSLogger.info(`Checking deployment: ${endpoint}`);
+
+  let response: Response;
   try {
-    DokoJSLogger.info(`Checking deployment: ${endpoint}`);
-    const response = await get(endpoint);
-    await response.json();
-
-    return true;
-  } catch (e: any) {
-    if (e?.message?.includes('Missing program for ID')) {
-      DokoJSLogger.info('Deployment not found');
-
-      return false;
+    response = await get(endpoint);
+  } catch (networkErr: any) {
+    try {
+      const networkErrorMessage = JSON.parse(networkErr.message);
+      response = networkErrorMessage;
+      if (networkErrorMessage.statusCode == 404) {
+        DokoJSLogger.info('Deployment not found (404)');
+        return false;
+      }
+    } catch (e: any) {
+      response = networkErr;
+      if (networkErr?.message?.includes('Missing program for ID')) {
+        DokoJSLogger.info('Deployment not found');
+        return false;
+      }
     }
 
-    throw new DokoJSError(ERRORS.NETWORK.DEPLOYMENT_CHECK_FAIL, {}, e);
+    // if the program isn't there, backend now returns a 404 + JSON
   }
+  if (response.status === 404) {
+    let body: any;
+    try {
+      body = await response.json();
+    } catch {
+      // fallback if JSON parse fails
+      DokoJSLogger.info('Deployment not found (404)');
+      return false;
+    }
+    if (body.message === 'Program not found') {
+      DokoJSLogger.info(`Deployment not found: ${body.message}`);
+      return false;
+    }
+  }
+
+  // any other non-2xx status is a failure
+  if (!response.ok) {
+    const text = await response.text();
+    throw new DokoJSError(
+      ERRORS.NETWORK.DEPLOYMENT_CHECK_FAIL,
+      { endpoint, status: response.status },
+      new Error(`Unexpected response: ${response.status} – ${text}`)
+    );
+  }
+
+  // 2xx → deployed
+  await response.json(); // or strip this if you don't need the payload
+  return true;
 };
 
 export const broadcastTransaction = async (
-  transaction: TransactionModel,
+  transaction: Transaction,
   endpoint: string,
   networkName: string
 ) => {
@@ -85,106 +133,18 @@ export const broadcastTransaction = async (
   }
 };
 
-async function makeProjectForDeploy(
-  programName: string,
-  aleoCode: string,
-  importsDir: string
-): Promise<string> {
-  const projectDir = await fs.mkdtemp(join(tmpdir(), 'dokojs-imports-'));
-  // await fs.mkdirp(projectDir);
-
-  const projectManifest = {
-    program: programName,
-    version: '0.0.0',
-    description: '',
-    license: 'MIT'
-  };
-  await fs.writeFile(
-    join(projectDir, 'program.json'),
-    JSON.stringify(projectManifest)
-  );
-  await fs.mkdir(join(projectDir, 'build'));
-  await fs.writeFile(join(`${projectDir}/build`, 'main.aleo'), aleoCode);
-  await fs.copy(importsDir, join(`${projectDir}/build`, 'imports'), {});
-
-  return projectDir;
-}
-
-async function deployAleo(
-  aleoCode: string,
-  config: ContractConfig,
-  aleoFilesDir: string
-) {
-  const nodeEndPoint = config['network']?.endpoint;
-
-  if (!nodeEndPoint) {
-    throw new Error('networkName missing in contract config for deployment');
-  }
-
-  const isProgramDeployed = await checkDeployment(
-    `${nodeEndPoint}/${config.networkName}/program/${config.appName}.aleo`
-  );
-
-  if (isProgramDeployed) {
-    throw new Error(`Program ${config.appName} is already deployed`);
-  }
-
-  DokoJSLogger.log(`Deploying program ${config.appName}`);
-
-  const projectDir = await makeProjectForDeploy(
-    `${config.appName}.aleo`,
-    aleoCode,
-    aleoFilesDir
-  );
-  const priorityFee = config.priorityFee || 0;
-
-  // const cmd = `cd ${projectDir} && snarkos developer deploy "${config.appName}.aleo" --path . --priority-fee ${priorityFee}  --private-key ${config.privateKey} --query ${nodeEndPoint} --dry-run`;
-  // const { stdout } = await execute(cmd);
-  // const result = new SnarkStdoutResponseParser().parse(stdout);
-  // await broadcastTransaction(
-  //   result.transaction as TransactionModel,
-  //   nodeEndPoint,
-  //   config.networkName!
-  // );
-  // return new SnarkDeployResponse(
-  //   result.transaction as TransactionModel,
-  //   config
-  // );
-  const cmd = leoDeployCommand(
-    projectDir,
-    config.privateKey,
-    nodeEndPoint,
-    config.networkName,
-    priorityFee,
-    true
-  );
-  DokoJSLogger.debug(cmd);
-  const { stdout } = await execute(cmd);
-  const result = transactionHashToTransactionResponseObject(
-    stdout.split('Deployment')[2].split(' ')[1],
-    'deploy'
-  );
-  return new SnarkDeployResponse(result?.id || '', config);
-}
-
-const snarkDeployAleo = async ({
-  config
-}: {
-  config: ContractConfig;
-}): Promise<TransactionResponse<any>> => {
-  const aleoCode = await fs.readFile(`${config.contractPath}.aleo`);
-  const importsDir = path.normalize(path.join(config.contractPath, '..'));
-
-  return deployAleo(aleoCode.toString('utf-8'), config, importsDir);
-};
-
 export const snarkDeploy = async ({
   config
 }: {
   config: ContractConfig;
 }): Promise<TransactionResponse<any>> => {
   if (config.isImportedAleo) {
-    return snarkDeployAleo({ config });
+    throw new DokoJSError(
+      ERRORS.INTERNAL.INVALID_IMPORTS_ALEO_PROGRAM_DEPLOYMENT,
+      {
+        programName: `${config.appName}.aleo`
+      }
+    );
   }
 
   const nodeEndPoint = config['network']?.endpoint;
@@ -198,7 +158,7 @@ export const snarkDeploy = async ({
   const priorityFee = config.priorityFee || 0;
 
   const isProgramDeployed = await checkDeployment(
-    `${nodeEndPoint}/${config.networkName}/program/${config.appName}.aleo`
+    `${nodeEndPoint}/${config.network.network}/program/${config.appName}.aleo`
   );
 
   if (isProgramDeployed) {
@@ -208,29 +168,45 @@ export const snarkDeploy = async ({
   }
 
   DokoJSLogger.info(`Deploying program ${config.appName}`);
+  const programJson = await fs.readJSON(`${config.contractPath}/program.json`);
+  if (programJson.dependencies) {
+    const dependencies: any = [];
+    const projectRoot = getProjectRoot();
+    for (const dependency of programJson.dependencies) {
+      const isDeployed = await checkDeployment(
+        `${nodeEndPoint}/${config.network.network}/program/${dependency.name}`
+      );
+      if (isDeployed) {
+        dependency.location = 'network';
+        dependency.endpoint = nodeEndPoint;
+        dependency.network = config.network.network;
+        dependency.path = undefined;
+      } else {
+        dependency.location = 'local';
+        dependency.endpoint = undefined;
+        dependency.network = undefined;
+        dependency.path = `${projectRoot}/imports/${dependency.name}`;
+      }
+      dependencies.push(dependency);
+    }
+    programJson.dependencies = dependencies;
+    await fs.writeJSON(`${config.contractPath}/program.json`, programJson);
+  }
 
-  // const cmd = `cd ${config.contractPath}/build && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName}`;
-  // const cmd = `cd ${config.contractPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${config.privateKey} --endpoint ${nodeEndPoint} --network ${config.networkName} --yes`;
   const cmd = leoDeployCommand(
     config.contractPath,
     config.privateKey,
     nodeEndPoint,
-    config.networkName,
-    priorityFee
+    config.network.network,
+    config.isDevnet
   );
   DokoJSLogger.debug(cmd);
 
   const { stdout } = await execute(cmd);
   const result = transactionHashToTransactionResponseObject(
-    stdout.split('Deployment')[2].split(' ')[1],
+    extractTransactionId(stdout)!,
     'deploy'
   );
-  // // @TODO check it later
-  // await broadcastTransaction(
-  //   result as TransactionModel,
-  //   nodeEndPoint,
-  //   config.networkName!
-  // );
   return new SnarkDeployResponse(result?.id || '', config);
 };
 
@@ -239,16 +215,15 @@ export const leoDeployCommand = (
   privateKey: string,
   endpoint: string,
   network: string = 'testnet',
-  priorityFee: number = 0,
-  noBuild: boolean = false
+  isDevnet: boolean = false
 ) => {
-  return `cd ${path} && leo deploy --home ${ALEO_REGISTRY_DIR} --priority-fee ${priorityFee}  --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes ${noBuild ? '--no-build' : ''}`;
+  return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print ${isDevnet ? '--devnet' : ''}`;
 };
 
 export const transactionHashToTransactionResponseObject = (
   transactionHash: string,
   type: 'deploy' | 'execute'
-): TransactionModel | null => {
+): Transaction | null => {
   const transaction = { id: transactionHash, type, execution: { edition: 1 } };
   return transaction;
 };
@@ -257,10 +232,10 @@ export const validateBroadcast = async (
   transactionId: string,
   nodeEndpoint: string,
   networkName: string
-): Promise<TransactionModel | null> => {
+): Promise<Transaction | null> => {
   const pollUrl = `${nodeEndpoint}/${networkName}/transaction/${transactionId}`;
-  const timeoutMs = 60_000;
-  const pollInterval = 1000; // 1 second
+  const timeoutMs = 180_000;
+  const pollInterval = 5000; // 1 second
   const startTime = Date.now();
 
   DokoJSLogger.info(`Validating transaction: ${pollUrl}`);
@@ -269,7 +244,7 @@ export const validateBroadcast = async (
   while (Date.now() - startTime < timeoutMs) {
     try {
       const response = await get(pollUrl);
-      const data = (await response.json()) as TransactionModel & {
+      const data = (await response.json()) as Transaction & {
         deployment: any;
       };
       if (!data.execution && !data.deployment) {
@@ -287,13 +262,8 @@ export const validateBroadcast = async (
   return null;
 };
 
-export const waitTransaction = async (
-  transaction: TransactionModel,
-  endpoint: string,
-  networkName: string
-) => {
-  const transactionId = transaction.id;
-  if (transactionId)
-    return await validateBroadcast(transactionId, endpoint, networkName);
-  return null;
-};
+export function extractTransactionId(output: string): string | null {
+  const regex = /transaction ID:\s*['"]([^'"]+)['"]/i; // Regex detects transaction id like this: transaction ID: "0xdeadbeef"
+  const match = output.match(regex);
+  return match ? match[1] : null;
+}

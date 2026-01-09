@@ -2,7 +2,8 @@ import {
   IsLeoArray,
   GetLeoArrTypeAndSize,
   IsLeoPrimitiveType,
-  trimAleoPostfix
+  trimAleoPostfix,
+  GetLeoTypeAndDepth
 } from '@/utils/aleo-utils';
 import { capitalize } from '@doko-js/utils';
 
@@ -11,9 +12,12 @@ import { capitalize } from '@doko-js/utils';
 // it generate it as `leoTokenSchema'
 export function GenerateLeoSchemaName(typeName: string) {
   if (IsLeoArray(typeName)) {
-    const [type, size] = GetLeoArrTypeAndSize(typeName);
-    const strippedSize = size.match(/\d+/);
-    return `z.array(leo${capitalize(type)}Schema).length(${strippedSize})`;
+    const [type, depth, sizes] = GetLeoTypeAndDepth(typeName);
+    let schema = `leo${capitalize(type)}Schema`;
+    for (const size of sizes) {
+      schema = `z.array(${schema}).length(${size})`;
+    }
+    return schema;
   }
   return `leo${capitalize(typeName)}Schema`;
 }

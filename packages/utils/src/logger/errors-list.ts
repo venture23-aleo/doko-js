@@ -121,7 +121,7 @@ Please check that you are sending a non-empty string for network URL parameter.`
     },
     INVALID_TRANSACTION_OBJECT: {
       number: 104,
-      message: 'Invalid Transaction object',
+      message: "Invalid Transaction object for '%transitionName%'",
       title: "Invalid transaction object for '%transitionName%'",
       description:
         "Receeived invalid transaction object for '%transitionName%'",
@@ -136,7 +136,7 @@ Please check that you are sending a non-empty string for network URL parameter.`
     },
     CONFLICTING_DEPLOYMENT: {
       number: 106,
-      message: 'Program already deployed',
+      message: 'Program %programName% already deployed',
       title: 'Program %programName% is already deployed ',
       description: 'Existing deployment found for %programName%',
       shouldBeReported: false
@@ -180,6 +180,15 @@ Please use the fully qualified name of the contract to disambiguate it.`,
     }
   },
   INTERNAL: {
+    INVALID_IMPORTS_ALEO_PROGRAM_DEPLOYMENT: {
+      number: 404,
+      title: 'Imported Aleo programs cannot be deployed separately.',
+      message:
+        "Imported .aleo program: '%programName%' cannot be deployed separately",
+      description:
+        'Imported Aleo programs cannot be deployed separately. Need to deploy the importer program to deploy the imported code',
+      shouldBeReported: false
+    },
     WRONG_ARTIFACT_PATH: {
       number: 300,
       message:

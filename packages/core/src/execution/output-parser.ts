@@ -34,7 +34,7 @@ export class StdoutResponseParser implements ExecutionOutputParser {
       .split('\n\n')
       .filter((str) => str.trim().length > 0);
     // Remove the last line as this is just the status result of execution command
-    stringBlock.pop();
+    // stringBlock.pop();
 
     // Remove unnecessary character
     const outputs = stringBlock

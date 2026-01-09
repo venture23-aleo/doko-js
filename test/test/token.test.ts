@@ -4,6 +4,7 @@ import { decrypttoken } from '../artifacts/js/leo2js/token';
 import { PrivateKey } from '@provablehq/sdk';
 
 const TIMEOUT = 200_000;
+const amount = BigInt(2);
 
 // Available modes are evaluate | execute (Check README.md for further description)
 const mode = ExecutionMode.SnarkExecute;
@@ -42,7 +43,7 @@ describe('deploy test', () => {
     // @NOTE Only decrypt in SnarkExecute use JSON.parse in LeoRun
     const decryptedRecord = decrypttoken(
       record1,
-      process.env.ALEO_PRIVATE_KEY_TESTNET3
+      process.env.ALEO_PRIVATE_KEY_TESTNET3 || ''
     );
 
     expect(decryptedRecord.amount).toBe(actualAmount);
@@ -59,6 +60,9 @@ describe('deploy test', () => {
       const [result] = await mintTx.wait();
       const decryptedRecord = decrypttoken(result, account);
 
+      if (!recipient) {
+        throw new Error('ALEO_DEVNET_PRIVATE_KEY3 is not defined');
+      }
       const receiptAddress = PrivateKey.from_string(recipient)
         .to_address()
         .to_string();
@@ -66,7 +70,7 @@ describe('deploy test', () => {
       const tx = await contract.transfer_private(
         decryptedRecord,
         receiptAddress,
-        amount2
+        amount
       );
       const [record1, record2] = await tx.wait();
       const decryptedRecord2 = decrypttoken(record1, account);

@@ -5,6 +5,7 @@
     "pkg:publish": "pnpm build && pnpm -r publish --access=public",
     "install:cli": "pnpm --filter cli build:install",
     "lint": "pnpm run --r --filter \"./packages/**\" lint",
+    "lint:fix": "pnpm run --r --filter \"./packages/**\" lint:fix",
     "test": "pnpm run --r --filter \"./test\" test"
   },
   "devDependencies": {
