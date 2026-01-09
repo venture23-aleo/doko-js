@@ -1,4 +1,4 @@
-### Release Note: @dokojs/cli 1.1.0, @dokojs/core 1.1.0, @dokojs/utils 1.1.0 & @dokojs/wasm 1.1.0
+### Release Note: @dokojs/cli 1.1.0-beta, @dokojs/core 1.1.0-beta, @dokojs/utils 1.1.0-beta
 
 #### Key Updates
 
