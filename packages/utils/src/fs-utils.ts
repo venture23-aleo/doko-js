@@ -77,10 +77,25 @@ function pathFromRoot(repoPath: string) {
   return path.join(projectRoot, repoPath);
 }
 
-function getFilenamesInDirectory(directoryPath: string) {
-  return fs.readdirSync(directoryPath, null).filter((file: string) => {
-    return fs.statSync(path.join(directoryPath, file)).isFile();
-  });
+function getFilenamesInDirectory(directoryPath: string): string[] {
+  const results: string[] = [];
+
+  function walk(currentPath: string) {
+    const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(currentPath, entry.name);
+
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (entry.isFile()) {
+        results.push(path.relative(directoryPath, fullPath));
+      }
+    }
+  }
+
+  walk(directoryPath);
+  return results;
 }
 
 export {

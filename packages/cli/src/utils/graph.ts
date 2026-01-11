@@ -46,7 +46,12 @@ export function sort(graph: Array<Node>) {
           continue;
         }
 
-        const edgeIndex = graph.findIndex((node) => node.name === edge.name);
+        const edgeIndex = graph.findIndex((node) => {
+          if (node.name.includes('/')) {
+            return node.name.split('/').pop() === edge.name;
+          }
+          return node.name === edge.name;
+        });
         if (edgeIndex === -1)
           throw new Error(
             `import ${edge.name} for program ${nodePtr.name} is not in 'programs' nor 'imports' directories`

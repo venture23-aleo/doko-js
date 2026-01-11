@@ -6,7 +6,6 @@ import {
   getAleoConfig,
   getFilenamesInDirectory,
   getProjectRoot,
-  toSnakeCase,
   Shell,
   DokoJSLogger
 } from '@doko-js/utils';
@@ -17,7 +16,6 @@ import { exec } from 'child_process';
 const GENERATE_FILE_OUT_DIR = 'artifacts';
 const LEO_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/leo`;
 const ALEO_DEPS_REGISTRY = `${GENERATE_FILE_OUT_DIR}/aleo/registry`;
-const JS_ARTIFACTS = `${GENERATE_FILE_OUT_DIR}/js`;
 const PROGRAM_DIRECTORY = './programs/';
 const IMPORTS_DIRECTORY = './imports/';
 
@@ -47,9 +45,12 @@ function replacePrivateKeyInFile(envFile: string, privateKey: string) {
   fs.writeFileSync(envFile, envVariables.join('\n'));
 }
 
-async function resolveImport(importName: string): Promise<NodeImport> {
+async function resolveImport(
+  importName: string,
+  programs: Array<string>
+): Promise<NodeImport> {
   const nameWithoutExtension = importName.replace('.aleo', '');
-  const programsPath = path.join(
+  let programsPath = path.join(
     PROGRAM_DIRECTORY,
     `${nameWithoutExtension}.leo`
   );
@@ -57,6 +58,17 @@ async function resolveImport(importName: string): Promise<NodeImport> {
     IMPORTS_DIRECTORY,
     `${nameWithoutExtension}.aleo`
   );
+
+  if (programs) {
+    const program = programs.find(
+      (program) =>
+        program.split('/').pop()?.replace('.leo', '') === nameWithoutExtension
+    );
+    if (program) {
+      programsPath = path.join(PROGRAM_DIRECTORY, program);
+    }
+  }
+
   const [isInPrograms, isInImports] = await Promise.all([
     fs.exists(programsPath),
     fs.exists(importsPath)
@@ -102,12 +114,11 @@ async function createGraph(
   programPath: string
 ): Promise<Node[]> {
   const nodePromises = programs.map(async (programName) => {
-    const imports = await getFileImports(`${programPath}/${programName}`);
-
+    const imports = await getFileImports(`${programPath}/${programName}`)
     const node: Node = {
       name: programName,
       inputs: await Promise.all(
-        imports.map((importName) => resolveImport(importName))
+        imports.map((importName) => resolveImport(importName, programs))
       )
     };
     return node;
@@ -141,7 +152,8 @@ async function prepareImportsRegistry(importsDir: string, registryDir: string) {
 async function createImportConfig(
   programDir: string,
   artifactDir: string,
-  fileImports: string[]
+  fileImports: string[],
+  programs: string[]
 ) {
   // We handle the import dependencies with the program.json
   const aleoConfig = await getAleoConfig();
@@ -153,7 +165,7 @@ async function createImportConfig(
     fileImports.map(async (fileImport) => {
       const config: Record<string, string> = {};
       config.name = fileImport;
-      const resolvedDependency = await resolveImport(fileImport);
+      const resolvedDependency = await resolveImport(fileImport, programs);
       if (resolvedDependency.source === 'programs') {
         config.location = 'local';
         config.path = path.relative(
@@ -196,11 +208,18 @@ async function getLeoVersion(): Promise<string> {
   return searchResult?.groups?.version || '';
 }
 
-async function buildProgram(programName: string, leoVersion: string) {
-  const parsedProgramName = toSnakeCase(programName);
+async function buildProgram(
+  programName: string,
+  leoVersion: string,
+  programs: string[]
+) {
+  const programNameWithoutPath = programName.includes('/')
+    ? (programName.split('/').pop() as string)
+    : programName;
+
   const projectRoot = getProjectRoot();
   const artifactDir = `${projectRoot}/${LEO_ARTIFACTS}`;
-  const programDir = `${artifactDir}/${parsedProgramName}`;
+  const programDir = `${artifactDir}/${programNameWithoutPath}`;
   const registryDir = path.normalize(
     path.join(projectRoot, ALEO_DEPS_REGISTRY)
   );
@@ -209,7 +228,7 @@ async function buildProgram(programName: string, leoVersion: string) {
   const aleoConfig = await getAleoConfig();
   const defaultNetwork = aleoConfig['defaultNetwork'];
 
-  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} --endpoint ${aleoConfig.networks[defaultNetwork].endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
+  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${programNameWithoutPath} --endpoint ${aleoConfig.networks[defaultNetwork].endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${programName}.leo" "${programDir}/src/main.leo"`;
   const leoShellCommand = new Shell(createLeoCommand);
   await leoShellCommand.asyncExec();
 
@@ -224,7 +243,8 @@ async function buildProgram(programName: string, leoVersion: string) {
     configs.dependencies = await createImportConfig(
       programDir,
       artifactDir,
-      fileImports
+      fileImports,
+      programs
     );
     fs.writeFileSync(configFilePath, JSON.stringify(configs));
   }
@@ -265,14 +285,16 @@ async function buildProgram(programName: string, leoVersion: string) {
   const res = await shellCommand.asyncExec();
 
   if (aleoConfig['mode'] === 'execute' && defaultNetwork) {
-    await cachePrograms(programName, programDir, defaultNetwork);
+    await cachePrograms(programNameWithoutPath, programDir, defaultNetwork);
     await cachePrograms(
-      programName,
+      programNameWithoutPath,
       programDir,
       defaultNetwork,
       path.join(registryDir, defaultNetwork)
     );
-    DokoJSLogger.debug(`Program ${programName}.aleo cached to aleo registry`);
+    DokoJSLogger.debug(
+      `Program ${programNameWithoutPath}.aleo cached to aleo registry`
+    );
   }
 
   return res;
@@ -304,7 +326,7 @@ async function buildPrograms(): Promise<{ status: string; error?: any }> {
     try {
       for (const name of names) {
         const programName = name.split('.')[0];
-        await buildProgram(programName, leoVersion);
+        await buildProgram(programName, leoVersion, names);
       }
       //try {
       //  const buildResults = await Promise.all(buildPromises);
