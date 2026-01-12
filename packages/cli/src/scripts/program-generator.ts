@@ -127,8 +127,8 @@ async function installNpmPackages(path: string | undefined) {
     'zod',
     '@provablehq/sdk',
     'dotenv',
-    '@doko-js/core',
-    '@doko-js/utils',
+    '@doko-js/core@beta',
+    '@doko-js/utils@beta',
     '@doko-js/wasm'
   ];
   const command = `cd "${path}" && npm install --save-dev ${devDeps.join(
