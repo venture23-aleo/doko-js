@@ -22,7 +22,7 @@ describe('deploy test', () => {
   }, 10000000);
 
   test('main adds two numbers', async () => {
-    const tx = await contract.main(1, 2)
+    const tx = await contract.main(1, 2);
     const [returnValue] = await tx.wait();
     expect(returnValue).toBe(8);
   }, 10000000);
