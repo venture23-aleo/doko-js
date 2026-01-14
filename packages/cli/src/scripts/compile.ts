@@ -114,7 +114,7 @@ async function createGraph(
   programPath: string
 ): Promise<Node[]> {
   const nodePromises = programs.map(async (programName) => {
-    const imports = await getFileImports(`${programPath}/${programName}`)
+    const imports = await getFileImports(`${programPath}/${programName}`);
     const node: Node = {
       name: programName,
       inputs: await Promise.all(
@@ -300,12 +300,24 @@ async function buildProgram(
   return res;
 }
 
+function assertUniqueProgramNames(programPaths: string[]) {
+  const seenProgramNames = new Set<string>();
+  for (const programPath of programPaths) {
+    const programName = programPath.split('/').pop() || programPath;
+    if (seenProgramNames.has(programName)) {
+      throw new Error(`Duplicate program name detected: "${programName}"`);
+    }
+    seenProgramNames.add(programName);
+  }
+}
+
 async function buildPrograms(): Promise<{ status: string; error?: any }> {
   try {
     const directoryPath = getProjectRoot();
     const programsPath = path.join(directoryPath, 'programs');
     const importsPath = path.join(directoryPath, IMPORTS_DIRECTORY);
     let names = getFilenamesInDirectory(programsPath).sort();
+    assertUniqueProgramNames(names);
     await prepareImportsRegistry(importsPath, ALEO_DEPS_REGISTRY);
     const leoVersion = await getLeoVersion();
 
