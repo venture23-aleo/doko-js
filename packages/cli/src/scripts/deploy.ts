@@ -57,6 +57,7 @@ async function deploy(
     privateKey,
     nodeEndPoint,
     network,
+    config.skipProof as boolean,
     isDevnet
   );
   // `cd ${deployPath} && leo deploy --priority-fee ${priorityFee}  --private-key ${privateKey} --endpoint ${nodeEndPoint} --network ${network} --yes`;

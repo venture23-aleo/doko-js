@@ -198,6 +198,7 @@ export const snarkDeploy = async ({
     config.privateKey,
     nodeEndPoint,
     config.network.network,
+    config.skipProof,
     config.isDevnet
   );
   DokoJSLogger.debug(cmd);
@@ -215,9 +216,10 @@ export const leoDeployCommand = (
   privateKey: string,
   endpoint: string,
   network: string = 'testnet',
+  skipProof: boolean = false,
   isDevnet: boolean = false
 ) => {
-  return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print ${isDevnet ? '--devnet' : ''}`;
+  return `cd ${path} && leo deploy --broadcast --private-key ${privateKey} --endpoint ${endpoint} --network ${network} --yes --print ${isDevnet ? '--devnet' : ''} ${skipProof ? '--skip-deploy-certificate' : ''}`;
 };
 
 export const transactionHashToTransactionResponseObject = (

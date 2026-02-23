@@ -36,7 +36,8 @@ export class BaseContract {
       this.config = {
         ...this.config,
         network: networkConfig.networks[networkName],
-        isDevnet: networkName === 'devnet'
+        isDevnet: networkName === 'devnet',
+        skipProof: networkConfig.skipProof
       };
     }
 

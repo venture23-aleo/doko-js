@@ -50,7 +50,7 @@ export class SnarkExecuteContext implements ExecutionContext {
       : `cd ${this.params.contractPath} && `;
 
     const programName = this.params.appName + '.aleo';
-    const cmd = `${cdCmd}leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.network.network} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8 --print ${this.params.isDevnet ? '--devnet' : ''}`;
+    const cmd = `${cdCmd}leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.network.network} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8 --print ${this.params.isDevnet ? '--devnet' : ''} ${this.params.skipProof ? '--skip-execute-proof' : ''}`;
     DokoJSLogger.debug(cmd);
     let stdout: any;
     try {

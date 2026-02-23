@@ -195,28 +195,28 @@ async function createImportConfig(
       const resolvedDependency = await resolveImport(fileImport);
       switch (executionMode) {
         case 'evaluate':
-          if (resolvedDependency.source === 'programs') {
-            config.location = 'local';
-            config.path = path.relative(
-              programDir,
-              `${artifactDir}/${fileImport.split('.aleo')[0]}`
-            );
-          } else {
-            config.location = 'network';
-            config.network = networkConfig.network;
-          }
+          // if (resolvedDependency.source === 'programs') {
+          // config.location = 'local';
+          // config.path = path.relative(
+          //   programDir,
+          //   `${artifactDir}/${fileImport.split('.aleo')[0]}`
+          // );
+          // } else {
+          config.location = 'network';
+          config.network = networkConfig.network;
+          // }
           break;
         case 'execute':
-          if (resolvedDependency.source === 'imports') {
-            config.location = 'local';
-            config.path = `${projectRoot}/imports/` + fileImport;
-            break;
-          } else {
-            config.location = 'network';
-            config.endpoint = networkConfig.endpoint || '';
-            config.network = networkConfig.network;
-            break;
-          }
+          // if (resolvedDependency.source === 'imports') {
+          //   config.location = 'local';
+          //   config.path = `${projectRoot}/imports/` + fileImport;
+          //   break;
+          // } else {
+          config.location = 'network';
+          config.endpoint = networkConfig.endpoint || '';
+          config.network = networkConfig.network;
+          break;
+        // }
         default:
           throw new Error(`Unrecognized execution mode ${executionMode}`);
       }
