@@ -104,7 +104,11 @@ const IsLeoArray = (type: string) => {
 };
 
 const IsLeoExternalRecord = (type: string) => {
-  return type.includes('.aleo/') && !type.includes('.future');
+  return (
+    type.includes('.aleo/') &&
+    type.includes('.record') &&
+    !type.includes('.future')
+  );
 };
 
 const GetLeoArrTypeAndSize = (arrDef: string) => {
