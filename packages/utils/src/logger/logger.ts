@@ -1,4 +1,3 @@
-import { getAleoConfig } from '..';
 import { ErrorDescriptor, ERRORS, getErrorCode } from './errors-list';
 
 const inspect = Symbol.for('nodejs.util.inspect.custom');

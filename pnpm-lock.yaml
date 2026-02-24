@@ -89,9 +89,6 @@ importers:
       '@doko-js/utils':
         specifier: workspace:*
         version: link:../utils
-      '@doko-js/wasm':
-        specifier: workspace:*
-        version: link:../wasm
       commander:
         specifier: ^11.0.0
         version: 11.1.0
@@ -108,8 +105,8 @@ importers:
         specifier: workspace:*
         version: link:../wasm
       '@provablehq/sdk':
-        specifier: 0.6.9
-        version: 0.6.9
+        specifier: ^0.9.12
+        version: 0.9.14
       fs-extra:
         specifier: ^11.1.1
         version: 11.2.0
@@ -133,8 +130,8 @@ importers:
         specifier: ^1.0.3-beta.1
         version: 1.0.3-beta.1
       '@doko-js/wasm':
-        specifier: 0.1.3-beta.1
-        version: 0.1.3-beta.1
+        specifier: ^1.2.0
+        version: 1.2.0
       ace-builds:
         specifier: ^1.36.2
         version: 1.36.3
@@ -977,8 +974,8 @@ packages:
   '@doko-js/wasm@0.1.2':
     resolution: {integrity: sha512-bU2CO5AJ6PzUsqqyj/pDVKDMfgtgLXifbWnvqeKTw9qT7qdJ2rlFR7iS2kWBeMiA3dHueF/Kuo5+tBxnGbQBFg==}
 
-  '@doko-js/wasm@0.1.3-beta.1':
-    resolution: {integrity: sha512-CMstCUuBUy+KEHT81spaKwaL3o8uCqbIeVG29mGEEBAwfQGWVh0BtDwmsYsMWhSbmmshvfqM8DUQlWvVBKnejg==}
+  '@doko-js/wasm@1.2.0':
+    resolution: {integrity: sha512-JRu2Pt8uGJf5mmDBc8EESDy1X14H+I6Nv/BCPFyUg86lptdIl8mFHnpolhXxyfp8SVK2NE7XTqdDHjKER0U1Hw==}
 
   '@emotion/hash@0.8.0':
     resolution: {integrity: sha512-kBJtf7PH6aWwZ6fka3zQ0p6SBYzx4fl1LoZXE2RrnYST9Xljm7WfKJrU4g/Xr3Beg72MLrp1AWNUmuYJTL7Cow==}
@@ -1289,8 +1286,14 @@ packages:
   '@provablehq/sdk@0.6.9':
     resolution: {integrity: sha512-Hf3zTBUzVJyZj1l6BDC3KhMVsHFm7M2v8nnrYyL3npiENvY4AtMZUxHWdfEEyRlU/RK44aTE09cYyjs4DM89sA==}
 
+  '@provablehq/sdk@0.9.14':
+    resolution: {integrity: sha512-8xVL7tMTnu4bc1D8axXOy1tvjVIBjYXkjXCBw2yr26UjvNVX4snXMVPcVeJ+srtUOcwk+6WUcz1VT7HTx1tAGQ==}
+
   '@provablehq/wasm@0.6.13':
     resolution: {integrity: sha512-M7H0kM240xtYryENXVbRUpW07+LOsnpt+s+X7Q7i/4lbEMWDB9lInLs987AF3EsRdRwx+eiz2ul9jraBvZ0jcg==}
+
+  '@provablehq/wasm@0.9.14':
+    resolution: {integrity: sha512-Pkfo65bNJkW/UYoF+2+ZMF94N5YVOuh0jM1ZHMdk5kI78kQWoeYlZcGp/kadLsMgz9BcwSB/ZwvLYgDGozjGVA==}
 
   '@rc-component/async-validator@5.0.4':
     resolution: {integrity: sha512-qgGdcVIF604M9EqjNF0hbUTz42bz/RDtxWdWuU5EQe3hi7M8ob54B6B35rOsvX5eSvIHIzT9iH1R3n+hk3CGfg==}
@@ -1482,6 +1485,9 @@ packages:
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
+
+  '@scure/base@2.0.0':
+    resolution: {integrity: sha512-3E1kpuZginKkek01ovG8krQ0Z44E3DHPjc5S2rjJw9lZn3KSQOs8S7wqikF/AH7iRanHypj85uGyxk0XAyC37w==}
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -2151,6 +2157,9 @@ packages:
   comlink@4.4.1:
     resolution: {integrity: sha512-+1dlx0aY5Jo1vHy/tSsIGpSkN4tS9rZSW8FIhG0JH/crs9wwweswIo/POr451r7bZww3hFbPAKnTpimzL/mm4Q==}
 
+  comlink@4.4.2:
+    resolution: {integrity: sha512-OxGdvBmJuNKSCMO4NTl1L47VRp6xn2wG4F/2hYzB6tiCb709otOxtEYCSvK80PtjODfXXZu8ds+Nw5kVCjqd2g==}
+
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
 
@@ -2223,6 +2232,9 @@ packages:
 
   core-js-compat@3.38.1:
     resolution: {integrity: sha512-JRH6gfXxGmrzF3tZ57lFx97YARxCXPaMzPo6jELZhv88pBH5VXpQ+y0znKGlFnzuaihqhLbefxSJxWJMPtfDzw==}
+
+  core-js@3.45.0:
+    resolution: {integrity: sha512-c2KZL9lP4DjkN3hk/an4pWn5b5ZefhRJnAc42n6LJ19kSnbeRbdQZE5dSeE2LBol1OwJD3X1BQvFTAsa8ReeDA==}
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -3386,9 +3398,11 @@ packages:
 
   lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
+    deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
 
   lodash.isequal@4.5.0:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.memoize@4.1.2:
     resolution: {integrity: sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==}
@@ -3611,6 +3625,11 @@ packages:
   mime@3.0.0:
     resolution: {integrity: sha512-jSCU7/VB1loIWBZe14aEYHU/+1UMEHoaO7qxCOVJOw9GgH72VAWppxNcjU+x9a2k3GSIBXNKxXQFqRvvZ7vr3A==}
     engines: {node: '>=10.0.0'}
+    hasBin: true
+
+  mime@4.0.7:
+    resolution: {integrity: sha512-2OfDPL+e03E0LrXaGYOtTFIYhiuzep94NSsuhrNULq+stylcJedcHdzHtz0atMUuGwJfFYs0YL5xeC/Ca2x0eQ==}
+    engines: {node: '>=16'}
     hasBin: true
 
   mimic-fn@2.1.0:
@@ -4979,6 +4998,10 @@ packages:
     resolution: {integrity: sha512-7KxauUdBmSdWnmpaGFg+ppNjKF8uNLry8LyzjauQDOVONfFLNKrKvQOxZ/VuTIcS/gge/YNahf5RIIQWTSarlg==}
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
 
+  xmlhttprequest-ssl@3.1.0:
+    resolution: {integrity: sha512-UsofFE/khRRAcM9c3FGDEUSwupaQQC3Kme1brtz+B3N+RZHXGbD6AG6QzgWcunHzszqtOSMiZoPNrmHEBB2DjA==}
+    engines: {node: '>=12.0.0'}
+
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
@@ -6027,7 +6050,7 @@ snapshots:
 
   '@doko-js/wasm@0.1.2': {}
 
-  '@doko-js/wasm@0.1.3-beta.1': {}
+  '@doko-js/wasm@1.2.0': {}
 
   '@emotion/hash@0.8.0': {}
 
@@ -6384,7 +6407,19 @@ snapshots:
       mime: 3.0.0
       sync-request: 6.1.0
 
+  '@provablehq/sdk@0.9.14':
+    dependencies:
+      '@provablehq/wasm': 0.9.14
+      '@scure/base': 2.0.0
+      comlink: 4.4.2
+      core-js: 3.45.0
+      mime: 4.0.7
+      sync-request: 6.1.0
+      xmlhttprequest-ssl: 3.1.0
+
   '@provablehq/wasm@0.6.13': {}
+
+  '@provablehq/wasm@0.9.14': {}
 
   '@rc-component/async-validator@5.0.4':
     dependencies:
@@ -6545,6 +6580,8 @@ snapshots:
     optional: true
 
   '@rtsao/scc@1.1.0': {}
+
+  '@scure/base@2.0.0': {}
 
   '@sinclair/typebox@0.27.8': {}
 
@@ -7385,6 +7422,8 @@ snapshots:
 
   comlink@4.4.1: {}
 
+  comlink@4.4.2: {}
+
   comma-separated-tokens@2.0.3: {}
 
   commander@10.0.1: {}
@@ -7460,6 +7499,8 @@ snapshots:
   core-js-compat@3.38.1:
     dependencies:
       browserslist: 4.24.0
+
+  core-js@3.45.0: {}
 
   core-util-is@1.0.3: {}
 
@@ -9398,6 +9439,8 @@ snapshots:
 
   mime@3.0.0: {}
 
+  mime@4.0.7: {}
+
   mimic-fn@2.1.0: {}
 
   minimalistic-assert@1.0.1: {}
@@ -10975,6 +11018,8 @@ snapshots:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 3.0.7
+
+  xmlhttprequest-ssl@3.1.0: {}
 
   xtend@4.0.2: {}
 

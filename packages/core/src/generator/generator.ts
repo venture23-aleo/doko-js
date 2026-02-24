@@ -12,7 +12,9 @@ import {
   IsLeoPrimitiveType,
   IsLeoArray,
   MappingDefinition,
-  IsLeoExternalRecord
+  IsLeoExternalRecord,
+  GetLeoArrTypeAndSize,
+  GetLeoTypeAndDepth
 } from '@/utils/aleo-utils';
 import { TSInterfaceGenerator } from '@/generator/ts-interface-generator';
 import { ZodObjectGenerator } from '@/generator/zod-object-generator';
@@ -304,10 +306,11 @@ class Generator {
       `\tconst encodedRecord: string = typeof ${argName} === 'string'? ${argName}: ${argName}.value;\n`
     );
     fnGenerator.addStatement(
-      '\tconst decodedRecord: string = PrivateKey.from_string(privateKey).to_view_key().decrypt(encodedRecord);\n'
+      '\tconst decodedRecord: string = RecordCiphertext.fromString(encodedRecord).decrypt(new Account({privateKey}).viewKey()).toString();\n'
+      // PrivateKey.from_string(privateKey).to_view_key().decrypt(encodedRecord);\n'
     );
     fnGenerator.addStatement(
-      `\tconst result: ${jsType} = get${jsType}(parseJSONLikeString(decodedRecord));\n`
+      `\tconst result: ${jsType} = get${jsType}(parseJSONLikeString(decodedRecord) as ${jsType}Leo);\n`
     );
 
     // Add return statement
@@ -388,14 +391,16 @@ class Generator {
       // Generate argument array
       const isExternalRecord = IsLeoExternalRecord(input.val);
       const leoType = FormatLeoDataType(input.val).split('.')[0];
+      const isArray = IsLeoArray(leoType);
+      const [nestedType] = GetLeoTypeAndDepth(leoType);
+
+      // Create argument for each parameter of function
+      const argName = input.key;
       const jsType = isExternalRecord
         ? InferExternalRecordInputDataType(input.val)
         : InferJSDataType(leoType);
 
-      // Create argument for each parameter of function
-      const argName = input.key;
       args.push({ name: argName, type: jsType });
-
       // Can be anything but we just define it as something that ends with leo
       const localVariableName = `${argName}Leo`;
       localVariables.push(localVariableName);
@@ -414,6 +419,8 @@ class Generator {
       if (this.refl.isCustomType(leoType)) {
         outUsedTypes.add(jsType);
         fnName = `js2leo.json(${fnName})`;
+      } else if (this.refl.isCustomType(nestedType)) {
+        outUsedTypes.add(InferJSDataType(nestedType));
       }
 
       if (IsLeoArray(leoType)) fnName = `js2leo.arr2string(${fnName})`;
@@ -441,6 +448,7 @@ class Generator {
 
         // cast non-custom datatype to string
         const type = formattedOutput.split('.')[0];
+        const [nestedType, depth] = GetLeoTypeAndDepth(type);
         const isRecordType = this.refl.isRecordType(type);
         const isExternalRecord =
           output.includes('.aleo/') && output.includes('.record');
@@ -450,6 +458,8 @@ class Generator {
 
         if (this.refl.isCustomType(type)) {
           outUsedTypes.add(InferJSDataType(type));
+        } else if (this.refl.isCustomType(nestedType)) {
+          outUsedTypes.add(InferJSDataType(nestedType));
         }
 
         const converterFn = isExternalRecord
@@ -462,19 +472,44 @@ class Generator {
             ]
           : isRecordType
             ? ['leo2js.record']
-            : GetTypeConversionFunctionsJS(formattedOutput);
+            : this.refl.isCustomType(nestedType) && nestedType !== type
+              ? [
+                  GetTypeConversionFunctionsJS(formattedOutput)[0],
+                  GetTypeConversionFunctionsJS(nestedType)[0]
+                ]
+              : GetTypeConversionFunctionsJS(formattedOutput);
 
+        if (depth > 1) {
+          const generateMultiDimensionalArrayConverter = (
+            depth: number
+          ): string => {
+            if (depth <= 1) throw new Error('Depth must be at least 2');
+            let mapChain = 'arr';
+            for (let i = 1; i < depth; i++) {
+              mapChain += `.map(arr${i} =>`;
+            }
+            mapChain += ` leo2js.array(arr${depth - 1}, converterFn)`;
+            for (let i = 1; i < depth; i++) {
+              mapChain += ')';
+            }
+            const typeDefinition = `any${'[]'.repeat(depth)}`;
+            return `(arr: ${typeDefinition}, converterFn: Function) => { return ${mapChain}; }`;
+          };
+          converterFn[0] = generateMultiDimensionalArrayConverter(depth);
+        }
         const formatConverterFn =
           converterFn.length > 1
             ? `[${converterFn.join(',')}]`
             : converterFn[0];
 
+        const outputType = isExternalRecord
+          ? `ExternalRecord<'${externaleRecordParts[0]}', '${externaleRecordParts[1]}'>`
+          : isRecordType
+            ? 'LeoRecord'
+            : InferJSDataType(type);
+
         returnValues.push({
-          type: isExternalRecord
-            ? `ExternalRecord<'${externaleRecordParts[0]}', '${externaleRecordParts[1]}'>`
-            : isRecordType
-              ? 'LeoRecord'
-              : InferJSDataType(type),
+          type: outputType,
           converterFunction: formatConverterFn
         });
       });
@@ -485,7 +520,7 @@ class Generator {
       (returnValues) => returnValues.converterFunction
     );
 
-    const returnType = `Promise<TransactionResponse<TransactionModel & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}, [${types.join(',')}]>>`;
+    const returnType = `Promise<TransactionResponse<Transaction & receipt.${GetProgramTransitionsTypeName(this.refl.programName, func.name)}, [${types.join(',')}]>>`;
     if (converterFns.length > 0) {
       fnGenerator.addStatement(
         `result.set_converter_fn([${converterFns.join(', ')}]);\n`
@@ -523,6 +558,8 @@ class Generator {
       fnName = `js2leo.json(${fnName})`;
       // @NOTE can we use custom type as key for mapping?
       usedTypes.add(jsType);
+    } else if (IsLeoArray(leoType)) {
+      fnName = `js2leo.arr2string(${fnName})`;
     }
 
     const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
@@ -629,7 +666,7 @@ class Generator {
         '@doko-js/core'
       ),
       GenerateTSImport(['BaseContract'], '../../contract/base-contract'),
-      GenerateTSImport(['TransactionModel'], '@provablehq/sdk'),
+      GenerateTSImport(['Transaction'], '@provablehq/sdk'),
       GenerateAsteriskTSImport(`./transitions/${programName}`, 'receipt'),
       '\n\n'
     );

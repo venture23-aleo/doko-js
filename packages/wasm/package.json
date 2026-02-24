@@ -1,6 +1,6 @@
 {
   "name": "@doko-js/wasm",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "type": "module",
   "main": "./dist/pkg-node/wasm.cjs",
   "module": "./dist/pkg-bundler/wasm.js",
@@ -15,9 +15,13 @@
         "require": "./dist/pkg-node/wasm.cjs"
       },
       "browser": "./dist/pkg-web/wasm.js",
-      "default": "./dist/pkg-bundler/wasm.js"
+      "default": "./dist/pkg-node/wasm.js"
     }
   },
-  "files": ["dist/", "package.json", "README.md"],
+  "files": [
+    "dist/**/**",
+    "package.json",
+    "README.md"
+  ],
   "sideEffects": false
 }

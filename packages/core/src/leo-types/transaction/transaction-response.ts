@@ -4,14 +4,14 @@ import { TransactionParams } from '@/execution';
 import { get } from '@/utils/httpRequests';
 import { DokoJSError, ERRORS } from '@doko-js/utils';
 import { Optional } from '@/execution';
-import { TransactionModel } from '@provablehq/sdk';
+import { Transaction } from '@provablehq/sdk';
 
 type Tuple = Optional<Array<unknown>>;
 type ConverterFn = (val: any, rest?: any) => any;
 type ConverterFnDefinition = [ConverterFn, ...string[]];
 
 export abstract class TransactionResponse<
-  TransactionDefinition extends TransactionModel = TransactionModel,
+  TransactionDefinition extends Transaction = Transaction,
   Result = Tuple
 > {
   // Outputs for the transition for which this object is returned
@@ -63,7 +63,7 @@ export abstract class TransactionResponse<
 }
 
 export class LeoRunResponse<
-  TransactionDefinition extends TransactionModel,
+  TransactionDefinition extends Transaction,
   Result extends Tuple = Tuple
 > extends TransactionResponse<TransactionDefinition, Result> {
   constructor(outputs: Record<string, unknown>[]) {
@@ -77,7 +77,7 @@ export class LeoRunResponse<
 }
 
 export class LeoExecuteResponse<
-  TransactionDefinition extends TransactionModel = TransactionModel,
+  TransactionDefinition extends Transaction = Transaction,
   Result extends Tuple = Tuple
 > extends TransactionResponse<TransactionDefinition, Result> {
   transaction: TransactionDefinition;
@@ -96,7 +96,7 @@ export class LeoExecuteResponse<
       transitionName,
       program,
       transactionParam.privateKey,
-      transactionParam.networkName
+      transactionParam.network.network
     );
   }
 
@@ -114,7 +114,7 @@ export class LeoExecuteResponse<
 }
 
 export class SnarkExecuteResponse<
-  TransactionDefinition extends TransactionModel = TransactionModel,
+  TransactionDefinition extends Transaction = Transaction,
   Result extends Tuple = Tuple
 > extends TransactionResponse<TransactionDefinition, Result> {
   protected transaction: TransactionDefinition | null;
@@ -136,18 +136,18 @@ export class SnarkExecuteResponse<
     this.transaction = (await validateBroadcast(
       this.transactionId,
       endpoint,
-      this.transactionParams.networkName
+      this.transactionParams.network.network
     )) as any;
 
     if (this.transaction) {
       const program = this.transactionParams.appName + '.aleo';
-      const { privateKey, networkName } = this.transactionParams;
+      const { privateKey, networkName, network } = this.transactionParams;
       this.outputs = decryptOutput(
         this.transaction,
         this.transitionName,
         program,
         privateKey,
-        networkName
+        network.network
       );
     }
     return this.apply_converters();
@@ -171,14 +171,14 @@ export class SnarkExecuteResponse<
     this.transaction = (await validateBroadcast(
       this.transactionId,
       this.transactionParams.network.endpoint,
-      this.transactionParams.networkName
+      this.transactionParams.network.network
     )) as any;
     return this.transaction;
   }
 }
 
 export class SnarkDeployResponse<
-  TransactionDefinition extends TransactionModel = TransactionModel,
+  TransactionDefinition extends Transaction = Transaction,
   Result extends Tuple = Tuple
 > extends SnarkExecuteResponse<TransactionDefinition, Result> {
   constructor(transactionId: string, transactionParams: TransactionParams) {
@@ -194,7 +194,7 @@ export class SnarkDeployResponse<
       this.transaction = (await validateBroadcast(
         this.transactionId,
         endpoint,
-        this.transactionParams.networkName
+        this.transactionParams.network.network
       )) as any;
     }
     return undefined as Result;
@@ -216,7 +216,7 @@ export class SnarkDeployResponse<
     this.transaction = await validateBroadcast(
       this.transactionId,
       this.transactionParams.network.endpoint,
-      this.transactionParams.networkName
+      this.transactionParams.network.network
     );
     return this.transaction;
   }

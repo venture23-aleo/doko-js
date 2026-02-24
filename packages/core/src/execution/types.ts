@@ -1,4 +1,4 @@
-import { TransactionModel } from '@provablehq/sdk';
+import { Transaction } from '@provablehq/sdk';
 import { tx } from '@/outputs';
 import { TransactionResponse } from '@/leo-types/transaction/transaction-response';
 
@@ -9,13 +9,14 @@ export enum ExecutionMode {
 }
 
 interface NetworkConfig {
+  network: string;
   endpoint: string;
   accounts: string[];
 }
 
 export interface ExecutionOutput {
   data: any;
-  transaction?: (TransactionModel & tx.Receipt) | string;
+  transaction?: (Transaction & tx.Receipt) | string;
 }
 
 export interface BaseConfig {
@@ -31,6 +32,7 @@ export interface ContractConfig extends BaseConfig {
   mode?: ExecutionMode;
   priorityFee?: number;
   isImportedAleo?: boolean;
+  isDevnet?: boolean;
 }
 
 export interface ExecutionContext {
@@ -48,6 +50,6 @@ export type LeoTransactionParams = Omit<
 >;
 
 export type SnarkExecuteTransactionParams = TransactionParams &
-  Pick<ContractConfig, 'isImportedAleo'>;
+  Pick<ContractConfig, 'isImportedAleo' | 'isDevnet'>;
 
 export type Optional<T> = T | undefined;

@@ -1,4 +1,4 @@
-import { PrivateKey } from '@provablehq/sdk';
+import { PrivateKey, Account, RecordCiphertext } from '@provablehq/sdk';
 import {
   ContractConfig,
   snarkDeploy,
@@ -35,7 +35,8 @@ export class BaseContract {
 
       this.config = {
         ...this.config,
-        network: networkConfig.networks[networkName]
+        network: networkConfig.networks[networkName],
+        isDevnet: networkName === 'devnet'
       };
     }
 
@@ -46,7 +47,7 @@ export class BaseContract {
   }
 
   async isDeployed(): Promise<boolean> {
-    const endpoint = `${this.config.network.endpoint}/${this.config.networkName}/program/${this.config.appName}.aleo`;
+    const endpoint = `${this.config.network.endpoint}/${this.config.network.network}/program/${this.config.appName}.aleo`;
     return checkDeployment(endpoint);
   }
 
@@ -69,7 +70,10 @@ export class BaseContract {
   }
 
   address(): string {
-    return to_address(`${this.config.appName}.aleo`, this.config.networkName);
+    return to_address(
+      `${this.config.appName}.aleo`,
+      this.config.network.network
+    );
   }
 
   // TODO: handle properly
@@ -103,6 +107,7 @@ export class BaseContract {
       throw Error(`Account ${account} not found!`);
     } else {
       this.config.privateKey = this.config.network.accounts[accountIndex];
+      this.ctx = CreateExecutionContext(this.config);
     }
   }
 }

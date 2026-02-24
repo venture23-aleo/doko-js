@@ -1,4 +1,4 @@
-import { TransactionModel } from '@provablehq/sdk';
+import { Transaction } from '@provablehq/sdk';
 import { DokoJSError, DokoJSLogger, ERRORS } from '@doko-js/utils';
 
 import { SnarkExecuteTransactionParams, ExecutionContext } from './types';
@@ -9,6 +9,7 @@ import {
   SnarkExecuteResponse,
   TransactionResponse
 } from '@/leo-types/transaction/transaction-response';
+import { extractTransactionId } from './utils';
 
 export class SnarkExecuteContext implements ExecutionContext {
   constructor(
@@ -16,7 +17,7 @@ export class SnarkExecuteContext implements ExecutionContext {
     public parser: SnarkStdoutResponseParser = new SnarkStdoutResponseParser()
   ) {}
   /*
-  private async broadcast(transaction: TransactionModel, endpoint: string) {
+  private async broadcast(transaction: Transaction, endpoint: string) {
     try {
       return await post(
         `${endpoint}/${this.params.networkName}/transaction/broadcast`,
@@ -49,11 +50,16 @@ export class SnarkExecuteContext implements ExecutionContext {
       : `cd ${this.params.contractPath} && `;
 
     const programName = this.params.appName + '.aleo';
-    const cmd = `${cdCmd}leo execute --program ${programName} ${transitionName} ${transitionArgs} --network ${this.params.networkName} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes`;
+    const cmd = `${cdCmd}leo execute ${programName}/${transitionName} ${transitionArgs} --network ${this.params.network.network} --private-key ${this.params.privateKey} --endpoint ${nodeEndPoint} --broadcast --yes  --blocks-to-check 8 --print ${this.params.isDevnet ? '--devnet' : ''}`;
     DokoJSLogger.debug(cmd);
+    let stdout: any;
+    try {
+      ({ stdout } = await execute(cmd));
+    } catch (error: any) {
+      stdout = error.message;
+    }
 
-    const { stdout } = await execute(cmd);
-    const { transaction } = this.parser.parse(stdout);
+    const transaction = extractTransactionId(stdout);
     if (transaction) {
       return new SnarkExecuteResponse(
         transaction as string,
