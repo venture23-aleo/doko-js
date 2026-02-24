@@ -421,6 +421,8 @@ class Generator {
         fnName = `js2leo.json(${fnName})`;
       } else if (this.refl.isCustomType(nestedType)) {
         outUsedTypes.add(InferJSDataType(nestedType));
+      } else if (!IsLeoPrimitiveType(leoType) && !IsLeoArray(leoType)) {
+        fnName = `js2leo.json(${fnName})`;
       }
 
       if (IsLeoArray(leoType)) fnName = `js2leo.arr2string(${fnName})`;
@@ -560,6 +562,8 @@ class Generator {
       usedTypes.add(jsType);
     } else if (IsLeoArray(leoType)) {
       fnName = `js2leo.arr2string(${fnName})`;
+    } else if (!IsLeoPrimitiveType(leoType) && !IsLeoArray(leoType)) {
+      fnName = `js2leo.json(${fnName})`;
     }
 
     const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
