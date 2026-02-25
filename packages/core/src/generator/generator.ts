@@ -14,7 +14,8 @@ import {
   MappingDefinition,
   IsLeoExternalRecord,
   GetLeoArrTypeAndSize,
-  GetLeoTypeAndDepth
+  GetLeoTypeAndDepth,
+  getProgramNameFromExternalStructSyntax
 } from '@/utils/aleo-utils';
 import { TSInterfaceGenerator } from '@/generator/ts-interface-generator';
 import { ZodObjectGenerator } from '@/generator/zod-object-generator';
@@ -375,9 +376,19 @@ class Generator {
     return code;
   }
 
+  private addUsedType(
+    usedTypesMap: Map<string, Set<string>>,
+    programName: string,
+    typeName: string
+  ) {
+    const set = usedTypesMap.get(programName) ?? new Set<string>();
+    set.add(typeName);
+    usedTypesMap.set(programName, set);
+  }
+
   private generateTransitionFunction(
     func: FunctionDefinition,
-    outUsedTypes: Set<string>
+    outUsedTypes: Map<string, Set<string>>
   ) {
     const fnGenerator = new TSFunctionGenerator()
       .setIsAsync(true)
@@ -415,14 +426,27 @@ class Generator {
           )
         : GenerateTypeConversionStatement(leoType, argName, STRING_LEO);
 
+      const externalProgramName = getProgramNameFromExternalStructSyntax(
+        input.val
+      );
+
       // For custom type that produce object it must be converted to string
-      if (this.refl.isCustomType(leoType)) {
-        outUsedTypes.add(jsType);
+      if (
+        this.refl.isCustomType(leoType) ||
+        (externalProgramName && !isArray)
+      ) {
+        this.addUsedType(
+          outUsedTypes,
+          externalProgramName ?? this.refl.programName,
+          jsType
+        );
         fnName = `js2leo.json(${fnName})`;
-      } else if (this.refl.isCustomType(nestedType)) {
-        outUsedTypes.add(InferJSDataType(nestedType));
-      } else if (!IsLeoPrimitiveType(leoType) && !IsLeoArray(leoType)) {
-        fnName = `js2leo.json(${fnName})`;
+      } else if (this.refl.isCustomType(nestedType) || externalProgramName) {
+        this.addUsedType(
+          outUsedTypes,
+          externalProgramName ?? this.refl.programName,
+          InferJSDataType(nestedType)
+        );
       }
 
       if (IsLeoArray(leoType)) fnName = `js2leo.arr2string(${fnName})`;
@@ -458,10 +482,21 @@ class Generator {
           .replace('.record', '')
           .split('.aleo/');
 
-        if (this.refl.isCustomType(type)) {
-          outUsedTypes.add(InferJSDataType(type));
-        } else if (this.refl.isCustomType(nestedType)) {
-          outUsedTypes.add(InferJSDataType(nestedType));
+        const outputProgramName =
+          getProgramNameFromExternalStructSyntax(output);
+        const isArray = IsLeoArray(output);
+        if (this.refl.isCustomType(type) || (outputProgramName && !isArray)) {
+          this.addUsedType(
+            outUsedTypes,
+            outputProgramName ?? this.refl.programName,
+            InferJSDataType(type)
+          );
+        } else if (this.refl.isCustomType(nestedType) || outputProgramName) {
+          this.addUsedType(
+            outUsedTypes,
+            outputProgramName ?? this.refl.programName,
+            InferJSDataType(nestedType)
+          );
         }
 
         const converterFn = isExternalRecord
@@ -535,7 +570,7 @@ class Generator {
 
   private generateMappingFunction(
     mapping: MappingDefinition,
-    usedTypes: Set<string>
+    usedTypes: Map<string, Set<string>>
   ) {
     const fnGenerator = new TSFunctionGenerator()
       .setIsAsync(true)
@@ -554,16 +589,28 @@ class Generator {
     // We ignore the qualifier while generating conversion function
     // for transition function parameter
     let fnName = GenerateTypeConversionStatement(leoType, argName, STRING_LEO);
-
+    const [nestedType] = GetLeoTypeAndDepth(leoType);
+    const externalProgramName = getProgramNameFromExternalStructSyntax(
+      mapping.key
+    );
+    const isArray = IsLeoArray(leoType);
     // For custom type that produce object it must be converted to string
-    if (this.refl.isCustomType(leoType)) {
+    if (this.refl.isCustomType(leoType) || (externalProgramName && !isArray)) {
       fnName = `js2leo.json(${fnName})`;
       // @NOTE can we use custom type as key for mapping?
-      usedTypes.add(jsType);
-    } else if (IsLeoArray(leoType)) {
+      this.addUsedType(
+        usedTypes,
+        externalProgramName ?? this.refl.programName,
+        jsType
+      );
+    } else if (this.refl.isCustomType(nestedType) || externalProgramName) {
+      this.addUsedType(
+        usedTypes,
+        externalProgramName ?? this.refl.programName,
+        InferJSDataType(nestedType)
+      );
+    } else if (isArray) {
       fnName = `js2leo.arr2string(${fnName})`;
-    } else if (!IsLeoPrimitiveType(leoType) && !IsLeoArray(leoType)) {
-      fnName = `js2leo.json(${fnName})`;
     }
 
     const conversionCode = `\tconst ${variableName} = ${fnName};\n`;
@@ -591,8 +638,20 @@ class Generator {
     }`);
 
     const returnType = InferJSDataType(leoReturnType);
+    const outputProgramName = getProgramNameFromExternalStructSyntax(
+      mapping.value
+    );
+    const isValueArray = IsLeoArray(leoReturnType);
     fnArg.push({ name: 'defaultValue?', type: returnType });
-    if (this.refl.isCustomType(leoReturnType)) usedTypes.add(returnType);
+    if (
+      this.refl.isCustomType(leoReturnType) ||
+      (outputProgramName && !isValueArray)
+    )
+      this.addUsedType(
+        usedTypes,
+        outputProgramName ?? this.refl.programName,
+        returnType
+      );
 
     return fnGenerator.generate(
       GetLeoMappingFuncName(mapping.name),
@@ -606,7 +665,7 @@ class Generator {
     const programName = this.refl.programName;
     const classGenerator = new TSClassGenerator().extendsFrom('BaseContract');
 
-    const usedTypesSet = new Set<string>();
+    const usedTypesSet = new Map<string, Set<string>>();
     classGenerator.addMethod(
       `constructor(config: Partial<ContractConfig> = {mode: ExecutionMode.LeoRun}) {
         super({
@@ -632,24 +691,24 @@ class Generator {
       );
     });
 
-    const usedTypes = Array.from(usedTypesSet);
     let code = '';
-    if (usedTypes.length > 0) {
-      code = code.concat(GenerateTSImport(usedTypes, `./types/${programName}`));
-      let usedFunctions = usedTypes.map((type) =>
-        GetConverterFunctionName(type, STRING_LEO)
+    usedTypesSet.forEach((typesSet, prog) => {
+      const usedTypes = Array.from(typesSet);
+      if (usedTypes.length === 0) return;
+      code = code.concat(GenerateTSImport(usedTypes, `./types/${prog}`));
+      code = code.concat(
+        GenerateTSImport(
+          usedTypes.map((type) => GetConverterFunctionName(type, STRING_LEO)),
+          `./js2leo/${prog}`
+        )
       );
       code = code.concat(
-        GenerateTSImport(usedFunctions, `./js2leo/${programName}`)
+        GenerateTSImport(
+          usedTypes.map((type) => GetConverterFunctionName(type, STRING_JS)),
+          `./leo2js/${prog}`
+        )
       );
-
-      usedFunctions = usedTypes.map((type) =>
-        GetConverterFunctionName(type, STRING_JS)
-      );
-      code = code.concat(
-        GenerateTSImport(usedFunctions, `./leo2js/${programName}`)
-      );
-    }
+    });
     code = code.concat(this.generateExternalRecordImports(), '\n');
 
     code = code.concat(

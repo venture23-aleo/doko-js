@@ -99,6 +99,12 @@ const IsLeoPrimitiveType = (value: string) => {
   return false;
 };
 
+const getProgramNameFromExternalStructSyntax = (
+  input: string
+): string | null => {
+  const match = input.match(/^(?!.*\.record)(?:\[)?([a-zA-Z0-9_]+)\.aleo\//);
+  return match ? match[1] : null;
+};
 const IsLeoArray = (type: string) => {
   return type.match(/\[(.*?)\]/g) !== null;
 };
@@ -196,5 +202,6 @@ export {
   ExternalRecord,
   KEYWORDS,
   CALL_OPERATOR,
-  extractProgramName
+  extractProgramName,
+  getProgramNameFromExternalStructSyntax
 };
