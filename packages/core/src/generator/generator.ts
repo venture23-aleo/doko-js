@@ -622,9 +622,9 @@ class Generator {
     // Add zkRun statement
     fnGenerator.addStatement(GenerateZkMappingCode(mapping.name));
 
-    const leoReturnType = mapping.value.split('.')[0];
+    const leoReturnType = FormatLeoDataType(mapping.value).split('.')[0];
     const result = GenerateTypeConversionStatement(
-      mapping.value,
+      leoReturnType,
       'result',
       STRING_JS
     );
@@ -642,6 +642,7 @@ class Generator {
       mapping.value
     );
     const isValueArray = IsLeoArray(leoReturnType);
+    const [nestedTypeValue] = GetLeoArrTypeAndSize(leoReturnType);
     fnArg.push({ name: 'defaultValue?', type: returnType });
     if (
       this.refl.isCustomType(leoReturnType) ||
@@ -651,6 +652,12 @@ class Generator {
         usedTypes,
         outputProgramName ?? this.refl.programName,
         returnType
+      );
+    else if (this.refl.isCustomType(nestedTypeValue) || outputProgramName)
+      this.addUsedType(
+        usedTypes,
+        outputProgramName ?? this.refl.programName,
+        nestedTypeValue
       );
 
     return fnGenerator.generate(
