@@ -278,7 +278,7 @@ async function buildProgram(programName: string, leoVersion: string) {
         throw new Error('Invalid private key, check aleo-config.js ...');
     }
   }
-  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} --endpoint ${endpoint} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
+  const createLeoCommand = `mkdir -p "${artifactDir}" && cd "${artifactDir}" && leo new ${parsedProgramName} && rm "${programDir}/src/main.leo" && cp "${projectRoot}/programs/${parsedProgramName}.leo" "${programDir}/src/main.leo"`;
 
   const leoShellCommand = new Shell(createLeoCommand);
   await leoShellCommand.asyncExec();
@@ -304,10 +304,8 @@ async function buildProgram(programName: string, leoVersion: string) {
     fs.writeFileSync(configFilePath, JSON.stringify(configs));
   }
 
-  const networkFlag =
-    network && leoVersion.startsWith('2.') ? `--network ${network}` : '';
   const isDevnet = defaultNetwork === 'devnet';
-  const leoBuildCommand: string = `cd "${programDir}" && leo build ${networkFlag} ${isDevnet ? '--devnet' : ''}`;
+  const leoBuildCommand: string = `cd "${programDir}" && leo build ${isDevnet ? '--devnet' : ''}`;
   const shellCommand = new Shell(leoBuildCommand);
   const res = await shellCommand.asyncExec();
 
