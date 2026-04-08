@@ -1,3 +1,4 @@
+
 ### Release Note: @dokojs/cli 1.2.0, @dokojs/core 1.2.0
 
 #### Key Updates
@@ -29,7 +30,9 @@
 
 ---
 
-### Release Note: @dokojs/cli 1.1.0-beta, @dokojs/core 1.1.0-beta, @dokojs/utils 1.1.0-beta
+
+### Release Note: @dokojs/cli 1.1.0, @dokojs/core 1.1.0, @dokojs/utils 1.1.0
+
 
 #### Key Updates
 

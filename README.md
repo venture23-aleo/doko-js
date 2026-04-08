@@ -10,8 +10,11 @@ Before beginning, make sure you have the following set up:
 
 **1. Rust**: [Installation Guide](https://www.rust-lang.org/tools/install)
 
-**2. Leo language**:
-[Installation Guide](https://github.com/ProvableHQ/leo)
+**2. Leo language@v3.4.0**:
+[Installation Guide](https://github.com/ProvableHQ/leo/tree/v3.4.0)
+
+**3. SnarkOS@v4.4.0**:
+[Installation Guide](https://github.com/ProvableHQ/snarkOS/tree/v4.4.0)
 
 ### From NPM
 
@@ -93,13 +96,11 @@ After project initialization, DokoJS generates the following directory structure
 │   └── base-contract.ts
 ├── node_modules/
 ├── programs
-│   ├── sample_program.leo
-│   └── token.leo
+│   └── sample_program.leo
 ├── scripts
 │   └── deploy.ts
 ├── test
-│   ├── sample_program.test.ts
-│   └── token.test.ts
+│   └── sample_program.test.ts
 ├── .env
 ├── .gitignore
 ├── aleo-config.js
@@ -162,8 +163,8 @@ export default {
 
 We have two modes of execution supported:
 
-1. `execute`: In this mode, proof is generated and broadcasted on chain. Internally, it calls `leo developer execute` command.
-2. `evaluate`: In this mode, no proof is generated and broadcasted on chain. Internally, it calls `leo run` command.
+1. `ExecutionMode.SnarkExecute`: In this mode, proof is generated and broadcasted on chain. Internally, it calls `leo execute` command. We need to run snarkos devnet for this to execute.
+2. `ExecutionMode.LeoRun`: In this mode, no proof is generated and broadcasted on chain. Internally, it calls `leo run` command.
 
 > `aleo-config` acts as a default configuration for the entire project. It can be overwritten on per program basis as well.
 
@@ -369,13 +370,15 @@ describe('deploy test', () => {
 
 >     npm test -- --runInBand token.test.ts
 
-
 ## Dokojs Configuration
+
 The configuration of the dokojs can be defined in `aleo-config.js`
 
 ### Description
+
 **accounts:** accepts array of private key.
-  >     {accounts: ["aleopk1", process.env.pk2]}
+
+>     {accounts: ["aleopk1", process.env.pk2]}
 
 **network:** specifies configuration for different environment. This accept (key, network configuration).
   Network configuration option are: 
@@ -384,7 +387,8 @@ The configuration of the dokojs can be defined in `aleo-config.js`
   + priorityFee: is a value added to the base fee of a transaction to encourage node operators to process it
   ```
       networks: {
-      testnet: {
+          devnet: {
+        network: 'testnet',
         endpoint: 'http://localhost:3030',
         accounts: [
           process.env.ALEO_PRIVATE_KEY_TESTNET3,
@@ -392,12 +396,22 @@ The configuration of the dokojs can be defined in `aleo-config.js`
         ],
         priorityFee: 0.01
       },
-      mainnet: {
-        endpoint: 'https://api.explorer.aleo.org/v1',
+          testnet: {
+        network: 'testnet',
+        endpoint: 'https://api.explorer.provable.com/v1',
+        accounts: [
+          process.env.ALEO_PRIVATE_KEY_TESTNET3,
+          process.env.ALEO_DEVNET_PRIVATE_KEY2
+        ],
+        priorityFee: 0.01
+      },
+          mainnet: {
+        network: 'mainnet',
+        endpoint: 'https://api.explorer.provable.com/v1',
         accounts: [process.env.ALEO_PRIVATE_KEY_MAINNET],
         priorityFee: 0.001
       }
-    }
+ }
   ```
 **skipProof:** when set to `true`, skips proof generation during deploy and execute. Only supported with a local Leo devnode. Defaults to `false`.
 ```
@@ -406,68 +420,72 @@ skipProof: true
 > **Warning:** Only enable `skipProof` when using a local Leo devnode. Transactions on testnet and mainnet require valid proofs.
 
 **defaultNetwork:** sets the default network while running tests in a local environment
+
 ```
 defaultNetwork: 'devnet'
 ```
 
+## Base Contract
 
-## Base Contract 
 This is the base class for type generated program files. This includes common methods used for most of the contract and testing. `base-contract.ts`. It includes methods for deployment, account management, and program execution.
 
-### Constructor ###
+### Constructor
 
 **BaseContract(config: Partial<ContractConfig>)**
 
 >     Initializes the contract with the given configuration.
 
-+ Parameters:
+- Parameters:
   - config (Partial): Partial configuration object for the contract, typically loaded from `aleo-config.js`.
-+ Throws: Error if network configuration is missing for the specified network.
+- Throws: Error if network configuration is missing for the specified network.
 
-### Methods ###
+### Methods
 
 **isDeployed()**
+
 >     Returns a Promise that resolves to a boolean indicating whether the program is deployed.
 
-+ Returns: Promise<boolean>
+- Returns: Promise<boolean>
 
-+ Description: Checks the deployment status of the program on the specified network.
+- Description: Checks the deployment status of the program on the specified network.
+
 ```
-Example: 
+Example:
       let flag = await contract_name.isDeployed()
 ```
 
 **deploy()**
+
 > Deploys the program to the network.
 
-+ Returns: Promise<any>
+- Returns: Promise<any>
 
-+ Description: Deploys the program to the configured network using the snarkDeploy method.
+- Description: Deploys the program to the configured network using the snarkDeploy method.
 
 **address()**
 
 >     Retrieves the program’s address.
 
-+ Returns: string
+- Returns: string
 
-+ Description: Returns the address of the program in the Aleo blockchain.
+- Description: Returns the address of the program in the Aleo blockchain.
+
 ```
-Example: 
+Example:
       const tx = await contract.deploy();
 ```
-
-
 
 **wait(transaction: T)**
 
 >     Deprecated: Use transaction receipt to wait.
 
-+ Parameters:
-  + transaction (TransactionResponse): The transaction object to wait for.
-+ Returns: Promise<T>
-+ Description: Waits for a transaction to complete and resolves with the transaction response.
+- Parameters:
+  - transaction (TransactionResponse): The transaction object to wait for.
+- Returns: Promise<T>
+- Description: Waits for a transaction to complete and resolves with the transaction response.
+
 ```
-Example: 
+Example:
       const tx = await contract.deploy();
       await tx.wait();
 ```
@@ -476,11 +494,12 @@ Example:
 
 >     Retrieves all accounts associated with the program's network.
 
-+ Returns: string[]
+- Returns: string[]
 
-+ Description: Returns an array of account addresses derived from the network’s private keys.
+- Description: Returns an array of account addresses derived from the network’s private keys.
+
 ```
-Example: 
+Example:
       const [admin, user1] = contract.getAccounts();
 
 ```
@@ -489,31 +508,30 @@ Example:
 
 >     Retrieves the default account address.
 
-+ Returns: string
+- Returns: string
 
-+ Description: Returns the address of the default account based on the private key in the configuration.
+- Description: Returns the address of the default account based on the private key in the configuration.
 
 ```
-Example: 
+Example:
       const user1 = contract.getDefaultAccount();
 
 ```
-
 
 **getPrivateKey(address: string)**
 
 >     Retrieves the private key for a given account address.
 
-+ Parameters:
+- Parameters:
 
-  +   address (string): The address of the account.
+  - address (string): The address of the account.
 
-+ Returns: string | undefined
+- Returns: string | undefined
 
-+ Description: Searches for the private key corresponding to the provided account address.
+- Description: Searches for the private key corresponding to the provided account address.
 
 ```
-Example: 
+Example:
       const adminPrivateKey = contract.getPrivateKey(admin);
 
 ```
@@ -522,22 +540,22 @@ Example:
 
 >     Connects to a specified account by its address.
 
-+ Parameters:
+- Parameters:
 
-  +   account (string): The address of the account to connect to.
+  - account (string): The address of the account to connect to.
 
-+ Throws: Error if the account is not found in the configuration.
+- Throws: Error if the account is not found in the configuration.
 
-+ Description: Updates the configuration to use the private key associated with the provided account address.
+- Description: Updates the configuration to use the private key associated with the provided account address.
 
 ```
-Example: 
+Example:
     contract.connect(admin);
 
 ```
 
+## DOKOJS CLI
 
-## DOKOJS CLI 
 The DokoJS CLI provides an interface for managing, building, and deploying projects built with DokoJS. Below is a detailed breakdown of its usage and commands, along with examples.
 
 **Usage**
@@ -546,19 +564,18 @@ dokojs [options] [command]
 
 **Options**
 
-+ -V, --version: Output the version number of DokoJS.
+- -V, --version: Output the version number of DokoJS.
 
-+ -h, --help: Display help for commands or the CLI in general.
+- -h, --help: Display help for commands or the CLI in general.
 
-## Commands 
+## Commands
 
 **init [options] <project-name>**
 
-+ Initializes a new DokoJS project.
+- Initializes a new DokoJS project.
 
-+ Options:
-  > ```--template <template-name>```: Specify a template to use for the project.
-
+- Options:
+  > `--template <template-name>`: Specify a template to use for the project.
 
 Example:
 
@@ -569,64 +586,71 @@ dokojs init my-project --template basic
 This initializes a new DokoJS project named my-project using the basic template.
 
 **add <program-name>**
+
 >     Adds a new component or resource to your project.
 
-Example: ```dokojs add my-program```
+Example: `dokojs add my-program`
 
 This adds a new component or resource named my-program to the project.
 
 **compile [options]**
+
 >     Compiles your DokoJS project.
 
-+ Options:
-  > ```--output <directory>```: Specify the output directory for the compiled files.
+- Options:
+  > `--output <directory>`: Specify the output directory for the compiled files.
 
-Example: ```dokojs compile --output ./dist```
+Example: `dokojs compile --output ./dist`
 
 This compiles the project and stores the compiled files in the ./dist directory.
 
 **unflatten**
+
 >     Creates a Leo build for programs.
 
-Example: ```dokojs unflatten```
+Example: `dokojs unflatten`
 
 This generates the necessary build files for Leo programs.
 
 **autogen**
+
 >     Generates TypeScript types for contracts. Use this command only after the build has been generated.
 
-Example: ```dokojs autogen```
+Example: `dokojs autogen`
 
 This generates TypeScript types for the contracts in the project.
 
 **run [options] <file>**
+
 >     Runs a specified file.
 
-Example: ```dokojs run scripts/example.js```
+Example: `dokojs run scripts/example.js`
 
 This runs the file scripts/example.js in debug mode.
 
 **deploy [options] <program-name>**
+
 >     Deploys a program to the network.
 
-+ Options:
-  >```--network <network>```: Specify the network to deploy to (e.g., mainnet, testnet).
+- Options:
+  > `--network <network>`: Specify the network to deploy to (e.g., mainnet, testnet).
 
-Example: ```dokojs deploy my-program --network testnet```
+Example: `dokojs deploy my-program --network testnet`
 
 This deploys the program my-program to the testnet network.
 
 **execute <file-path>**
+
 >     Executes a script located at the given file path.
 
-Example: ```dokojs execute scripts/deploy.js```
+Example: `dokojs execute scripts/deploy.js`
 
 This executes the script located at scripts/deploy.js.
 
 **help [command]**
+
 >     Displays help information for a specific command.
 
-Example: ```dokojs help deploy```
+Example: `dokojs help deploy`
 
 This displays help information for the deploy command.
-
