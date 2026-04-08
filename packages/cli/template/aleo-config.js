@@ -4,6 +4,7 @@ dotenv.config();
 export default {
   accounts: [process.env.ALEO_PRIVATE_KEY],
   mode: 'execute',
+  skipProof: false,
   networks: {
     devnet: {
       network: 'testnet',

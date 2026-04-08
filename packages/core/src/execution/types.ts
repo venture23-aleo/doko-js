@@ -25,6 +25,7 @@ export interface BaseConfig {
   network: NetworkConfig;
   networkName: string;
   privateKey: string;
+  skipProof: boolean;
 }
 
 export interface ContractConfig extends BaseConfig {

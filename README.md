@@ -130,6 +130,7 @@ dotenv.config();
 export default {
   accounts: [process.env.ALEO_PRIVATE_KEY],
   mode: 'execute',
+  skipProof: false,
   networks: {
     devnet: {
       network: 'testnet',
@@ -165,7 +166,7 @@ We have two modes of execution supported:
 1. `ExecutionMode.SnarkExecute`: In this mode, proof is generated and broadcasted on chain. Internally, it calls `leo execute` command. We need to run snarkos devnet for this to execute.
 2. `ExecutionMode.LeoRun`: In this mode, no proof is generated and broadcasted on chain. Internally, it calls `leo run` command.
 
-> `aleo-config` acts as a default configuation for the entire project. It can be overwritten on per program basis as well.
+> `aleo-config` acts as a default configuration for the entire project. It can be overwritten on per program basis as well.
 
 ### Adding / Modifying a Program
 
@@ -241,6 +242,37 @@ npm run test -- sample_program.test.ts
 
 > Pro Tip: You don't need to enter the full test file name. You can use part of the name of the file and the tests that matches the entered name will run.
 > Example: `npm run test -- sample`
+
+#### Faster Local Testing with Leo Devnode (Skip Proof)
+
+DokoJS supports skipping proof generation when running against a local **Leo devnode**. This significantly reduces the time for each deploy and execute during development and testing, since proof generation is the most time-consuming step.
+
+To enable it:
+
+1. Set `skipProof: true` in your `aleo-config.js`:
+
+```js
+export default {
+  // ...
+  skipProof: true,
+  defaultNetwork: 'devnet',
+  // ...
+};
+```
+
+2. Start a local Leo devnode in a separate terminal:
+
+```bash
+leo devnode
+```
+
+3. Run your tests as usual:
+
+```bash
+npm run test
+```
+
+> **Note:** `skipProof` is only supported when running against a local Leo devnode. Do not enable it when deploying or executing on testnet or mainnet, as transactions require valid proofs to be accepted by the network.
 
 ## Conclusion
 
@@ -349,46 +381,48 @@ The configuration of the dokojs can be defined in `aleo-config.js`
 >     {accounts: ["aleopk1", process.env.pk2]}
 
 **network:** specifies configuration for different environment. This accept (key, network configuration).
-Network configuration option are:
+  Network configuration option are: 
+  + endpoint: accepts url of the network. For example: http://localhost:3030
+  + accounts: accepts array of private key.
+  + priorityFee: is a value added to the base fee of a transaction to encourage node operators to process it
+  ```
+      networks: {
+          devnet: {
+        network: 'testnet',
+        endpoint: 'http://localhost:3030',
+        accounts: [
+          process.env.ALEO_PRIVATE_KEY_TESTNET3,
+          process.env.ALEO_DEVNET_PRIVATE_KEY2
+        ],
+        priorityFee: 0.01
+      },
+          testnet: {
+        network: 'testnet',
+        endpoint: 'https://api.explorer.provable.com/v1',
+        accounts: [
+          process.env.ALEO_PRIVATE_KEY_TESTNET3,
+          process.env.ALEO_DEVNET_PRIVATE_KEY2
+        ],
+        priorityFee: 0.01
+      },
+          mainnet: {
+        network: 'mainnet',
+        endpoint: 'https://api.explorer.provable.com/v1',
+        accounts: [process.env.ALEO_PRIVATE_KEY_MAINNET],
+        priorityFee: 0.001
+      }
+ }
+  ```
+**skipProof:** when set to `true`, skips proof generation during deploy and execute. Only supported with a local Leo devnode. Defaults to `false`.
+```
+skipProof: true
+```
+> **Warning:** Only enable `skipProof` when using a local Leo devnode. Transactions on testnet and mainnet require valid proofs.
 
-- endpoint: accepts url of the network. For example: http://localhost:3030
-- accounts: accepts array of private key.
-- priorityFee: is a value added to the base fee of a transaction to encourage node operators to process it
-- network: accepts the kind of network
+**defaultNetwork:** sets the default network while running tests in a local environment
 
 ```
-    networks: {
-  devnet: {
-    network: 'testnet',
-    endpoint: 'http://localhost:3030',
-    accounts: [
-      process.env.ALEO_PRIVATE_KEY_TESTNET3,
-      process.env.ALEO_DEVNET_PRIVATE_KEY2
-    ],
-    priorityFee: 0.01
-  },
-  testnet: {
-    network: 'testnet',
-    endpoint: 'https://api.explorer.provable.com/v1',
-    accounts: [
-      process.env.ALEO_PRIVATE_KEY_TESTNET3,
-      process.env.ALEO_DEVNET_PRIVATE_KEY2
-    ],
-    priorityFee: 0.01
-  },
-  mainnet: {
-    network: 'mainnet',
-    endpoint: 'https://api.explorer.provable.com/v1',
-    accounts: [process.env.ALEO_PRIVATE_KEY_MAINNET],
-    priorityFee: 0.001
-  }
-}
-```
-
-**defaultNetwork:** sets the default network while run the test in local environment
-
-```
-defaultNetwork: 'testnet'
+defaultNetwork: 'devnet'
 ```
 
 ## Base Contract
