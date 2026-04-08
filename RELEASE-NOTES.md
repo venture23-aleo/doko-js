@@ -1,3 +1,34 @@
+### Release Note: @dokojs/cli 1.2.0, @dokojs/core 1.2.0
+
+#### Key Updates
+
+##### **1. Leo v4.0.0 Compatibility**
+
+- **Updated Leo Version Support:**
+  - Commit [`212296c`](https://github.com/venture23-aleo/doko-js/commit/212296c) - Fixed compatibility with Leo v4.0.0
+  - Updated compile command flags to align with Leo v4.0.0 CLI interface changes
+  - Full compatibility with **Leo v4.0.0** for latest features and stability
+
+##### **2. External Struct Parsing Support**
+
+- **External Struct Type Handling:**
+  - Commit [`65c342f`](https://github.com/venture23-aleo/doko-js/commit/65c342f) - Fixed JS artifacts generation for external structs
+  - Commit [`a5e7a58`](https://github.com/venture23-aleo/doko-js/commit/a5e7a58) - Fixed external struct conversion to Leo type when used as function inputs
+  - Commit [`a3ce3dd`](https://github.com/venture23-aleo/doko-js/commit/a3ce3dd) - External struct types are now correctly imported in TypeScript artifacts
+  - Commit [`606875a`](https://github.com/venture23-aleo/doko-js/commit/606875a) - Fixed deep custom type mappings also being added to imports
+  - TypeScript artifacts now correctly import and reference external struct types from imported programs
+  - External structs are properly converted to Leo types when passed as inputs to program functions
+
+##### **3. Skip Proof Flag Support**
+
+- **Skip Proof Generation for Local Development:**
+  - Commit [`47ba034`](https://github.com/venture23-aleo/doko-js/commit/47ba034) - Added config option to skip proof generation for deployment and execution
+  - New `skipProofGeneration` flag available in `aleo-config.js` — supported only when using **Leo devnode**
+  - Skipping proof generation significantly speeds up local development and testing cycles
+  - Flag applies to both deploy and execute commands when running against a local devnode
+
+---
+
 ### Release Note: @dokojs/cli 1.1.0-beta, @dokojs/core 1.1.0-beta, @dokojs/utils 1.1.0-beta
 
 #### Key Updates
